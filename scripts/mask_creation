@@ -1,0 +1,106 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.path import Path
+import scipy.io as sio
+import os
+
+# --- 配置 ---
+OUTPUT_DIR = "F:/rainfalldata"
+MASK_FILENAME = "yangtze_mask.mat"
+MASK_INDICES_FILENAME = "yangtze_mask_indices.mat"
+
+# 长江流域的边界点 (从图像读取的大致坐标，经度和纬度)
+# 这些点按照图像中显示的长江流域边界轮廓提取
+yangtze_boundary = [
+    # 西部边界
+    (90, 35), (92, 34.5), (94, 34.5), (96, 33.5), 
+    # 西南部边界
+    (98, 32), (99, 30), (100, 28), (100, 26), (100, 24.5),
+    # 南部边界
+    (102, 24.5), (104, 25), (106, 26), (108, 26), (110, 26), (112, 26),
+    # 东南部边界
+    (114, 25.5), (116, 25.5), (118, 24.5), (120, 30),
+    # 东部边界
+    (122, 32), (119, 34),
+    # 北部边界
+    (115, 34), (110, 35), (105, 35), (100, 36), (95, 36), (90, 35)
+]
+
+# --- 创建掩码 (mask) ---
+print("Creating Yangtze River Basin mask...")
+
+# 定义完整的经纬度网格 (使用144x256的网格，与原始数据一致)
+# 基于loaddata.py中的信息，我们知道数据的形状是(144, 256)
+lat_min, lat_max = 20, 45  # 纬度范围，覆盖长江流域
+lon_min, lon_max = 85, 125 # 经度范围，覆盖长江流域
+
+# 创建网格点
+lat_grid = np.linspace(lat_max, lat_min, 144)  # 北到南的排序，所以lat_max在前
+lon_grid = np.linspace(lon_min, lon_max, 256)  # 西到东的排序
+
+# 创建网格坐标
+lons, lats = np.meshgrid(lon_grid, lat_grid)
+points = np.column_stack((lons.flatten(), lats.flatten()))
+
+# 将边界转换为Path对象
+boundary_path = Path(yangtze_boundary)
+
+# 检查每个点是否在边界内
+inside = boundary_path.contains_points(points).reshape(lons.shape)
+
+# 转换为0和1的mask
+mask = inside.astype(np.float32)  # 流域内为1，流域外为0
+
+# --- 获取掩码的索引 ---
+# 找出所有掩码值为1的点的索引
+mask_indices = np.where(mask == 1)
+indices_lat = mask_indices[0]  # 纬度索引
+indices_lon = mask_indices[1]  # 经度索引
+
+# 将索引转换为实际的经纬度坐标
+actual_lats = lat_grid[indices_lat]
+actual_lons = lon_grid[indices_lon]
+
+# 将索引和坐标打包为一个结构
+indices_data = {
+    'lat_indices': indices_lat,
+    'lon_indices': indices_lon,
+    'latitudes': actual_lats,
+    'longitudes': actual_lons
+}
+
+# --- 保存结果 ---
+print(f"Saving mask and indices to {OUTPUT_DIR}...")
+
+# 创建输出目录（如果不存在）
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# 保存掩码为.mat文件
+mask_path = os.path.join(OUTPUT_DIR, MASK_FILENAME)
+sio.savemat(mask_path, {'data': mask})
+print(f"Mask saved to {mask_path}")
+
+# 保存索引为.mat文件
+indices_path = os.path.join(OUTPUT_DIR, MASK_INDICES_FILENAME)
+sio.savemat(indices_path, indices_data)
+print(f"Indices saved to {indices_path}")
+
+# --- 可视化掩码 ---
+plt.figure(figsize=(10, 6))
+plt.pcolormesh(lon_grid, lat_grid, mask, cmap='Greens')
+plt.colorbar(label='Mask Value')
+plt.title('Yangtze River Basin Mask')
+plt.xlabel('Longitude (°E)')
+plt.ylabel('Latitude (°N)')
+plt.grid(True, linestyle='--', alpha=0.7)
+
+# 绘制边界点
+boundary_x, boundary_y = zip(*yangtze_boundary)
+plt.plot(boundary_x, boundary_y, 'r-', linewidth=2, label='Basin Boundary')
+
+plt.legend()
+plt.tight_layout()
+plt.savefig(os.path.join(OUTPUT_DIR, 'yangtze_mask_visualization.png'))
+print("Visualization saved.")
+
+print("Done.")

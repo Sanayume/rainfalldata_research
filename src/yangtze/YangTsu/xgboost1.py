@@ -1,0 +1,357 @@
+import numpy as np
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_auc_score
+import matplotlib.pyplot as plt
+from loaddata import mydata
+import os
+import pandas as pd
+import joblib
+import time
+import optuna
+
+# --- 配置 ---
+PROJECT_DIR = "F:/rainfalldata/YangTsu/"
+X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features.npy")
+Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target.npy")
+FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu.txt")
+RAIN_THRESHOLD = 0.1
+TEST_SIZE_RATIO = 0.2
+MAX_LOOKBACK = 30
+N_TRIALS = 50
+OPTUNA_TIMEOUT = 3600
+OPTIMIZE_METRIC = 'auc'
+EARLY_STOPPING_ROUNDS_OPTUNA = 30
+EARLY_STOPPING_ROUNDS_FINAL = 30
+
+# --- 辅助函数：计算性能指标 ---
+def calculate_metrics(y_true, y_pred, title=""):
+    cm = confusion_matrix(y_true, y_pred)
+    tn, fp, fn, tp = cm.ravel()
+
+    accuracy = accuracy_score(y_true, y_pred)
+    pod = tp / (tp + fn) if (tp + fn) > 0 else 0
+    far = fp / (tp + fp) if (tp + fp) > 0 else 0
+    csi = tp / (tp + fn + fp) if (tp + fn + fp) > 0 else 0
+
+    print(f"\n--- {title} Performance ---")
+    print(f"Confusion Matrix:\n{cm}")
+    print(f"  True Negatives (TN): {tn}")
+    print(f"  False Positives (FP): {fp}")
+    print(f"  False Negatives (FN): {fn}")
+    print(f"  True Positives (TP): {tp}")
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"POD (Hit Rate/Recall): {pod:.4f}")
+    print(f"FAR (False Alarm Ratio): {far:.4f}")
+    print(f"CSI (Critical Success Index): {csi:.4f}")
+    print("\nClassification Report:")
+    print(classification_report(y_true, y_pred, target_names=['No Rain', 'Rain']))
+    return {'tn': tn, 'fp': fp, 'fn': fn, 'tp': tp, 'accuracy': accuracy, 'pod': pod, 'far': far, 'csi': csi}
+
+# --- 1. 加载数据 ---
+print("Loading Yangtze flattened data...")
+start_load_flat = time.time()
+if not (os.path.exists(X_FLAT_PATH) and os.path.exists(Y_FLAT_PATH) and os.path.exists(FEATURE_NAMES_PATH)):
+    raise FileNotFoundError(f"Flattened data files for Yangtze dataset not found in {PROJECT_DIR}. Run turn1.py first.")
+
+try:
+    print(f"Attempting to load {X_FLAT_PATH}...")
+    X_flat = np.load(X_FLAT_PATH)
+    print(f"Attempting to load {Y_FLAT_PATH}...")
+    Y_flat = np.load(Y_FLAT_PATH)
+except MemoryError as e:
+    print(f"MemoryError loading flattened data: {e}")
+    print("Consider using XGBoost's external memory features or reducing the dataset size if needed.")
+    raise
+except Exception as e:
+    print(f"Error loading flattened data: {e}")
+    raise
+
+with open(FEATURE_NAMES_PATH, "r") as f:
+    feature_names = [line.strip() for line in f]
+
+print(f"Loaded flattened features X_flat: shape {X_flat.shape}")
+print(f"Loaded flattened target Y_flat: shape {Y_flat.shape}")
+print(f"Loaded {len(feature_names)} feature names.")
+end_load_flat = time.time()
+print(f"Flattened data loading finished in {end_load_flat - start_load_flat:.2f} seconds.")
+
+print("\nLoading original Yangtze data for baseline calculation...")
+start_load_orig = time.time()
+original_data = mydata()
+X_orig_raw, Y_orig_raw = original_data.yangtsu()
+product_names = original_data.features
+n_products, nday, n_points = X_orig_raw.shape
+end_load_orig = time.time()
+print(f"Original Yangtze data loaded in {end_load_orig - start_load_orig:.2f} seconds.")
+print(f"X_orig_raw shape: {X_orig_raw.shape}, Y_orig_raw shape: {Y_orig_raw.shape}")
+
+# --- 2. 准备真实标签和基线预测 ---
+print("\nPreparing true labels and baseline predictions for Yangtze...")
+Y_orig_aligned = Y_orig_raw[MAX_LOOKBACK:].astype(np.float32)
+Y_true_flat_orig = Y_orig_aligned.reshape(-1)
+Y_true_binary = (Y_true_flat_orig > RAIN_THRESHOLD).astype(int)
+print(f"Shape of flattened true labels for baseline: {Y_true_binary.shape}")
+
+# --- 3. 计算所有基线产品的性能 (Yangtze Data) ---
+print("\nCalculating baseline performance for all products (Yangtze Data)...")
+baseline_metrics_all = {}
+X_orig_transposed = np.transpose(X_orig_raw, (1, 2, 0)).astype(np.float32)
+X_orig_aligned = X_orig_transposed[MAX_LOOKBACK:]
+
+for i in range(n_products):
+    product_name = product_names[i]
+    print(f"  Calculating for: {product_name}")
+    baseline_product_data = X_orig_aligned[:, :, i]
+    baseline_pred_flat = baseline_product_data.reshape(-1)
+    baseline_pred_binary = (baseline_pred_flat > RAIN_THRESHOLD).astype(int)
+
+    if baseline_pred_binary.shape != Y_true_binary.shape:
+        print(f"    WARNING: Shape mismatch for {product_name}! Baseline: {baseline_pred_binary.shape}, True: {Y_true_binary.shape}. Skipping.")
+        continue
+
+    metrics = calculate_metrics(Y_true_binary, baseline_pred_binary, title=f"Baseline ({product_name}) - Yangtze")
+    baseline_metrics_all[product_name] = metrics
+
+del X_orig_raw, Y_orig_raw, X_orig_transposed, X_orig_aligned, Y_orig_aligned, Y_true_flat_orig
+
+# --- 4. 准备 XGBoost 数据 ---
+print("\nPreparing data for XGBoost (Yangtze)...")
+Y_binary = (Y_flat > RAIN_THRESHOLD).astype(int)
+n_samples = len(Y_binary)
+print(f"Splitting data with test_size={TEST_SIZE_RATIO} and random_state=42...")
+start_split = time.time()
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_flat, Y_binary, test_size=TEST_SIZE_RATIO, random_state=42, stratify=Y_binary
+)
+
+end_split = time.time()
+print(f"Data splitting finished in {end_split - start_split:.2f} seconds.")
+
+train_counts = np.bincount(y_train)
+test_counts = np.bincount(y_test)
+print(f"Train set size: {len(y_train)} (No Rain: {train_counts[0]}, Rain: {train_counts[1]})")
+print(f"Test set size: {len(y_test)} (No Rain: {test_counts[0]}, Rain: {test_counts[1]})")
+
+# --- 5. 超参数优化 (使用 Optuna) ---
+print("\n--- Starting Hyperparameter Optimization with Optuna ---")
+start_opt_time = time.time()
+
+def objective(trial):
+    """Optuna objective function."""
+    param = {
+        'objective': 'binary:logistic',
+        'eval_metric': ['logloss', 'auc'],
+        'tree_method': 'hist',
+        'verbosity': 0,
+        'n_estimators': 1000,
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3, log=True),
+        'max_depth': trial.suggest_int('max_depth', 4, 10),
+        'subsample': trial.suggest_float('subsample', 0.6, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.6, 1.0),
+        'gamma': trial.suggest_float('gamma', 0.0, 0.5),
+        'lambda': trial.suggest_float('lambda', 1e-8, 1.0, log=True),
+        'alpha': trial.suggest_float('alpha', 1e-8, 1.0, log=True),
+        'scale_pos_weight': (np.sum(y_train == 0) / np.sum(y_train == 1)) if np.sum(y_train == 1) > 0 else 1,
+        'early_stopping_rounds': EARLY_STOPPING_ROUNDS_OPTUNA
+    }
+
+    model = xgb.XGBClassifier(**param)
+    eval_set = [(X_test, y_test)]
+
+    try:
+        model.fit(X_train, y_train,
+                  eval_set=eval_set,
+                  verbose=False)
+
+        results = model.evals_result()
+        if OPTIMIZE_METRIC == 'auc':
+            best_score = results['validation_0']['auc'][model.best_iteration]
+            return best_score
+        else:
+            best_score = results['validation_0']['logloss'][model.best_iteration]
+            return best_score
+
+    except Exception as e:
+        print(f"Trial failed with error: {e}")
+        return float('inf') if OPTIMIZE_METRIC == 'logloss' else 0.0
+
+study_direction = 'maximize' if OPTIMIZE_METRIC == 'auc' else 'minimize'
+study = optuna.create_study(direction=study_direction)
+
+try:
+    study.optimize(objective, n_trials=N_TRIALS, timeout=OPTUNA_TIMEOUT)
+except KeyboardInterrupt:
+    print("Optimization stopped manually.")
+
+end_opt_time = time.time()
+print(f"Hyperparameter optimization finished in {end_opt_time - start_opt_time:.2f} seconds.")
+
+best_params = study.best_params
+print("\nBest hyperparameters found:")
+print(best_params)
+print(f"Best {OPTIMIZE_METRIC} value: {study.best_value:.4f}")
+
+# --- 5b. Train Final Model with OPTIMIZED Params & Early Stopping ---
+print("\n--- Training FINAL model with OPTIMIZED parameters on Yangtze training data ---")
+start_train = time.time()
+
+final_params = {
+    'objective': 'binary:logistic',
+    'eval_metric': ['logloss', 'auc'],
+    'tree_method': 'hist',
+    'n_estimators': 1500,
+    'scale_pos_weight': (np.sum(y_train == 0) / np.sum(y_train == 1)) if np.sum(y_train == 1) > 0 else 1,
+    'random_state': 42,
+    'early_stopping_rounds': EARLY_STOPPING_ROUNDS_FINAL
+}
+final_params.update(best_params)
+
+final_model = xgb.XGBClassifier(**final_params)
+eval_set = [(X_test, y_test)]
+final_model.fit(X_train, y_train, eval_set=eval_set, verbose=50)
+end_train = time.time()
+print(f"Final model training complete in {end_train - start_train:.2f} seconds.")
+print(f"Best iteration for final model: {final_model.best_iteration}")
+
+# --- Save the OPTIMIZED trained model ---
+MODEL_SAVE_PATH = os.path.join(PROJECT_DIR, "xgboost_optimized_yangtsu_model.joblib")
+print(f"\nSaving the OPTIMIZED trained model to {MODEL_SAVE_PATH}...")
+try:
+    joblib.dump(final_model, MODEL_SAVE_PATH)
+    print("Optimized model saved successfully.")
+except Exception as e:
+    print(f"Error saving optimized model: {e}")
+
+# --- 6. 评估 XGBoost 模型 (Using OPTIMIZED parameters & Varying Thresholds) ---
+print("\n--- Evaluating FINAL XGBoost model (Optimized Params) on the Yangtze test set with varying thresholds ---")
+start_eval = time.time()
+y_pred_proba = final_model.predict_proba(X_test)[:, 1]
+thresholds_to_evaluate = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
+metrics_by_threshold = {}
+
+print("Calculating metrics for different thresholds...")
+for threshold in thresholds_to_evaluate:
+    print(f"\n--- Threshold: {threshold:.2f} ---")
+    y_pred_test_threshold = (y_pred_proba >= threshold).astype(int)
+    metrics = calculate_metrics(y_test, y_pred_test_threshold, title=f"XGBoost Classifier Yangtze (Optimized, Threshold {threshold:.2f})")
+    metrics_by_threshold[threshold] = metrics
+
+xgboost_metrics_optimized_threshold_05 = metrics_by_threshold[0.5]
+end_eval = time.time()
+print(f"Evaluation finished in {end_eval - start_eval:.2f} seconds.")
+
+# --- 7. 比较基线和 XGBoost 在测试集上的性能 (Using OPTIMIZED threshold 0.5) ---
+print("\n--- Final Performance Comparison (Yangtze Test Set - Optimized Threshold 0.5) ---")
+metrics_to_show = ['accuracy', 'pod', 'far', 'csi', 'fp', 'fn']
+comparison_data = {}
+
+comparison_data['XGBoost_Yangtsu_Optimized (Thr 0.5)'] = {metric: xgboost_metrics_optimized_threshold_05.get(metric, float('nan')) for metric in metrics_to_show}
+
+for product_name, metrics in baseline_metrics_all.items():
+    comparison_data[f'Baseline_{product_name}_Yangtsu'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
+
+comparison_df = pd.DataFrame(comparison_data).T
+comparison_df = comparison_df[metrics_to_show]
+
+print("\n--- Final Performance Comparison (Yangtze - Optimized Threshold 0.5) ---")
+float_cols = ['accuracy', 'pod', 'far', 'csi']
+for col in float_cols:
+    if col in comparison_df.columns:
+        comparison_df[col] = comparison_df[col].map('{:.4f}'.format)
+int_cols = ['fp', 'fn']
+for col in int_cols:
+    if col in comparison_df.columns:
+        comparison_df[col] = comparison_df[col].map('{:.0f}'.format)
+
+print(comparison_df)
+comparison_csv_path = os.path.join(PROJECT_DIR, "performance_comparison_yangtsu_optimized.csv")
+print(f"Saving comparison table to {comparison_csv_path}")
+comparison_df.to_csv(comparison_csv_path)
+
+# --- Optional: Display metrics for all evaluated thresholds (Optimized Model) ---
+print("\n--- XGBoost Performance across different thresholds (Yangtze - Optimized Model) ---")
+threshold_metrics_data = {}
+for threshold, metrics in metrics_by_threshold.items():
+    threshold_metrics_data[f'Optimized_Threshold_{threshold:.2f}'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
+
+threshold_df = pd.DataFrame(threshold_metrics_data).T
+threshold_df = threshold_df[metrics_to_show]
+
+for col in float_cols:
+    if col in threshold_df.columns:
+        threshold_df[col] = threshold_df[col].map('{:.4f}'.format)
+for col in int_cols:
+    if col in threshold_df.columns:
+        threshold_df[col] = threshold_df[col].map('{:.0f}'.format)
+
+print(threshold_df)
+threshold_csv_path = os.path.join(PROJECT_DIR, "threshold_performance_yangtsu_optimized.csv")
+print(f"Saving threshold performance table to {threshold_csv_path}")
+threshold_df.to_csv(threshold_csv_path)
+
+# --- 8. 可视化训练过程 (Using OPTIMIZED parameters) ---
+print("Plotting training history (Optimized Params - Yangtze)...")
+results = final_model.evals_result()
+if 'validation_0' in results:
+    epochs = len(results['validation_0']['logloss'])
+    x_axis = range(0, epochs)
+    fig, ax = plt.subplots(1, 2, figsize=(15, 5))
+
+    ax[0].plot(x_axis, results['validation_0']['logloss'], label='Test (eval_set)')
+    ax[0].legend()
+    ax[0].set_ylabel('LogLoss')
+    ax[0].set_xlabel('Epochs')
+    ax[0].set_title('XGBoost LogLoss (Optimized)')
+
+    metric_to_plot = 'auc' if 'auc' in results['validation_0'] else 'error'
+    if metric_to_plot in results['validation_0']:
+        ax[1].plot(x_axis, results['validation_0'][metric_to_plot], label=f'Test (eval_set) - {metric_to_plot.upper()}')
+        ax[1].legend()
+        ax[1].set_ylabel(metric_to_plot.upper())
+        ax[1].set_xlabel('Epochs')
+        ax[1].set_title(f'XGBoost {metric_to_plot.upper()} (Optimized)')
+    else:
+        ax[1].set_title('Metric not found')
+
+    plt.tight_layout()
+    history_plot_path = os.path.join(PROJECT_DIR, "xgboost_training_history_yangtsu_optimized.png")
+    plt.savefig(history_plot_path)
+    print(f"Training history plot saved to {history_plot_path}")
+    plt.close()
+else:
+    print("Warning: 'validation_0' not found in evals_result(). Cannot plot history.")
+
+# --- 9. 特征重要性 (Using OPTIMIZED parameters) ---
+print("\n--- Feature Importances (Optimized Params - Yangtze) ---")
+try:
+    importances = final_model.feature_importances_
+    importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+    importance_df = importance_df.sort_values(by='Importance', ascending=False)
+
+    print("Top 10 Features:")
+    print(importance_df.head(10))
+
+    N_TOP_FEATURES_TO_PLOT = 50
+    n_features_actual = len(feature_names)
+    n_plot = min(N_TOP_FEATURES_TO_PLOT, n_features_actual)
+
+    plt.figure(figsize=(10, n_plot / 2.0))
+    top_features = importance_df.head(n_plot)
+    plt.barh(top_features['Feature'], top_features['Importance'])
+    plt.xlabel("Importance Score")
+    plt.ylabel("Feature")
+    plt.title(f"Top {n_plot} Feature Importances (XGBoost Yangtze Model - Optimized)")
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+
+    importance_plot_path = os.path.join(PROJECT_DIR, "xgboost_feature_importance_yangtsu_optimized.png")
+    plt.savefig(importance_plot_path)
+    print(f"Feature importance plot saved to {importance_plot_path}")
+    plt.close()
+
+except Exception as e:
+    print(f"Could not plot feature importance: {e}")
+
+print("\nAnalysis complete for Yangtze dataset using OPTIMIZED parameters, evaluated multiple thresholds.")
