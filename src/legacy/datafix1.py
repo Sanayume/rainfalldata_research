@@ -12,21 +12,23 @@ from sklearn.pipeline import Pipeline
 import sys
 import matplotlib.pyplot as plt
 import io
+import os
 
 # 导入数据检查模块
 from data_check import check_missing_data, plot_missing_data_stats, print_stats_summary, plot_max_missing_day,hybrid_interpolation
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+basepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 # 定义数据路径和常量,6个文件
-MASK = 'mask.mat' #掩膜数据
-CHIRPS = 'CHIRPSdata/chirps_2016_2020.mat' #产品数据 小规模缺失数据 使用插值方法填充
-IMERG = 'IMERGdata/IMERG_2016_2020.mat' #产品数据
-CHM = 'CHMdata/CHM_2016_2020.mat' #真实数据
-GSMAP = 'GSMAPdata/GSMAP_2016_2020.mat' #产品数据
-SM2RAIN = 'sm2raindata/sm2rain_2016_2020.mat' #产品数据 且大面积缺失数据 使用IMERG数据填充
-PERSIANN = 'PERSIANNdata/PERSIANN_2016_2020.mat' #产品数据
-CMORPH = 'CMORPHdata/CMORPH_2016_2020.mat' #产品数据
+MASK = os.path.join(basepath, "mask", "mask.mat") #掩膜数据
+CHIRPS = os.path.join(basepath, "intermediate", "nationwide", "CHIRPSdata", "chirps_2016_2020.mat") #产品数据 小规模缺失数据 使用插值方法填充
+IMERG = os.path.join(basepath, "intermediate", "nationwide", "IMERGdata", "IMERG_2016_2020.mat") #产品数据
+CHM = os.path.join(basepath, "intermediate", "nationwide", "CHMdata", "CHM_2016_2020.mat") #真实数据
+GSMAP = os.path.join(basepath, "intermediate", "nationwide", "GSMAPdata", "GSMAP_2016_2020.mat") #产品数据
+SM2RAIN = os.path.join(basepath, "intermediate", "nationwide", "sm2raindata", "sm2rain_2016_2020.mat") #产品数据 且大面积缺失数据 使用IMERG数据填充
+PERSIANN = os.path.join(basepath, "intermediate", "nationwide", "PERSIANNdata", "PERSIANN_2016_2020.mat") #产品数据
+CMORPH = os.path.join(basepath, "intermediate", "nationwide", "CMORPHdata", "CMORPH_2016_2020.mat") #产品数据
 
 # 加载数据
 mask = loadmat(MASK)['mask']
@@ -76,13 +78,13 @@ data_stats = {}
 #datasets['SM2RAIN'] = (processed_data, datasets.get('SM2RAIN')[1])
 
 #对CMORPH数据进行混合处理
-#processed_data, stats = hybrid_interpolation(datasets.get('CMORPH')[0], mask=datasets.get('CMORPH')[1], reference_data=datasets.get('IMERG')[0])
-#datasets['CMORPH'] = (processed_data, datasets.get('CMORPH')[1])
+processed_data, stats = hybrid_interpolation(datasets.get('CMORPH')[0], mask=datasets.get('CMORPH')[1], reference_data=datasets.get('IMERG')[0])
+datasets['CMORPH'] = (processed_data, datasets.get('CMORPH')[1])
 
 # 保存处理后的数据
-#savemat("CHIRPSdata/chirps_2016_2020.mat",{'data':datasets.get('CHIRPS')[0]})
-#savemat("sm2raindata/sm2rain_2016_2020.mat",{'data':datasets.get('SM2RAIN')[0]})
-#savemat("CMORPHdata/CMORPH_2016_2020.mat",{'data':datasets.get('CMORPH')[0]})
+savemat(os.path.join(basepath, "intermediate", "nationwide", "CHIRPSdata", "chirps_2016_2020.mat"),{'data':datasets.get('CHIRPS')[0]})
+savemat(os.path.join(basepath, "intermediate", "nationwide", "sm2raindata", "sm2rain_2016_2020.mat"),{'data':datasets.get('SM2RAIN')[0]})
+savemat(os.path.join(basepath, "intermediate", "nationwide", "CMORPHdata", "CMORPH_2016_2020.mat"),{'data':datasets.get('CMORPH')[0]})
 
 processed_results = {}  # 改用更清晰的变量名
 stats_results = {}     # 改用更清晰的变量名
@@ -103,7 +105,7 @@ for name, (data, mask_data) in datasets.items():
 
 # 可选：保存处理后的数据
 for name, data in processed_results.items():
-    savemat(f'processed_{name.lower()}.mat', {'data': data})
+    savemat(os.path.join(basepath, "intermediate", "nationwide", f'processed_{name.lower()}.mat'), {'data': data})
 
 
 
