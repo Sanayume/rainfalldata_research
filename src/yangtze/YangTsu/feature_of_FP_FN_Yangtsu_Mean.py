@@ -205,7 +205,7 @@ if __name__ == "__main__":
     MAX_THRESHOLD = 10 # 假设分析降雨强度阈值，最大到 10 mm/day
     COARSE_STEPS = 100
     FINE_STEPS = 50
-    SAVE_DIR = "F:/rainfalldata/YangTsu/threshold_analysis_results"
+    SAVE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "plots")
     os.makedirs(SAVE_DIR, exist_ok=True)
 
     # --- 4. 准备数据进行分析 ---

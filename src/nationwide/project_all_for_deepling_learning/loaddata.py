@@ -5,7 +5,9 @@ import os
 class mydata:
     def __init__(self):
         # 使用 os.path.join 确保路径分隔符正确，并使用绝对路径
-        base_path = "F:/rainfalldata"
+        base_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "intermediate", "nationwide")
+        mask_base_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "processed", "nationwide", "masks")
+
         self.DATAFILE ={
             "CMORPH": os.path.join(base_path, "CMORPHdata", "CMORPH_2016_2020.mat"), # (144, 256, 1827)
             "CHIRPS": os.path.join(base_path, "CHIRPSdata", "chirps_2016_2020.mat"), # (144, 256, 1827)
@@ -14,7 +16,7 @@ class mydata:
             "GSMAP": os.path.join(base_path, "GSMAPdata", "GSMAP_2016_2020.mat"), # (144, 256, 1827)
             "PERSIANN": os.path.join(base_path, "PERSIANNdata", "PERSIANN_2016_2020.mat"), # (144, 256, 1827)
             "CHM": os.path.join(base_path, "CHMdata", "CHM_2016_2020.mat"), # (144, 256, 1827) - Target
-            "MASK": os.path.join(base_path, "mask.mat"), # (144, 256)
+            "MASK": os.path.join(mask_base_path, "combined_china_basin_mask.mat"), # (144, 256)
         }
         # 定义切片参数 - 移除空间切片
         # lat_slice = slice(50, 100) # Removed

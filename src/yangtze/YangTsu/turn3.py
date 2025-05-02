@@ -8,7 +8,7 @@ print("--- Step 1: Data Loading (Yangtze) ---")
 start_load = time.time()
 ALL_DATA = mydata()
 # Load Yangtze data
-X_raw, Y_raw = ALL_DATA.yangtsu() # Shape: (prod, time, points), (time, points)
+X_raw, Y_raw, _, _ = ALL_DATA.yangtsu() # Shape: (prod, time, points), (time, points)
 product_names = ALL_DATA.features
 n_products, nday, n_points = X_raw.shape
 print(f"Initial X_raw shape: {X_raw.shape}")
@@ -280,7 +280,9 @@ if len(feature_names) != total_features:
      exit()
 
 # Define output directory and filenames explicitly for Yangtze v3
-OUTPUT_DIR = "F:/rainfalldata/YangTsu/" # Ensure it's the Yangtze dir
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 X_flat_filename = os.path.join(OUTPUT_DIR, "X_Yangtsu_flat_features_v3.npy") # Add _v3
 Y_flat_filename = os.path.join(OUTPUT_DIR, "Y_Yangtsu_flat_target_v3.npy") # Add _v3
 feature_names_filename = os.path.join(OUTPUT_DIR, "feature_names_yangtsu_v3.txt") # Add _v3

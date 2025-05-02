@@ -4,7 +4,9 @@ import os
 import time
 
 # --- Constants ---
-OUTPUT_DIR = "F:/rainfalldata/YangTsu/" # Specific output directory for Yangtze
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 X_flat_filename = os.path.join(OUTPUT_DIR, "X_Yangtsu_flat_features.npy")
 Y_flat_filename = os.path.join(OUTPUT_DIR, "Y_Yangtsu_flat_target.npy")
 feature_names_filename = os.path.join(OUTPUT_DIR, "feature_names_yangtsu.txt")
@@ -20,12 +22,13 @@ def safe_divide(numerator, denominator, default=0.0):
 
 # --- 1. Data Loading ---
 start_time = time.time()
-print("Loading Yangtze data...")
+print("Loading Yangtze point data...")
 ALL_DATA = mydata()
-# Load Yangtze data using the specific method
+# Load Yangtze POINT data using the new method
 # X_raw shape: (n_products, time, n_points), Y_raw shape: (time, n_points)
-X_raw, Y_raw = ALL_DATA.yangtsu()
-product_names = ALL_DATA.features
+# Use basin_mask_value=2 for Yangtze
+X_raw, Y_raw = ALL_DATA.get_basin_point_data(basin_mask_value=2)
+product_names = ALL_DATA.get_products() # Use getter
 n_products, nday, n_points = X_raw.shape # Get dimensions
 print(f"Data loaded. X_raw shape: {X_raw.shape}, Y_raw shape: {Y_raw.shape}")
 print(f"Time elapsed: {time.time() - start_time:.2f} seconds")

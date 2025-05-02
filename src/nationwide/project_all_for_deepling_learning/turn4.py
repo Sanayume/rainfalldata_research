@@ -244,7 +244,9 @@ if len(feature_names) != total_features:
      exit()
 
 # Define output directory and filenames explicitly for v4
-OUTPUT_DIR = "F:/rainfalldata"
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "nationwide", "features")
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 X_flat_filename = os.path.join(OUTPUT_DIR, "X_flat_features_v4.npy") # v4
 Y_flat_filename = os.path.join(OUTPUT_DIR, "Y_flat_target_v4.npy") # v4
 feature_names_filename = os.path.join(OUTPUT_DIR, "feature_names_v4.txt") # v4

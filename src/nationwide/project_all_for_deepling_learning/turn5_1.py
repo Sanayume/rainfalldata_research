@@ -165,7 +165,9 @@ if len(feature_names) != total_features:
     print(f"FATAL: Mismatch between calculated total features ({total_features}) and feature name list length ({len(feature_names)})!")
     exit()
 
-OUTPUT_DIR = "F:/rainfalldata"
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "nationwide", "features")
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 X_flat_filename = os.path.join(OUTPUT_DIR, "X_flat_features_v5_1.npy")
 Y_flat_filename = os.path.join(OUTPUT_DIR, "Y_flat_target_v5_1.npy")
 feature_names_filename = os.path.join(OUTPUT_DIR, "feature_names_v5_1.txt")

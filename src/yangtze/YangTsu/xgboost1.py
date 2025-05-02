@@ -7,11 +7,11 @@ from loaddata import mydata
 import os
 import pandas as pd
 import joblib
-import time
+import time 
 import optuna
 
 # --- 配置 ---
-PROJECT_DIR = "F:/rainfalldata/YangTsu/"
+PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features.npy")
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target.npy")
 FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu.txt")
@@ -76,44 +76,53 @@ print(f"Loaded {len(feature_names)} feature names.")
 end_load_flat = time.time()
 print(f"Flattened data loading finished in {end_load_flat - start_load_flat:.2f} seconds.")
 
-print("\nLoading original Yangtze data for baseline calculation...")
+print("\nLoading original SPATIAL Yangtze data for baseline calculation...")
 start_load_orig = time.time()
-original_data = mydata()
-X_orig_raw, Y_orig_raw = original_data.yangtsu()
-product_names = original_data.features
-n_products, nday, n_points = X_orig_raw.shape
+original_data_loader = mydata()
+# Load SPATIAL data for the basin
+# X_orig_spatial shape: (n_products, time, lat, lon)
+# Y_orig_spatial shape: (time, lat, lon)
+X_orig_spatial, Y_orig_spatial = original_data_loader.get_basin_spatial_data(basin_mask_value=2)
+product_names = original_data_loader.get_products()
+n_products, nday, lat_dim, lon_dim = X_orig_spatial.shape # Get dimensions
 end_load_orig = time.time()
-print(f"Original Yangtze data loaded in {end_load_orig - start_load_orig:.2f} seconds.")
-print(f"X_orig_raw shape: {X_orig_raw.shape}, Y_orig_raw shape: {Y_orig_raw.shape}")
+print(f"Original spatial Yangtze data loaded in {end_load_orig - start_load_orig:.2f} seconds.")
+print(f"X_orig_spatial shape: {X_orig_spatial.shape}, Y_orig_spatial shape: {Y_orig_spatial.shape}")
 
-# --- 2. 准备真实标签和基线预测 ---
-print("\nPreparing true labels and baseline predictions for Yangtze...")
-Y_orig_aligned = Y_orig_raw[MAX_LOOKBACK:].astype(np.float32)
-Y_true_flat_orig = Y_orig_aligned.reshape(-1)
-Y_true_binary = (Y_true_flat_orig > RAIN_THRESHOLD).astype(int)
-print(f"Shape of flattened true labels for baseline: {Y_true_binary.shape}")
+# --- 2. 准备真实标签和基线预测 (using spatial data) ---
+print("\nPreparing true labels and baseline predictions for Yangtze (using spatial data)...")
+# Align original Y (spatial) in time
+Y_orig_spatial_aligned = Y_orig_spatial[MAX_LOOKBACK:].astype(np.float32) # (valid_days, lat, lon)
+# Flatten true labels AFTER aligning and masking (only consider valid points within the basin)
+valid_mask_spatial = ~np.isnan(Y_orig_spatial_aligned[0]) # Use mask from first day (lat, lon)
+Y_true_flat_for_baseline = Y_orig_spatial_aligned[:, valid_mask_spatial].reshape(-1) # Flatten only valid points
+Y_true_binary_for_baseline = (Y_true_flat_for_baseline > RAIN_THRESHOLD).astype(int)
+print(f"Shape of flattened true labels for baseline (valid points): {Y_true_binary_for_baseline.shape}")
 
-# --- 3. 计算所有基线产品的性能 (Yangtze Data) ---
-print("\nCalculating baseline performance for all products (Yangtze Data)...")
+# --- 3. 计算所有基线产品的性能 (Yangtze Data - using spatial data) ---
+print("\nCalculating baseline performance for all products (Yangtze Data - using spatial data)...")
 baseline_metrics_all = {}
-X_orig_transposed = np.transpose(X_orig_raw, (1, 2, 0)).astype(np.float32)
-X_orig_aligned = X_orig_transposed[MAX_LOOKBACK:]
+# Align original X (spatial) in time
+X_orig_spatial_aligned = X_orig_spatial[:, MAX_LOOKBACK:, :, :].astype(np.float32) # (prod, valid_days, lat, lon)
 
 for i in range(n_products):
     product_name = product_names[i]
     print(f"  Calculating for: {product_name}")
-    baseline_product_data = X_orig_aligned[:, :, i]
-    baseline_pred_flat = baseline_product_data.reshape(-1)
+    # Get product data, ensure it's (valid_days, lat, lon)
+    baseline_product_data_spatial = X_orig_spatial_aligned[i, :, :, :]
+    # Flatten predictions AFTER aligning and masking
+    baseline_pred_flat = baseline_product_data_spatial[:, valid_mask_spatial].reshape(-1) # Flatten only valid points
     baseline_pred_binary = (baseline_pred_flat > RAIN_THRESHOLD).astype(int)
 
-    if baseline_pred_binary.shape != Y_true_binary.shape:
-        print(f"    WARNING: Shape mismatch for {product_name}! Baseline: {baseline_pred_binary.shape}, True: {Y_true_binary.shape}. Skipping.")
+    if baseline_pred_binary.shape != Y_true_binary_for_baseline.shape:
+        print(f"    WARNING: Shape mismatch for {product_name}! Baseline: {baseline_pred_binary.shape}, True: {Y_true_binary_for_baseline.shape}. Skipping.")
         continue
 
-    metrics = calculate_metrics(Y_true_binary, baseline_pred_binary, title=f"Baseline ({product_name}) - Yangtze")
+    metrics = calculate_metrics(Y_true_binary_for_baseline, baseline_pred_binary, title=f"Baseline ({product_name}) - Yangtze Spatial")
     baseline_metrics_all[product_name] = metrics
 
-del X_orig_raw, Y_orig_raw, X_orig_transposed, X_orig_aligned, Y_orig_aligned, Y_true_flat_orig
+# Clean up large original spatial arrays
+del X_orig_spatial, Y_orig_spatial, X_orig_spatial_aligned, Y_orig_spatial_aligned, Y_true_flat_for_baseline
 
 # --- 4. 准备 XGBoost 数据 ---
 print("\nPreparing data for XGBoost (Yangtze)...")
@@ -243,19 +252,19 @@ end_eval = time.time()
 print(f"Evaluation finished in {end_eval - start_eval:.2f} seconds.")
 
 # --- 7. 比较基线和 XGBoost 在测试集上的性能 (Using OPTIMIZED threshold 0.5) ---
-print("\n--- Final Performance Comparison (Yangtze Test Set - Optimized Threshold 0.5) ---")
+print("\n--- Final Performance Comparison (Yangtze Test Set - Optimized Threshold 0.5 vs Spatial Baseline) ---")
 metrics_to_show = ['accuracy', 'pod', 'far', 'csi', 'fp', 'fn']
 comparison_data = {}
 
 comparison_data['XGBoost_Yangtsu_Optimized (Thr 0.5)'] = {metric: xgboost_metrics_optimized_threshold_05.get(metric, float('nan')) for metric in metrics_to_show}
 
 for product_name, metrics in baseline_metrics_all.items():
-    comparison_data[f'Baseline_{product_name}_Yangtsu'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
+    comparison_data[f'Baseline_{product_name}_Spatial'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
 
 comparison_df = pd.DataFrame(comparison_data).T
 comparison_df = comparison_df[metrics_to_show]
 
-print("\n--- Final Performance Comparison (Yangtze - Optimized Threshold 0.5) ---")
+print("\n--- Final Performance Comparison (Yangtze - Optimized Threshold 0.5 vs Spatial Baseline) ---")
 float_cols = ['accuracy', 'pod', 'far', 'csi']
 for col in float_cols:
     if col in comparison_df.columns:

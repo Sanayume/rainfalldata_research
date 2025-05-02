@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # --- 配置 ---
-PROJECT_DIR = "F:/rainfalldata"
+PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 # Use v5.1 data files
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_flat_features_v5_1.npy")  # v5.1
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_flat_target_v5_1.npy")  # v5.1

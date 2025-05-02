@@ -5,17 +5,11 @@ import time
 from scipy.ndimage import generic_filter # For median filter
 
 # --- 1. Data Loading and Initial Preparation ---
-print("--- Step 1: Data Loading ---")
-start_load = time.time()
-ALL_DATA = mydata()
-X = np.array(ALL_DATA.X) # Shape: (6, 1827, 144, 256)
-Y = np.array(ALL_DATA.Y) # Shape: (1827, 144, 256) - Already squeezed in loaddata
-product_names = ALL_DATA.features # ["CMORPH", "CHIRPS", ...]
+_, _, X, Y = mydata().yangtsu()
+product_names = mydata().get_products() # ["CMORPH", "CHIRPS", ...]
 print(f"Initial X shape: {X.shape}")
 print(f"Initial Y shape: {Y.shape}")
 print(f"Product names: {product_names}")
-end_load = time.time()
-print(f"Data loading finished in {end_load - start_load:.2f} seconds.")
 
 # --- 2. Data Integration & Reshaping ---
 print("\n--- Step 2: Reshaping ---")
@@ -165,7 +159,9 @@ if len(feature_names) != total_features:
     print(f"FATAL: Mismatch between calculated total features ({total_features}) and feature name list length ({len(feature_names)})!")
     exit()
 
-OUTPUT_DIR = "F:/rainfalldata"
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 X_flat_filename = os.path.join(OUTPUT_DIR, "X_flat_features_v5_1.npy")
 Y_flat_filename = os.path.join(OUTPUT_DIR, "Y_flat_target_v5_1.npy")
 feature_names_filename = os.path.join(OUTPUT_DIR, "feature_names_v5_1.txt")

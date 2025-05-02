@@ -11,7 +11,7 @@ from scipy.io import loadmat
 
 MASK = loadmat("combined_china_basin_mask.mat")["data"]
 # --- 配置 ---
-PROJECT_DIR = "F:\\rainfalldata"
+PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "nationwide", "features")
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_flat_features.npy")
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_flat_target.npy")
 FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names.txt")
