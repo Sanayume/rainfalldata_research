@@ -4,10 +4,10 @@ import os
 import joblib # To save/load the trained model
 
 # --- 配置 ---
-PROJECT_DIR = "F:\\rainfalldata"
-X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_flat_features.npy") # Full features
-Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_flat_target.npy") # Full target
-MODEL_SAVE_PATH = os.path.join(PROJECT_DIR, "xgboost_default_full_model.joblib") # Path to save/load the trained model
+PROJECT_DIR =os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "ensemble_learning")
+X_FLAT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "nationwide", "features", "X_flat_features.npy") # Full features
+Y_FLAT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "nationwide", "features", "Y_flat_target.npy") # Full target
+MODEL_SAVE_PATH = os.path.join(PROJECT_DIR,"ensemble_learning","models","xgboost_default_full_model.joblib") # Path to save/load the trained model
 OUTPUT_DIR_INTERMEDIATE = os.path.join(PROJECT_DIR, "ensemble_learning", "intermediate_data") # Directory for index files
 OUTPUT_DIR_PREDICTIONS = os.path.join(PROJECT_DIR, "ensemble_learning", "predictions") # Directory for prediction files
 BASE_PREDS_TEST_PATH = os.path.join(OUTPUT_DIR_PREDICTIONS, "base_preds.npy") # Binary 0/1 predictions for test set
