@@ -12,7 +12,11 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # 定义数据路径和常量
-persiannfolder = 'PERSIANN'
+basepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+savepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "intermediate", "nationwide", "PERSIANNdata")
+if not os.path.exists(savepath):
+    os.makedirs(savepath)
+persiannfolder = os.path.join(basepath, "raw", "nationwide", "PERSIANN")
 persiannfiles = os.listdir(persiannfolder)
 print(f"总文件数：{len(persiannfiles)}")
 
@@ -46,13 +50,13 @@ for start_idx, end_idx, year in year_info:
     china_data = data[24:168,288:544, :]
     
     # 应用掩膜
-    mask = loadmat('mask.mat')['mask']
-    mask = np.flipud(np.transpose(mask, (1,0)))
+    mask = loadmat(os.path.join(basepath, "mask", "mask.mat"))['mask']
+    #mask = np.flipud(np.transpose(mask, (1,0)))
     china_data[mask == 0] = np.nan
     china_data[china_data < 0.01] = 0
 
     # 保存数据
-    savemat(f'F:/rainfalldata/PERSIANNdata/PERSIANN_{year}.mat', {'data': china_data})
+    savemat(os.path.join(savepath, f'PERSIANN_{year}.mat'), {'data': china_data})
     print(f"✓ {year}年数据已保存")
     
     # 释放内存
@@ -63,11 +67,11 @@ if input("\n是否需要合并所有年份数据？(y/n): ").lower() == 'y':
     print("\n开始合并数据...")
     all_data = []
     for _, _, year in year_info:
-        data = loadmat(f'F:/rainfalldata/PERSIANNdata/PERSIANN_{year}.mat')['data']
+        data = loadmat(os.path.join(savepath, f'PERSIANN_{year}.mat'))['data']
         all_data.append(data)
     
     all_data = np.concatenate(all_data, axis=2)
-    savemat('F:/rainfalldata/PERSIANNdata/PERSIANN_2016_2020.mat', {'data': all_data})
+    savemat(os.path.join(savepath, 'PERSIANN_2016_2020.mat'), {'data': all_data})
     print("✓ 合并完成！")
 
 

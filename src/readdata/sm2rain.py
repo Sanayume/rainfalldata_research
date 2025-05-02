@@ -13,7 +13,11 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # 定义数据路径和常量
-sm2rainfolder = 'sm2rain'
+basepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+savepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "intermediate", "nationwide", "SM2RAINdata")
+if not os.path.exists(savepath):
+    os.makedirs(savepath)
+sm2rainfolder = os.path.join(basepath, "raw", "nationwide", "SM2RAIN")
 sm2rainfiles = os.listdir(sm2rainfolder)
 print(f"总文件数：{len(sm2rainfiles)}")
 
@@ -50,7 +54,8 @@ for count, (year, year_str) in enumerate(year_info):
     print(f"降尺度后形状: {china_data.shape}")
     
     # 加载掩膜
-    mask = loadmat('mask.mat')['mask']
+    mask = loadmat(os.path.join(basepath, "mask", "mask.mat"))['mask']
+    mask = np.flipud(np.transpose(mask, (1,0)))
     
     # 升尺度处理
     print(f"{year}年：开始0.05°升尺度到0.25°...")
@@ -74,7 +79,7 @@ for count, (year, year_str) in enumerate(year_info):
     '''
     
     # 保存数据
-    output_file = f'F:/rainfalldata/sm2raindata/sm2rain_{year_str}.mat'
+    output_file = os.path.join(savepath, f'sm2rain_{year_str}.mat')
     savemat(output_file, {'data': china_data})
     print(f"✓ {year}年数据已保存至: {output_file}")
     
@@ -88,10 +93,10 @@ if input("\n是否需要合并所有年份数据？(y/n): ").lower() == 'y':
     print("\n开始合并数据...")
     all_data = []
     for _, year_str in year_info:
-        data = loadmat(f'F:/rainfalldata/sm2raindata/sm2rain_{year_str}.mat')['data']
+        data = loadmat(os.path.join(savepath, f'sm2rain_{year_str}.mat'))['data']
         all_data.append(data)
     
     all_data = np.concatenate(all_data, axis=2)
-    savemat('F:/rainfalldata/sm2raindata/sm2rain_2016_2020.mat', {'data': all_data})
+    savemat(os.path.join(savepath, 'sm2rain_2016_2020.mat'), {'data': all_data})
     print("✓ 合并完成！")
 

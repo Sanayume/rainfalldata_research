@@ -10,7 +10,7 @@ import io
 # 定义数据文件和路径
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
-savepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data","intermediate", "nationwide" , "CHIRPSdata")
+savepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data","intermediate", "nationwide")
 basepath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 if not os.path.exists(savepath):
     os.makedirs(savepath)

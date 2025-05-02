@@ -88,6 +88,7 @@ for start_idx, end_idx, year in year_info:
     
     # 加载掩膜并升尺度处理
     mask = loadmat(os.path.join(basepath, "mask", "mask.mat"))['mask']
+    mask = np.flipud(np.transpose(mask, (1,0)))
     print(f"{year}年：开始0.05°升尺度到0.25°...")
     china_data = upscale(china_data, factor=5, mask=mask)
     print(f"升尺度后形状: {china_data.shape}")
