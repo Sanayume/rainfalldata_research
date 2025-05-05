@@ -26,7 +26,7 @@ def calculate_POD(X, Y, threshold):
     print(f"tp: {tp}, fp: {fp}, fn: {fn}, tn: {tn}, threshold: {threshold}")
     return tp, fp, fn, tn
 
-thresholds = np.arange(0, 10, 1)
+thresholds = np.arange(0, 20, 1)
 PODs = []
 FARs = []
 CSIs = []
@@ -97,9 +97,10 @@ num_days = 1827
 dates = [start_date + datetime.timedelta(days=i) for i in range(num_days)]
 
 # 验证 (可选) - 这部分可以保留或移除，不影响绘图
-# print(f"Start date: {start_date}")
-# print(f"End date: {dates[-1]}")
-# print(f"Number of dates: {len(dates)}")
+print(f"Start date: {start_date}")
+print(f"End date: {dates[-1]}")
+print(f"Number of dates: {len(dates)}")
+
 
 # 假设 threshold 变量已在前面的代码块中定义 (例如，来自 thresholds 循环的最后一个值)
 # 如果不确定，需要在此处显式设置一个值，例如：
@@ -118,6 +119,10 @@ for day in range(num_days):
     X = X_raw_yangtsu[0, day, :, :] # 使用第一个产品的数据
     Y = Y_raw_yangtsu[day, :, :]
 
+#          预测:    有雨    无雨
+# 实际: 有雨         TP      FN
+#       无雨         FP      TN
+#
     X_is_rain = np.where(X > 0, 1, 0)
     Y_is_rain = np.where(Y > 0, 1, 0)
     # 调用之前的函数计算 tp, fp, fn, tn
@@ -258,6 +263,17 @@ plt.xlabel('经度', fontsize=12)
 plt.ylabel('纬度', fontsize=12)
 plt.grid(False)
 plt.show()
+
+#空间月分析
+
+FAR_point = np.where(FAR == 1, Y, np.nan)
+FN_point = np.where(fn == 1, X[0, :, :, :], np.nan)
+
+
+
+
+
+
 
 
 
