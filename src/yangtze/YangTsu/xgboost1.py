@@ -14,6 +14,7 @@ import optuna
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features.npy")
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target.npy")
+MODEL_PREDICT_DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "model_predict")
 FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu.txt")
 RAIN_THRESHOLD = 0.1
 TEST_SIZE_RATIO = 0.2
