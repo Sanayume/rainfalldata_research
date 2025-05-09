@@ -14,6 +14,7 @@ PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features_v2.npy") # Changed filename
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target_v2.npy") # Changed filename
 FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu_v2.txt") # Changed filename
+MODEL_PREDICTION_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "predictions", "xgboost_yangtsu_v2_predictions.npy")
 # Save Yangtze v2 model and plot
 MODEL_SAVE_PATH = os.path.join(PROJECT_DIR, "xgboost_yangtsu_v2_model.joblib") # Changed filename
 IMPORTANCE_PLOT_PATH = os.path.join(PROJECT_DIR, "xgboost_yangtsu_v2_feature_importance.png") # Changed filename
@@ -172,6 +173,10 @@ except Exception as plot_e:
 # --- 6. 评估模型 ---
 print("\n--- Evaluating Model on Test Set (Yangtze v2) ---")
 y_pred_proba = model.predict_proba(X_test)[:, 1]
+
+# Save predictions
+np.save(MODEL_PREDICTION_PATH, y_pred_proba)
+print(f"Predictions saved to: {MODEL_PREDICTION_PATH}")
 
 # Evaluate across thresholds
 thresholds_to_evaluate = [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
