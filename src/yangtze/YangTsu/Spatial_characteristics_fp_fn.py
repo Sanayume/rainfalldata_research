@@ -20,14 +20,18 @@ years = [2016, 2017, 2018, 2019, 2020]
 for i in range(X.shape[0]):
     product = PRODUCTS[i]
     for y in years:
-        X_data = X[i, time[:, 0] == y, :, :]
+        is_year = time[:, 0] == y
+        print(is_year.shape)
+        X_data = X[i, is_year, :, :]
+        Y_data = Y[is_year, :, :]
         X_is_rain = np.where(X_data > rain_threshold, 1, 0)
-        Y_is_rain = np.where(Y[days, :, :] > rain_threshold, 1, 0)
+        Y_is_rain = np.where(Y_data > rain_threshold, 1, 0)
+        print(X_is_rain.shape, Y_is_rain.shape)
         #计算fp, fn, tp, tn
-        fp = np.sum((X_is_rain == 1 & Y_is_rain == 0), axis=0)
-        fn = np.sum((X_is_rain == 0 & Y_is_rain == 1), axis=0)
-        tp = np.sum((X_is_rain == 1 & Y_is_rain == 1), axis=0)
-        tn = np.sum((X_is_rain == 0 & Y_is_rain == 0), axis=0)
+        fp = np.sum((X_is_rain == 1) & (Y_is_rain == 0))
+        fn = np.sum((X_is_rain == 0) & (Y_is_rain == 1))
+        tp = np.sum((X_is_rain == 1) & (Y_is_rain == 1))
+        tn = np.sum((X_is_rain == 0) & (Y_is_rain == 0))
         print(fp.shape, fn.shape, tp.shape, tn.shape)
         #计算y年内每一个位置上的误报漏报命中
         fp_rate = fp / (fp + tn)
@@ -35,7 +39,7 @@ for i in range(X.shape[0]):
         tp_rate = tp / (tp + fn)
         tn_rate = tn / (tn + fp)
         print(fp_rate.shape, fn_rate.shape, tp_rate.shape, tn_rate.shape)
-        
+
     
     
 
