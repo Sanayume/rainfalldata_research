@@ -111,7 +111,7 @@ class mydata:
         Y = self._load_target_data()
 
         # Create boolean masks matching the data dimensions
-        mask_bool = (mask == basin_mask_value) # (lat, lon)
+        mask_bool = (mask >= basin_mask_value) # (lat, lon)
         if not np.any(mask_bool):
              raise ValueError(f"No points found for mask value {basin_mask_value} in the loaded mask.")
 
@@ -154,7 +154,7 @@ class mydata:
         Y = self._load_target_data()
 
         # Find indices (lat, lon) for the basin
-        basin_indices = np.where(mask == basin_mask_value)
+        basin_indices = np.where(mask >= basin_mask_value)
         if not basin_indices[0].size:
              raise ValueError(f"No points found for mask value {basin_mask_value} in the loaded mask.")
 

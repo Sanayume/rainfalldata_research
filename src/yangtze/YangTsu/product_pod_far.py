@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_auc_score
 data = mydata()
-_, _, X, Y = data.yangtsu()
+X, Y = data.get_basin_spatial_data(1)
 
 print(f"X shape: {X.shape}")
 print(f"Y shape: {Y.shape}")
