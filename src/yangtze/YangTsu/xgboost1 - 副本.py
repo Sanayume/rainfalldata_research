@@ -9,10 +9,11 @@ import pandas as pd
 import joblib
 
 # --- 配置 ---
-PROJECT_DIR = "F:\\rainfalldata"
-X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_flat_features.npy")
-Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_flat_target.npy")
-FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names.txt")
+PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
+X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features.npy")
+Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target.npy")
+MODEL_PREDICT_DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "model_predict")
+FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu.txt")
 RAIN_THRESHOLD = 0.1
 TEST_SIZE_RATIO = 0.2
 MAX_LOOKBACK = 30
@@ -69,8 +70,7 @@ print(f"Loaded {len(feature_names)} feature names.")
 
 print("Loading original data for baseline calculation (using loaddata.py's current slice)...")
 original_data = mydata()
-X_orig = np.array(original_data.X)
-Y_orig = np.array(original_data.Y)
+X_orig,Y_orig  = original_data.get_basin_spatial_data(2)
 try:
     product_names = original_data.features
     if len(product_names) != X_orig.shape[0]:
@@ -154,7 +154,7 @@ final_model.fit(X_train, y_train, eval_set=eval_set, verbose=50)
 print("Model training complete.")
 
 # --- Save the trained model ---
-MODEL_SAVE_PATH = os.path.join(PROJECT_DIR, "xgboost_default_full_model.joblib")
+MODEL_SAVE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "models", "xgboost_v1_yangtsu.joblib")
 print(f"\nSaving the trained model to {MODEL_SAVE_PATH}...")
 try:
     joblib.dump(final_model, MODEL_SAVE_PATH)
