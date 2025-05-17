@@ -1,3 +1,4 @@
+import gc
 import numpy as np
 import xgboost as xgb
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
@@ -7,7 +8,7 @@ import time
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# --- 配置 ---
+# --- 配置 (Configuration) ---
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 # Use v1 data files
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_flat_features_v1.npy")  # v1
@@ -26,8 +27,9 @@ N_TOP_FEATURES_TO_PLOT = 50
 # --- 创建输出目录 ---
 os.makedirs(PROJECT_DIR, exist_ok=True)
 
-# --- 辅助函数：计算性能指标 ---
+# --- 辅助函数：计算性能指标 (Helper Function: Calculate Performance Metrics) ---
 def calculate_metrics(y_true, y_pred, title=""):
+    # 计算混淆矩阵
     cm = confusion_matrix(y_true, y_pred)
     tn, fp, fn, tp = cm.ravel()
     accuracy = accuracy_score(y_true, y_pred)
@@ -163,11 +165,11 @@ try:
     importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
     importance_df = importance_df.sort_values(by='Importance', ascending=False)
 
-    print("Top 10 Features:")
-    print(importance_df.head(10))
+    print("最重要的10个特征 (Top 10 Features):")
+    print(importance_df.head(40))
 
     n_features_actual = len(feature_names)
-    n_plot = min(N_TOP_FEATURES_TO_PLOT, n_features_actual)
+    n_plot = min(N_TOP_FEATURES_TO_PLOT, n_features_actual) # 实际绘制的数量
 
     plt.figure(figsize=(10, n_plot / 2.0))
     top_features = importance_df.head(n_plot)
