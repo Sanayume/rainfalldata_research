@@ -45,43 +45,36 @@ Y_aligned = Y[valid_time_range] # Shape: (n_valid_days, n_points)
 print(f"Aligned X shape: {X_aligned.shape}")
 print(f"Aligned Y shape: {Y_aligned.shape}")
 
-# --- 4. Feature Engineering (V5: V3 + Disagreement/Low Signal - Adapted for Points) ---
-print("\n--- Step 4: Feature Engineering (Yangtze V5: V3 + Disagreement/Low Signal) ---")
 start_feat = time.time()
 features_dict = {}
 epsilon = 1e-6
 RAIN_THR = 0.1 # Threshold for counting rain products
 
-# Helper function for safe division
-def safe_divide(numerator, denominator, default=0.0):
-    with np.errstate(divide='ignore', invalid='ignore'):
-        result = numerator / (denominator + epsilon)
-    return np.nan_to_num(result, nan=default, posinf=default, neginf=default)
-
 # --- 4.1 Basic Features ---
 print("  Calculating basic features...")
 features_dict['raw_values'] = X_aligned
 
-# --- 4.2 Multi-product Consistency/Difference Features (Re-add Disagreement) ---
-print("  Calculating multi-product stats (Rain Count + Disagreement)...")
+# --- 4.2 Multi-product Consistency/Difference Features (Simplified) ---
+print("  Calculating simplified multi-product stats (current time)...")
 X_rain = (np.nan_to_num(X_aligned, nan=0.0) > RAIN_THR)
 features_dict['rain_product_count'] = np.sum(X_rain, axis=2, keepdims=True).astype(np.float32)
 del X_rain
 
-# Calculate stats across product dimension (axis=2)
-product_mean = np.nanmean(X_aligned, axis=2, keepdims=True).astype(np.float32)
-product_std = np.nanstd(X_aligned, axis=2, keepdims=True).astype(np.float32)
-product_max = np.nanmax(X_aligned, axis=2, keepdims=True).astype(np.float32)
-product_min = np.nanmin(X_aligned, axis=2, keepdims=True).astype(np.float32)
-
-features_dict['coef_of_variation'] = safe_divide(product_std, product_mean).astype(np.float32)
-features_dict['product_range'] = (product_max - product_min).astype(np.float32)
-
-# --- 4.3 Temporal Evolution Features (Simplified) ---
-print("  Calculating periodicity features (Season only)...")
+# --- 4.3 Temporal Evolution Features (Simplified + sin/cos day) ---
+# 4.3.1 Periodicity (Re-add sin/cos day)
+print("  Calculating periodicity features (Season + Sin/Cos Day)...")
 days_in_year = 365.25
 day_index_original = np.arange(nday, dtype=np.float32)
 day_of_year = day_index_original % days_in_year
+# --- Re-add sin/cos calculation ---
+sin_time = np.sin(2 * np.pi * day_of_year / days_in_year).astype(np.float32)
+cos_time = np.cos(2 * np.pi * day_of_year / days_in_year).astype(np.float32)
+# Slice and expand: (n_valid_days,) -> (n_valid_days, 1, 1) -> broadcast to (n_valid_days, n_points, 1)
+sin_time_aligned = sin_time[valid_time_range, np.newaxis, np.newaxis] * np.ones((1, n_points, 1), dtype=np.float32)
+cos_time_aligned = cos_time[valid_time_range, np.newaxis, np.newaxis] * np.ones((1, n_points, 1), dtype=np.float32)
+features_dict['sin_day'] = sin_time_aligned
+features_dict['cos_day'] = cos_time_aligned
+# --- Keep Season One-Hot ---
 month = (day_of_year // 30.4375).astype(int) % 12 + 1
 season_map = {1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 3, 10: 3, 11: 3, 12: 0}
 season = np.array([season_map[m] for m in month])
@@ -90,32 +83,40 @@ seasons_onehot[np.arange(nday), season] = 1
 # Slice and expand: (n_valid_days, 4) -> (n_valid_days, 1, 4) -> broadcast to (n_valid_days, n_points, 4)
 season_aligned = seasons_onehot[valid_time_range, np.newaxis, :] * np.ones((1, n_points, 1), dtype=np.float32)
 features_dict['season_onehot'] = season_aligned
-del day_index_original, day_of_year, month, season, seasons_onehot, season_aligned
+del day_index_original, day_of_year, month, season, seasons_onehot, season_aligned, sin_time, cos_time, sin_time_aligned, cos_time_aligned # Clean up
 
+# 4.3.2 Lag Features (Simplified)
 print("  Calculating simplified lag features...")
-lag_data_cache = {}
-lag_std_cache = {}
-lag_rain_count_cache = {}
+lag_data_cache = {} # Cache raw lag data
+lag_std_cache = {} # Cache lag stds
+lag_rain_count_cache = {} # Cache lag rain counts
+
 for lag in [1, 2, 3]:
     print(f"    Lag {lag}...")
     lag_slice = slice(max_lookback - lag, nday - lag)
     lag_data = X[lag_slice] # Shape: (n_valid_days, n_points, n_products)
     lag_data_cache[lag] = lag_data
-    features_dict[f'lag_{lag}_values'] = lag_data
+    features_dict[f'lag_{lag}_values'] = lag_data # Raw values
+
+    # Calculate and cache lag statistics (Std and Rain Count only)
     lag_std = np.nanstd(lag_data, axis=2, keepdims=True).astype(np.float32)
     lag_rain = (np.nan_to_num(lag_data, nan=0.0) > RAIN_THR)
     lag_rain_count = np.sum(lag_rain, axis=2, keepdims=True).astype(np.float32)
+
     lag_std_cache[lag] = lag_std
     lag_rain_count_cache[lag] = lag_rain_count
-    features_dict[f'lag_{lag}_std'] = lag_std
-    features_dict[f'lag_{lag}_rain_count'] = lag_rain_count
 
+    features_dict[f'lag_{lag}_std'] = lag_std # Std
+    features_dict[f'lag_{lag}_rain_count'] = lag_rain_count # Lag rain product count
+
+# 4.3.3 Difference Features (Simplified)
 print("  Calculating difference features (Values only)...")
 prev_data = lag_data_cache[1] # t-1 (already sliced)
 features_dict['diff_1_values'] = (X_aligned - prev_data).astype(np.float32)
 print("    Deleting raw lag data cache...")
 del lag_data_cache, prev_data
 
+# 4.3.4 Moving Window Features (Keep as in v3)
 print("  Calculating moving window features (on product mean)...")
 # Calculate product mean over full time first
 product_mean_full = np.nanmean(X, axis=2, keepdims=True).astype(np.float32) # Shape: (nday, n_points, 1)
@@ -138,6 +139,22 @@ for window in [3, 7, 15]:
     features_dict[f'window_{window}_min'] = window_min.astype(np.float32)
     features_dict[f'window_{window}_range'] = (window_max - window_min).astype(np.float32)
 del product_mean_full
+window = 7
+print(f"    Window {window} (per product - GSMAP, PERSIANN)...")
+gsmap_idx = product_names.index("GSMAP")
+persiann_idx = product_names.index("PERSIANN")
+window_mean_gsmap = np.zeros((n_valid_days, n_points, 1), dtype=np.float32)
+window_std_persiann = np.zeros((n_valid_days, n_points, 1), dtype=np.float32)
+for i in range(n_valid_days):
+    current_original_idx = i + max_lookback
+    window_data_X = X[current_original_idx - window : current_original_idx]
+    mean_gsmap_result = np.nanmean(window_data_X[:, :, gsmap_idx], axis=0)
+    std_persiann_result = np.nanstd(window_data_X[:, :, persiann_idx], axis=0)
+    window_mean_gsmap[i] = mean_gsmap_result[..., np.newaxis]
+    window_std_persiann[i] = std_persiann_result[..., np.newaxis]
+features_dict[f'window_{window}_mean_GSMAP'] = window_mean_gsmap.astype(np.float32)
+features_dict[f'window_{window}_std_PERSIANN'] = window_std_persiann.astype(np.float32)
+del window_mean_gsmap, window_std_persiann, mean_gsmap_result, std_persiann_result
 
 # --- 4.4 Spatial Context Features (Simplified - 5x5 and Gradients only - Adapted for Points) ---
 print("  Calculating simplified spatial features (5x5 and Gradients - Adapted for Points)...")
@@ -158,18 +175,13 @@ print("    WARNING: Spatial gradient calculation assumes grid structure and will
 features_dict['gradient_magnitude_GSMAP'] = np.full((n_valid_days, n_points, 1), np.nan, dtype=np.float32)
 features_dict['gradient_magnitude_PERSIANN'] = np.full((n_valid_days, n_points, 1), np.nan, dtype=np.float32)
 features_dict['gradient_magnitude_mean'] = np.full((n_valid_days, n_points, 1), np.nan, dtype=np.float32)
+print("    Deleting X_aligned...")
+del X_aligned # Delete alias
 
-# --- 4.5 Low Intensity / Ambiguity Features (Enhanced) ---
-print("  Calculating low intensity / ambiguity features...")
-features_dict['threshold_proximity'] = np.abs(product_mean - RAIN_THR).astype(np.float32)
-
-# Fraction of products reporting low, non-zero rain (0 < rain <= 0.5)
-low_range_mask = (X_aligned > epsilon) & (X_aligned <= 0.5)
-low_range_count = np.sum(low_range_mask, axis=2, keepdims=True).astype(np.float32)
-features_dict['fraction_products_low_range'] = (low_range_count / n_products).astype(np.float32)
-del low_range_mask, low_range_count
-
-# Intensity bins based on rain product count
+# --- 4.5 Low Intensity Signal Features (Simplified) ---
+print("  Calculating simplified low intensity features...")
+print("    Deleting lag stats caches...")
+del lag_std_cache, lag_rain_count_cache
 count_values = features_dict['rain_product_count']
 intensity_bins_count = np.zeros((n_valid_days, n_points, 4), dtype=np.float32)
 intensity_bins_count[:, :, 0] = (count_values == 0).squeeze(axis=-1)
@@ -178,11 +190,6 @@ intensity_bins_count[:, :, 2] = (count_values == 2).squeeze(axis=-1)
 intensity_bins_count[:, :, 3] = (count_values >= 3).squeeze(axis=-1)
 features_dict['intensity_bins_count'] = intensity_bins_count
 del count_values, intensity_bins_count
-
-print("    Deleting intermediate variables...")
-del product_mean, product_std, product_max, product_min
-del lag_std_cache, lag_rain_count_cache
-del X_aligned # Delete alias
 
 end_feat = time.time()
 print(f"Feature engineering finished in {end_feat - start_feat:.2f} seconds.")
@@ -194,7 +201,7 @@ start_concat = time.time()
 features_list_final = []
 feature_names = []
 
-# Use the same naming logic as national turn5.py
+# Use the same naming logic as national turn4.py (which includes sin/cos day)
 for name, feat_array in features_dict.items():
     if feat_array is None or not isinstance(feat_array, np.ndarray): continue
     try:
@@ -206,7 +213,7 @@ for name, feat_array in features_dict.items():
 
     base_name = name
     if n_cols == 1:
-        feature_names.append(base_name)
+        feature_names.append(base_name) # Includes sin_day, cos_day
     # Adjust naming for features that originally had product dimension
     elif base_name == 'raw_values' or \
          (base_name.startswith('lag_') and '_values' in base_name) or \
@@ -247,7 +254,7 @@ if len(feature_names) != total_features:
      print(f"FATAL: Mismatch between calculated total features ({total_features}) and feature name list length ({len(feature_names)})!")
      exit()
 
-# Define output directory and filenames explicitly for Yangtze v5
+# Define output directory and filenames explicitly for Yangtze v4
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)

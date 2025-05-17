@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目技术路线图 - 高分辨率降雨预测</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
+    <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+    <style>
+        :root{--rad:4px;--text-pri:#1f2937;--text-sec:#4b5563;--bg-main:#fff;--bg-page:#f3f4f6;--bg-panel:#f9fafb;--bord-soft:#e5e7eb;--bord-med:#d1d5db;--brand:#2563eb;--brand-light:#dbeafe;--anim-fast:0.25s;--anim-norm:0.4s;--map-node-active-stroke:var(--brand);--map-node-active-stroke-width:2.5px;--map-node-non-interactive-font:#6b7280;--map-node-non-interactive-border:#adb5bd;}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif,'Apple Color Emoji','Segoe UI Emoji';line-height:1.65;margin:0;background-color:var(--bg-page);color:var(--text-pri);}
+        .pw{max-width:1366px;margin:16px auto;padding:0 24px;}
+        .cc{background-color:var(--bg-main);box-shadow:0 2px 8px #0000000f;border-radius:var(--rad);overflow:hidden;}
+        .la{display:flex;border-bottom:1px solid var(--bord-soft);}
+        .rc{flex:3;padding:24px 32px;overflow-y:auto;border-right:1px solid var(--bord-soft); max-height: 80vh;} /* Added max-height for scroll */
+        .ep{flex:2;padding:24px 32px;background-color:var(--bg-panel);overflow-y:auto;position:relative; max-height: 80vh;} /* Added max-height for scroll */
+        .rc h1,.ep h2{color:var(--text-pri);font-weight:600;margin-top:0;border-bottom:1px solid var(--bord-soft);padding-bottom:10px;margin-bottom:16px;}
+        .rc h1{font-size:1.75rem;}
+        .ep h2{font-size:1.375rem;}
+        .msh{display:flex;justify-content:space-between;align-items:center;padding:16px 32px 8px;border-bottom:1px solid var(--bord-soft);margin-bottom:16px;}
+        .msh h2{font-size:1.375rem;color:var(--text-pri);font-weight:600;margin:0;padding:0;border-bottom:none;flex-grow:1;}
+        .mhc{display:flex;gap:8px;}
+        p, ul, li, table {margin-bottom:1.2em;}
+        table {border-collapse: collapse; width: 100%; margin-bottom: 1.2em;}
+        th, td {border: 1px solid var(--bord-med); padding: 8px; text-align: left;}
+        th {background-color: var(--bg-page);}
+        .tm{padding:.1em .3em;margin:0 .05em;border-radius:3px;cursor:pointer;transition:background-color var(--anim-fast) ease,box-shadow var(--anim-fast) ease,color var(--anim-fast) ease;border:1px solid transparent;position:relative;}
+        .tm:hover{box-shadow:0 0 4px #0000001a;}
+        .tmc{background-color:#fef3c7;border-color:#fde68a;} /* concept / general item */
+        .tmb{background-color:#d1fae5;border-color:#a7f3d0;} /* deliverable / data_asset */
+        .tmt{background-color:#dbeafe;border-color:#bfdbfe;} /* tech / tool */
+        .tma{background-color:#fee2e2;border-color:#fecaca;} /* app_area/metric - less used in roadmap */
+        .tmps{background-color:#e0f2fe;border-color:#bae6fd;} /* process_step / activity */
+        .tmpsct{background-color:#f3e8ff;border-color:#e9d5ff;} /* project_phase / section */
+        .tmce{background-color:#e5e7eb;border-color:#d1d5db;} /* code_entity/file_type - for specific files/scripts */
+        .ei .tm{background-color:var(--brand-light);border:1px solid var(--brand);color:var(--brand);}
+        .ei .tm:hover{background-color:var(--brand);color:white;}
+        .tm.active{background-color:var(--brand);color:white;border-color:var(--brand);box-shadow:0 0 6px #2563eb66;}
+        @keyframes slideUpFadeIn{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+        @keyframes simpleFadeIn{0%{opacity:0}100%{opacity:1}}
+        #explain-content>.ph{color:var(--text-sec);font-style:italic;text-align:center;margin-top:40px;animation:simpleFadeIn var(--anim-norm) ease-out forwards;}
+        #explain-content>.ei{margin-bottom:16px;padding:16px;background-color:var(--bg-main);border:1px solid var(--bord-soft);border-left:4px solid var(--brand);border-radius:var(--rad);box-shadow:0 1px 3px #0000000a;animation:slideUpFadeIn var(--anim-norm) ease-out forwards;}
+        .eih{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .eih h3{margin-top:0;font-size:1.125rem;color:var(--brand);margin-bottom:0;flex-grow:1;}
+        .gsb{background:0 0;border:none;padding:4px;cursor:pointer;color:#9ca3af;display:inline-flex;align-items:center;margin-left:8px;line-height:1;}
+        .gsb svg{width:1.1em;height:1.1em;}
+        .gsb:hover{opacity:0.8;}
+        .ei p{margin-bottom:.75em;font-size:.9rem;}
+        .ei strong{color:#374151;font-weight:600;}
+        .ei p:last-child{margin-bottom:0;}
+        .ms{background-color:var(--bg-main);}
+        #map-canvas-wrap{padding:16px 32px 24px;box-sizing:border-box;position:relative;overflow:hidden;}
+        #map-out{display:flex;justify-content:center;align-items:center;min-height:400px; border:1px solid var(--bord-soft);border-radius:var(--rad);background-color:#fdfdfe;transition:opacity var(--anim-fast) ease-in-out;}
+        #map-out.ld{opacity:.5;}
+        #map-out svg{display:block;width:100%;max-width:100%;height:auto;max-height:100%;}
+        #map-out svg .node{cursor:pointer;}
+        #map-out svg .node[data-ia="false"]{cursor:default;}
+        #map-out svg .node.mna>polygon,#map-out svg .node.mna>ellipse{stroke:var(--map-node-active-stroke)!important;stroke-width:var(--map-node-active-stroke-width)!important;transition:stroke var(--anim-fast) ease,stroke-width var(--anim-fast) ease;}
+        .mcb{padding:6px 10px;background-color:#f9fafb;color:var(--text-sec);border:1px solid var(--bord-med);border-radius:var(--rad);cursor:pointer;font-size:.75rem;z-index:10;transition:background-color var(--anim-fast) ease,color var(--anim-fast) ease,border-color var(--anim-fast) ease;font-family:inherit;line-height:1.2;display:inline-flex;align-items:center;gap:5px;}
+        .mcb:hover{background-color:#f3f4f6;color:var(--text-pri);border-color:#9ca3af;}
+        .mcb:disabled{cursor:not-allowed;opacity:.7;}
+        .mcb svg{width:1.1em;height:1.1em;vertical-align:middle;fill:currentColor;}
+        #map-layout-btn{width:75px;justify-content:center;}
+        #map-download-btn svg{transform:translateY(1px);}
+        #map-zoom-modal{display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background-color:#1f2937d9;z-index:1000;justify-content:center;align-items:center;overflow:hidden;backdrop-filter:blur(2px);opacity:0;visibility:hidden;transform:scale(.95) translateY(10px);transition:opacity var(--anim-fast) ease-out,transform var(--anim-fast) ease-out,visibility 0s linear var(--anim-fast);}
+        #map-zoom-modal.vis{opacity:1;visibility:visible;transform:scale(1) translateY(0);transition-delay:0s;}
+        #map-zoom-display{position:relative;width:95%;height:95%;background-color:var(--bg-main);overflow:hidden;display:flex;justify-content:center;align-items:center;border-radius:calc(var(--rad)*1.5);box-shadow:0 10px 30px #00000026;}
+        #map-zoom-display svg{max-width:none;max-height:none;width:100%;height:100%;cursor:grab;display:block;}
+        #map-zoom-display svg:active{cursor:grabbing;}
+        #close-map-zoom-btn{position:absolute;top:16px;right:16px;background:#374151b3;color:white;border:none;border-radius:50%;width:36px;height:36px;font-size:20px;line-height:36px;text-align:center;cursor:pointer;z-index:1001;transition:background-color var(--anim-fast) ease,transform .15s ease;}
+        #close-map-zoom-btn:hover{background:#1f2937e6;transform:scale(1.05);}
+        #gsp{position:fixed;background-color:#fff;color:#333;padding:6px 12px;border-radius:var(--rad);font-size:0.8rem;font-weight:500;z-index:1050;border:1px solid #ccc;cursor:pointer;box-shadow:0 3px 8px #00000026;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility 0s linear .15s,transform .15s ease;transform:translateY(8px) scale(.95);white-space:nowrap;display:inline-flex;align-items:center;}
+        #gsp.vis{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition-delay:0s,0s,0s;}
+        #gsp svg{width:1.1em;height:1.1em;vertical-align:middle;margin-right:6px;}
+        #gsp:hover{background-color:#f8f9fa;border-color:#bbb;}
+        #pfb{position:fixed;top:16px;right:16px;z-index:1005;background-color:#ffffffd9;border:1px solid var(--bord-med);border-radius:50%;width:36px;height:36px;padding:0;display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 1px 4px #0000001a;transition:background-color var(--anim-fast) ease,border-color var(--anim-fast) ease;}
+        #pfb:hover{background-color:white;border-color:var(--text-sec);}
+        #pfb svg{width:18px;height:18px;fill:var(--text-sec);transition:fill var(--anim-fast) ease;}
+        #pfb:hover svg{fill:var(--text-pri);}
+        @media (max-width:900px){
+            .pw{margin:0;padding:0;}
+            .cc{border-radius:0;box-shadow:none;}
+            .la{flex-direction:column; max-height: none;} 
+            .rc, .ep {max-height: none; overflow-y: visible;} 
+            .rc{border-right:none;border-bottom:1px solid var(--bord-soft);padding:20px;}
+            .ep{padding:20px;min-height:200px;}
+            .msh{padding:16px 20px 8px;flex-wrap:wrap;}
+            .msh h2{font-size:1.25rem;width:100%;margin-bottom:8px;}
+            .mhc{width:100%;justify-content:flex-end;}
+            #map-canvas-wrap{padding:16px 20px 20px;}
+            .rc h1{font-size:1.5rem;}
+            .ep h2{font-size:1.25rem;}
+            #pfb{top:10px;right:10px;}
+        }
+    </style>
+</head>
+<body>
+    <button id="pfb" title="全屏"><svg class="ie" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg><svg class="ic" style="display:none;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg></button>
+    <div class="pw">
+        <div class="cc">
+            <div class="la">
+                <main class="rc">
+                    <h1>内容聚焦</h1>
+                    <p><strong># rainfalldata_research</strong></p>
+<p><strong># <span class="tm tmc" data-id="project_main_title" title="点击查看解释">高分辨率降雨融合与机器学习预测研究项目</span></strong></p>
+<h2>1. <span class="tm tmpsct" data-id="project_overview_readme" title="点击查看解释">项目概述与研究意义</span></h2>
+<p><strong>背景:</strong> 精准的降雨预测对于<span class="tm tma" data-id="app_flood_warning_readme" title="点击查看解释">洪水预警</span>、<span class="tm tma" data-id="app_agriculture_readme" title="点击查看解释">农业生产</span>、<span class="tm tma" data-id="app_water_mgmt_readme" title="点击查看解释">水资源管理</span>等领域至关重要。然而，单一数据源往往存在时空覆盖不完整、精度不足等问题。本项目旨在应对这一挑战，通过 <strong><span class="tm tmps" data-id="data_fusion_sat_readme" title="点击查看解释">融合多种先进的卫星遥感降雨产品</span></strong> (<span class="tm tmb" data-id="cmorph_readme" title="点击查看解释">CMORPH</span>, <span class="tm tmb" data-id="chirps_readme" title="点击查看解释">CHIRPS</span>, <span class="tm tmb" data-id="gsmap_readme" title="点击查看解释">GSMAP</span>, <span class="tm tmb" data-id="imerg_readme" title="点击查看解释">IMERG</span>, <span class="tm tmb" data-id="persiann_readme" title="点击查看解释">PERSIANN</span>, <span class="tm tmb" data-id="sm2rain_readme" title="点击查看解释">SM2RAIN</span>) 与 <strong><span class="tm tmb" data-id="chm_readme" title="点击查看解释">地面观测融合数据 (CHM)</span></strong>，结合 <strong><span class="tm tmt" data-id="ml_tech_readme" title="点击查看解释">前沿的机器学习技术</span></strong>，探索和构建高性能、高分辨率的降雨预测模型。</p>
+<p><strong>目标:</strong> (部分关键目标在路线图中体现)</p>
+<ul>
+<li>开发一套稳健的<span class="tm tmps" data-id="data_proc_fusion_readme" title="点击查看解释">数据处理与融合流程</span>...</li>
+<li>设计并实现大规模、多维度的<span class="tm tmps" data-id="feat_eng_sys_readme" title="点击查看解释">特征工程体系</span>...</li>
+<li>系统性地评估和优化多种<span class="tm tmt" data-id="ml_model_eval_readme" title="点击查看解释">机器学习模型</span>（特别是梯度提升树如 <span class="tm tmt" data-id="xgboost_readme" title="点击查看解释">XGBoost</span>, <span class="tm tmt" data-id="lightgbm_readme" title="点击查看解释">LightGBM</span>，并辅以<span class="tm tmt" data-id="bayes_readme" title="点击查看解释">贝叶斯方法</span>等）...</li>
+<li>深入<span class="tm tmps" data-id="error_analysis_readme" title="点击查看解释">分析模型误差</span>...</li>
+<li>针对重点区域（如<span class="tm tma" data-id="yangtze_readme" title="点击查看解释">长江流域</span>）进行精细化建模...</li>
+<li>重点提升在于降雨的<span class="tm tma" data-id="pod_readme" title="点击查看解释">命中率</span><span class="tm tma" data-id="far_readme" title="点击查看解释">误报率</span>以及<span class="tm tma" data-id="csi_readme" title="点击查看解释">临界成功指数</span>, 主要看<span class="tm tma" data-id="far_focus_readme" title="点击查看解释">误报率是否有突破</span></li>
+</ul>
+<p><strong>核心价值:</strong> ...</p>
+<h2>2. <span class="tm tmpsct" data-id="tech_architecture_readme" title="点击查看解释">项目技术架构与实施细节</span></h2>
+<h3>2.1 <span class="tm tmpsct" data-id="data_system_readme" title="点击查看解释">数据体系 (`data/`)</span></h3>
+<!-- ... (保持原有详细内容，此处省略以减少重复) ... -->
+<h3>2.2 <span class="tm tmpsct" data-id="feat_eng_readme" title="点击查看解释">特征工程 (主要代码位于 `src/nationwide/project_all_for_deepling_learning/turn*.py`, `src/yangtze/YangTsu/turn*.py`)</span></h3>
+<!-- ... (保持原有详细内容) ... -->
+<h3>2.3 <span class="tm tmpsct" data-id="ml_modeling_readme" title="点击查看解释">机器学习建模 (主要代码位于 `src/nationwide/project_all_for_deepling_learning/`, `src/yangtze/YangTsu/`, `src/ensemble_learning/ensemble_learning/`)</span></h3>
+<!-- ... (保持原有详细内容) ... -->
+<h4>2.3.1 <span class="tm tmpsct" data-id="yangtze_xgb_iteration_readme" title="点击查看解释">长江流域 XGBoost 模型性能迭代与评估实例</span></h4>
+<!-- ... (保持原有详细内容) ... -->
+<h3>2.4 <span class="tm tmpsct" data-id="evaluation_diag_readme" title="点击查看解释">全方位评估与诊断 (...)</span></h3>
+<!-- ... (保持原有详细内容) ... -->
+<h2>3. <span class="tm tmpsct" data-id="rd_journey_readme" title="点击查看解释">项目研发历程与关键节点 (深度剖析)</span></h2>
+<p>本项目从零起步，经历了从理论学习到复杂系统实现、从全国宏观到区域精细的完整研发周期，充分展现了研究者在跨学科知识融合、大规模数据处理、前沿算法应用和系统性问题解决方面的综合能力。关键节点与活动深度剖析如下：</p>
+<ul>
+<li><strong><span class="tm tmpsct" data-id="phase1_readme" title="点击查看解释">阶段一：理论奠基与技术预研 (2024年底)</span></strong>
+<!-- ... (保持原有详细内容) ... -->
+</li>
+<li><strong><span class="tm tmpsct" data-id="phase2_readme" title="点击查看解释">阶段二：数据壁垒攻克与基线建立 (2025年1月中旬 - 2月底)</span></strong>
+<!-- ... (保持原有详细内容) ... -->
+</li>
+<li><strong><span class="tm tmpsct" data-id="phase3_readme" title="点击查看解释">阶段三：核心算法精通与特征体系构建 (2025年3月中旬 - 4月初)</span></strong>
+<!-- ... (保持原有详细内容) ... -->
+</li>
+<li><strong><span class="tm tmpsct" data-id="phase4_readme" title="点击查看解释">阶段四：实验迭代、性能优化与区域聚焦 (2025年4月)</span></strong>
+<!-- ... (保持原有详细内容) ... -->
+</li>
+<li><strong><span class="tm tmpsct" data-id="phase5_readme" title="点击查看解释">阶段五：系统重构与知识沉淀 (2025年5月初至今)</span></strong>
+<!-- ... (保持原有详细内容) ... -->
+</li>
+</ul>
+<h2>4. <span class="tm tmpsct" data-id="sustainability_future_readme" title="点击查看解释">项目可持续性与未来展望</span></h2>
+<!-- ... (保持原有详细内容) ... -->
+<h2>5. <span class="tm tmpsct" data-id="directory_structure_readme" title="点击查看解释">项目目录结构说明</span></h2>
+<!-- ... (保持原有详细内容) ... -->
+<h2>6. <span class="tm tmpsct" data-id="yangtze_eval_readme" title="点击查看解释">长江流域多源降雨产品性能评估 (...)</span></h2>
+<!-- ... (保持原有表格和内容) ... -->
+<h2>7. <span class="tm tmpsct" data-id="yangtze_stats_readme" title="点击查看解释">长江流域各降雨产品基本统计特征</span></h2>
+<!-- ... (保持原有表格和内容) ... -->
+<h2>8. <span class="tm tmpsct" data-id="nationwide_eval_readme" title="点击查看解释">全国范围各降雨产品性能评估 (...)</span></h2>
+<!-- ... (保持原有表格和内容) ... -->
+<h2>9. <span class="tm tmpsct" data-id="nationwide_stats_readme" title="点击查看解释">全国范围各降雨产品基本统计特征</span></h2>
+<!-- ... (保持原有表格和内容) ... -->
+<h2>10. <span class="tm tmpsct" data-id="yearly_spatial_stats_readme" title="点击查看解释">各降雨产品逐年性能指标的空间统计特征详析</span></h2>
+<!-- ... (保持原有详细内容) ... -->
+                </main>
+                <aside class="ep">
+                    <h2>概念详解</h2>
+                    <div id="explain-content" aria-live="polite"><p class="ph">点击原文中的高亮术语或路线图中的节点查看相关解释。</p></div>
+                </aside>
+            </div>
+            <section class="ms">
+                <div class="msh">
+                    <h2>技术路线图</h2>
+                    <div class="mhc">
+                        <button id="map-zoom-btn" class="mcb" title="全屏查看与交互"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg><span>全屏</span></button>
+                        <button id="map-layout-btn" class="mcb" title="切换布局方向">TB</button> <!-- Default TB for roadmap -->
+                        <button id="map-download-btn" class="mcb" title="下载关系图 (PNG)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg><span>下载</span></button>
+                    </div>
+                </div>
+                <div id="map-canvas-wrap"><div id="map-out"></div></div>
+            </section>
+        </div>
+    </div>
+    <div id="map-zoom-modal" class="mzm">
+        <div id="map-zoom-display" class="mzd"></div>
+        <button id="close-map-zoom-btn" class="czb" title="关闭">×</button>
+    </div>
+    <script>
+        const notes = {
+            // Roadmap specific nodes
+            project_main_title: {t:"高分辨率降雨预测项目", type:"concept", d:"本项目旨在通过融合多源降雨数据并利用机器学习技术，开发高分辨率、高性能的降雨预测模型。", r:["phase1_theory_presearch", "phase2_data_baseline", "phase3_algo_feature_dev", "phase4_exp_opt_focus", "phase5_refactor_doc"]},
+            
+            phase1_theory_presearch: {t:"阶段一: 理论奠基与技术预研 (24年底)", type:"project_phase", d:"进行文献调研，学习大气科学、遥感、机器学习等基础理论，识别数据挑战，搭建初始实验环境。", e:"产出：初步技术路线、环境就绪", r:["lit_review_knowledge_acq", "data_understanding_challenges", "feasibility_env_setup", "prototype_scripts"]},
+            lit_review_knowledge_acq: {t:"文献调研与知识储备", type:"process_step", d:"系统学习大气科学、卫星遥感、机器学习（梯度提升、时间序列、集成学习）、Python数据科学生态等。", r:[]},
+            data_understanding_challenges: {t:"多源数据理解与挑战识别", type:"process_step", d:"解析CMORPH, CHIRPS等产品的数据格式、投影、时空分辨率差异及优缺点；识别数据融合、时空对齐、缺失值处理等核心挑战。", r:[]},
+            feasibility_env_setup: {t:"技术可行性探索与环境搭建", type:"process_step", d:"搭建Python数据分析与机器学习环境；针对小规模数据子集编写原型脚本验证预处理流程。", r:["prototype_scripts"]},
+            prototype_scripts: {t:"原型脚本验证", type:"deliverable", d:"初步验证数据读取、可视化和预处理流程，为大规模处理积累经验。", r:[]},
+
+            phase2_data_baseline: {t:"阶段二: 数据攻坚与基线建立 (25年1-2月)", type:"project_phase", d:"获取全量数据，设计并实现大规模预处理流程，建立多种基线模型，打通完整流程。", e:"产出：TB级数据集、高效预处理流程、基线模型、完整MFE流程", r:["full_data_acquisition", "large_scale_preprocessing", "data_driven_understanding", "model_tech_stack_expansion", "baseline_model_iteration"]},
+            full_data_acquisition: {t:"全量数据获取与管理", type:"deliverable", d:"成功获取覆盖多年、多源的TB级完整数据集，建立初步数据管理方案。", r:[]},
+            large_scale_preprocessing: {t:"大规模并行预处理流程", type:"process_step", d:"实现地理空间裁剪、时空对齐、智能NaN值处理，生成标准化的.mat文件。", e:"工具：geopandas, rasterio", r:["standardized_mat_files"]},
+            standardized_mat_files: {t:"标准化.mat数据文件", type:"deliverable", d:"经过预处理的，可直接用于模型输入的.mat格式数据。", r:[]},
+            data_driven_understanding: {t:"数据驱动的理解深化", type:"process_step", d:"对预处理数据进行统计分析和可视化对比，量化产品差异与一致性。", r:[]},
+            model_tech_stack_expansion: {t:"模型技术栈拓展", type:"process_step", d:"深入学习LSTM等深度学习模型在时空序列数据处理中的潜力。", e:"技术：LSTM", r:[]},
+            baseline_model_iteration: {t:"基线模型快速迭代", type:"process_step", d:"快速实现XGBoost, LSTM, MLP等基线模型，打通“数据-特征-模型-评估”流程。", e:"模型：XGBoost, LSTM, MLP", r:["full_pipeline_established"]},
+            full_pipeline_established: {t:"完整MFE流程打通", type:"deliverable", d:"数据获取、特征工程、模型训练到评估的整个流程得到验证和初步运行。", r:[]},
+
+            phase3_algo_feature_dev: {t:"阶段三: 算法精通与特征构建 (25年3-4月初)", type:"project_phase", d:"深入研究核心模型(XGBoost)，掌握关键库(scikit-learn, PyTorch)，系统设计特征体系，确立CHM为参照真值。", e:"产出：精通XGBoost、多维度特征体系设计、CHM真值确立", r:["core_model_mastery_xgb", "key_library_strengthening", "literature_driven_fe_design", "problem_formalization_benchmark"]},
+            core_model_mastery_xgb: {t:"核心模型精通 (XGBoost)", type:"process_step", d:"深入研究XGBoost原理、参数、调优技巧及不平衡数据处理。", e:"技术: XGBoost", r:[]},
+            key_library_strengthening: {t:"关键库能力强化", type:"process_step", d:"系统掌握scikit-learn和PyTorch的核心模块与基础。", e:"工具: scikit-learn, PyTorch", r:[]},
+            literature_driven_fe_design: {t:"文献驱动的特征工程设计", type:"process_step", d:"结合数据分析和文献研读，系统设计多维度特征体系 (V1)。", r:["multidim_feature_system_v1_design"]},
+            multidim_feature_system_v1_design: {t:"多维度特征体系V1", type:"deliverable", d:"首版包含基础、协同、时序、空间等多方面特征的体系。", r:[]},
+            problem_formalization_benchmark: {t:"问题形式化与基准确立", type:"process_step", d:"将任务解构为分类/回归问题，选择CHM数据作为参照真值(Y)。", r:["chm_as_ground_truth_p3"]},
+            chm_as_ground_truth_p3: {t:"CHM为参照真值", type:"concept", d:"确立CHM数据作为模型评估的统一、可靠基准。", r:[]},
+
+            phase4_exp_opt_focus: {t:"阶段四: 实验迭代、优化与聚焦 (25年4月)", type:"project_phase", d:"高强度特征工程迭代(V1-V5.1)，应用Optuna优化，设计FP/FN专家模型，启动长江流域精细化研究。", e:"产出：特征集V1-V5.1、优化模型、FP/FN专家模型、长江流域初步建模", r:["fe_high_speed_iteration", "auto_hyperparam_optuna_p4", "fp_fn_expert_model_dev_p4", "spatial_heterogeneity_zonal_p4", "yangtze_refinement_initiation_p4"]},
+            fe_high_speed_iteration: {t:"特征工程高速迭代 (V1-V5.1)", type:"process_step", d:"基于模型反馈快速实现、测试并优化至少5个核心版本的特征集。", r:["feature_sets_v1_v5_1_deliverable"]},
+            feature_sets_v1_v5_1_deliverable: {t:"特征集V1-V5.1", type:"deliverable", d:"经过多次迭代优化的系列特征集。", r:[]},
+            auto_hyperparam_optuna_p4: {t:"自动化超参数寻优 (Optuna)", type:"process_step", d:"引入并熟练运用Optuna对XGBoost等模型进行系统优化。", e:"工具: Optuna", r:[]},
+            fp_fn_expert_model_dev_p4: {t:"FP/FN专家集成模型研发", type:"process_step", d:"创新设计基于误差分析的集成策略，利用贝叶斯网络等训练FP/FN识别专家。", e:"技术: Bayesian Network, Ensemble Learning", r:[]},
+            spatial_heterogeneity_zonal_p4: {t:"空间异质性洞察与分区建模探索", type:"process_step", d:"识别模型性能的空间异质性，启动分区建模探索。", r:[]},
+            yangtze_refinement_initiation_p4: {t:"长江流域精细化研究启动", type:"process_step", d:"将全国框架复用适配到长江流域，完成初步建模。", r:["yangtze_initial_modeling_deliverable"]},
+            yangtze_initial_modeling_deliverable: {t:"长江流域初步建模成果", type:"deliverable", d:"长江流域的区域掩码、数据提取、特征工程和初步模型。", r:[]},
+
+            phase5_refactor_doc: {t:"阶段五: 系统重构与知识沉淀 (25年5月-至今)", type:"project_phase", d:"对代码和文件进行全面结构化重构，遵循软件工程实践，撰写高质量文档。", e:"产出：模块化项目结构、高质量README", r:["engineering_refactoring_p5", "systematic_summary_documentation_p5"]},
+            engineering_refactoring_p5: {t:"工程化重构", type:"process_step", d:"提升代码可读性、可维护性和协作性。", r:["modular_project_structure_deliverable"]},
+            modular_project_structure_deliverable: {t:"模块化项目结构", type:"deliverable", d:"清晰、模块化的项目代码和文件组织。", r:[]},
+            systematic_summary_documentation_p5: {t:"系统性总结与文档化", type:"process_step", d:"全面梳理项目，形成高质量、细节丰富的README文档。", r:["high_quality_readme_deliverable"]},
+            high_quality_readme_deliverable: {t:"高质量README文档", type:"deliverable", d:"项目知识的沉淀与展示。", r:[]},
+
+            future_work_sustainability: {t:"未来展望与可持续性", type:"project_phase", d:"项目后续发展方向，包括代码完善、研究深化、前沿探索、应用拓展和工程实践。", r:["codebase_improvement_fw", "regional_research_deepening_fw", "fe_model_frontier_fw", "application_potential_fw", "engineering_practices_fw"]},
+            codebase_improvement_fw: {t:"代码库完善", type:"concept", d:"路径更新、模块化封装、文档补充。", hideFromGraph: true, r:[]},
+            regional_research_deepening_fw: {t:"区域研究深化", type:"concept", d:"扩展到其他流域，引入DEM等地理因子。", hideFromGraph: true, r:[]},
+            fe_model_frontier_fw: {t:"特征/模型前沿探索", type:"concept", d:"复杂时空特征, 深度学习(CNN, Transformer, ConvLSTM), XAI, 集成学习等。", hideFromGraph: true, r:[]},
+            application_potential_fw: {t:"应用潜力拓展", type:"concept", d:"业务化准实时系统、极端事件预测、下游耦合、不确定性量化、数据同化。", r:["app_realtime_system_fw", "app_extreme_events_fw"]},
+            app_realtime_system_fw: {t:"业务化准实时系统", type:"app_area", d:"目标：构建近实时预测业务系统。", r:[]},
+            app_extreme_events_fw: {t:"极端事件预测强化", type:"app_area", d:"目标：提升对暴雨等极端事件的预警能力。", r:[]},
+            engineering_practices_fw: {t:"工程实践加强", type:"concept", d:"引入Git版本控制，构建自动化Pipeline。", hideFromGraph: true, r:[]},
+
+            // Linking README sections to roadmap nodes
+            project_overview_readme: {t:"README Sec 1: 项目概述", type:"project_section", d:"对应路线图的早期阶段和总体目标。", r:["project_main_title", "phase1_theory_presearch"], hideFromGraph: true},
+            tech_architecture_readme: {t:"README Sec 2: 技术架构", type:"project_section", d:"详细技术方案，在路线图的多个阶段均有体现，核心在阶段2-4。", r:["phase2_data_baseline", "phase3_algo_feature_dev", "phase4_exp_opt_focus"], hideFromGraph: true},
+            rd_journey_readme: {t:"README Sec 3: 研发历程", type:"project_section", d:"即为本技术路线图的核心内容。", r:["project_main_title"]},
+            sustainability_future_readme: {t:"README Sec 4: 可持续性与未来展望", type:"project_section", d:"对应路线图的未来展望部分。", r:["future_work_sustainability"]},
+            
+            // General terms from README (can be simplified or hidden from graph if too detailed for roadmap)
+            cmorph_readme: {t:"CMORPH", type:"data_source", d:"一种卫星降雨产品。", hideFromGraph: true, r:[]},
+            chirps_readme: {t:"CHIRPS", type:"data_source", d:"一种卫星降雨产品。", hideFromGraph: true, r:[]},
+            gsmap_readme: {t:"GSMAP", type:"data_source", d:"一种卫星降雨产品。", hideFromGraph: true, r:[]},
+            imerg_readme: {t:"IMERG", type:"data_source", d:"一种卫星降雨产品。", hideFromGraph: true, r:[]},
+            persiann_readme: {t:"PERSIANN", type:"data_source", d:"一种卫星降雨产品。", hideFromGraph: true, r:[]},
+            sm2rain_readme: {t:"SM2RAIN", type:"data_source", d:"一种基于土壤湿度的降雨产品。", hideFromGraph: true, r:[]},
+            chm_readme: {t:"CHM", type:"data_source", d:"地面观测融合数据。", hideFromGraph: true, r:[]},
+            ml_tech_readme: {t:"机器学习技术", type:"tech", d:"项目核心技术之一。", hideFromGraph: true, r:[]},
+            xgboost_readme: {t:"XGBoost", type:"tech", d:"核心机器学习模型之一。", hideFromGraph: true, r:[]},
+            lightgbm_readme: {t:"LightGBM", type:"tech", d:"机器学习模型之一。", hideFromGraph: true, r:[]},
+            bayes_readme: {t:"贝叶斯方法", type:"tech", d:"辅助分析的机器学习方法。", hideFromGraph: true, r:[]},
+            yangtze_readme: {t:"长江流域", type:"app_area", d:"重点研究区域。", hideFromGraph: true, r:[]},
+            far_focus_readme: {t:"误报率突破", type:"concept", d:"项目关键优化目标。", hideFromGraph: true, r:[]}
+        },
+        typeStyles = {
+            concept:{fillcolor:"#fef3c7", cssClass: "tmc"},
+            data_source:{fillcolor:"#d1fae5", cssClass: "tmb"}, // also for deliverable/data_asset
+            tech:{fillcolor:"#dbeafe", cssClass: "tmt"}, // also for tool
+            app_area:{fillcolor:"#fee2e2", cssClass: "tma"},
+            metric:{fillcolor:"#ffedd5", cssClass: "tma"},
+            process_step:{fillcolor:"#e0f2fe", cssClass: "tmps"}, // activity
+            project_phase:{fillcolor:"#f3e8ff", cssClass: "tmpsct"}, // also for project_section
+            project_section:{fillcolor:"#f3e8ff", cssClass: "tmpsct"},
+            deliverable:{fillcolor:"#d1fae5", cssClass: "tmb"},
+            tool:{fillcolor:"#dbeafe", cssClass: "tmt"},
+            code_entity:{fillcolor:"#e5e7eb", cssClass: "tmce"},
+            file_type:{fillcolor:"#e5e7eb", cssClass: "tmce"},
+            default:{fillcolor:"#e0e0e0", cssClass: "tmc"}
+        },
+        graphEdges = `
+            project_main_title -> phase1_theory_presearch [label="启动阶段 (24年底)", style=bold];
+
+            phase1_theory_presearch -> lit_review_knowledge_acq [label="核心活动"];
+            phase1_theory_presearch -> data_understanding_challenges [label="核心活动"];
+            phase1_theory_presearch -> feasibility_env_setup [label="核心活动"];
+            feasibility_env_setup -> prototype_scripts [label="关键产出"];
+            phase1_theory_presearch -> phase2_data_baseline [label="进入", style=bold, color="#555555", minlen=2];
+
+            phase2_data_baseline -> full_data_acquisition [label="关键成果"];
+            phase2_data_baseline -> large_scale_preprocessing [label="核心任务"];
+            large_scale_preprocessing -> standardized_mat_files [label="关键产出"];
+            phase2_data_baseline -> data_driven_understanding [label="辅助活动"];
+            phase2_data_baseline -> model_tech_stack_expansion [label="技术拓展"];
+            phase2_data_baseline -> baseline_model_iteration [label="核心任务"];
+            baseline_model_iteration -> full_pipeline_established [label="重要里程碑"];
+            phase2_data_baseline -> phase3_algo_feature_dev [label="进入", style=bold, color="#555555", minlen=2];
+
+            phase3_algo_feature_dev -> core_model_mastery_xgb [label="核心能力"];
+            phase3_algo_feature_dev -> key_library_strengthening [label="基础建设"];
+            phase3_algo_feature_dev -> literature_driven_fe_design [label="核心任务"];
+            literature_driven_fe_design -> multidim_feature_system_v1_design [label="关键设计"];
+            phase3_algo_feature_dev -> problem_formalization_benchmark [label="重要步骤"];
+            problem_formalization_benchmark -> chm_as_ground_truth_p3 [label="确立基准"];
+            phase3_algo_feature_dev -> phase4_exp_opt_focus [label="进入", style=bold, color="#555555", minlen=2];
+
+            phase4_exp_opt_focus -> fe_high_speed_iteration [label="核心研发"];
+            fe_high_speed_iteration -> feature_sets_v1_v5_1_deliverable [label="系列产出"];
+            phase4_exp_opt_focus -> auto_hyperparam_optuna_p4 [label="优化手段"];
+            phase4_exp_opt_focus -> fp_fn_expert_model_dev_p4 [label="创新探索"];
+            phase4_exp_opt_focus -> spatial_heterogeneity_zonal_p4 [label="分析洞察"];
+            phase4_exp_opt_focus -> yangtze_refinement_initiation_p4 [label="区域聚焦"];
+            yangtze_refinement_initiation_p4 -> yangtze_initial_modeling_deliverable [label="阶段成果"];
+            phase4_exp_opt_focus -> phase5_refactor_doc [label="进入", style=bold, color="#555555", minlen=2];
+
+            phase5_refactor_doc -> engineering_refactoring_p5 [label="核心任务"];
+            engineering_refactoring_p5 -> modular_project_structure_deliverable [label="关键成果"];
+            phase5_refactor_doc -> systematic_summary_documentation_p5 [label="核心任务"];
+            systematic_summary_documentation_p5 -> high_quality_readme_deliverable [label="重要产出"];
+            phase5_refactor_doc -> future_work_sustainability [label="展望", style=bold, color="#555555", minlen=2];
+            
+            future_work_sustainability -> application_potential_fw [label="重点拓展"];
+            application_potential_fw -> app_realtime_system_fw [label="方向"];
+            application_potential_fw -> app_extreme_events_fw [label="方向"];
+
+            // Link README sections to roadmap phase nodes for context
+            // These are conceptual links for the user, not strict flow
+            rd_journey_readme -> project_main_title [style=dotted, color=gray, label="对应内容"];
+            phase1_readme -> phase1_theory_presearch [style=dotted, color=gray, label="详情见"];
+            phase2_readme -> phase2_data_baseline [style=dotted, color=gray, label="详情见"];
+            phase3_readme -> phase3_algo_feature_dev [style=dotted, color=gray, label="详情见"];
+            phase4_readme -> phase4_exp_opt_focus [style=dotted, color=gray, label="详情见"];
+            phase5_readme -> phase5_refactor_doc [style=dotted, color=gray, label="详情见"];
+            sustainability_future_readme -> future_work_sustainability [style=dotted, color=gray, label="对应内容"];
+        `,
+        gIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.72c-.79-2.36-.79-4.9 0-7.27l-7.98-6.19C.92 18.05 0 21.13 0 24.27s.92 6.22 2.56 8.74l7.97-6.03z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>`,
+        POPUP_Y_OFF = 8;
+        let srchPop = null, hidePopTimeout = null;
+
+        function genDot(rd,allN,termIds){
+            let d=`digraph Roadmap {graph [labelloc=t,label="项目技术路线图",fontsize=16,fontname="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",bgcolor=transparent,rankdir="${rd}",nodesep=.5,ranksep=.7, splines=ortho];node [fontname="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",fontsize=10,style=filled,shape=box,margin=".15,.08",color="#d1d5db",fontcolor="#1f2937"];edge [fontsize=9,color="#6b7280",fontname="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",arrowsize=.7];`;
+            for(const id in allN){
+                if(allN.hasOwnProperty(id)){
+                    const n=allN[id];
+                    if (n.hideFromGraph && !(termIds.has(id) || Object.values(allN).some(item => item.r && item.r.includes(id)))) { // Hide if marked and not directly in text or related to a text term
+                        continue;
+                    }
+                    const s=typeStyles[n.type]||typeStyles.default;
+                    let nodeShape = (n.type === "project_phase" || n.type === "project_section") ? "tab" : "box"; // Emphasize phases
+                    if (n.id === "project_main_title") nodeShape = "house";
+
+                    let a=`label="${n.t.replace(/"/g,'\\"')}", fillcolor="${s.fillcolor}", id="node-${id}", shape=${nodeShape}, "data-ia"="${termIds.has(id) || !!Object.values(allN).find(item => !item.hideFromGraph && item.r && item.r.includes(id))}"`;
+                     // Make all roadmap nodes interactive initially, unless explicitly hidden and not linked
+                    if(n.type === "project_phase") a+=`, style="filled,bold", color="#a3a3a3"`; // Bolder border for phases
+
+
+                    // Simplified logic for non-interactive style: if hideFromGraph is true AND it's not a term in the text AND no other visible node links to it via 'r'
+                    let isReferencedByVisibleNode = false;
+                    for (const ref_id in allN) {
+                        if (allN.hasOwnProperty(ref_id) && !allN[ref_id].hideFromGraph && allN[ref_id].r && allN[ref_id].r.includes(id)) {
+                            isReferencedByVisibleNode = true;
+                            break;
+                        }
+                    }
+                    if(n.hideFromGraph && !termIds.has(id) && !isReferencedByVisibleNode) {
+                         a+=`, fontcolor="var(--map-node-non-interactive-font)", color="var(--map-node-non-interactive-border)", style="filled,dashed"`;
+                    }
+
+                    d+=`${id.replace(/\s+/g,'_')} [${a}];\n`;
+                }
+            }
+            d+=graphEdges.replace(/([a-zA-Z0-9_]+)\s*->\s*([a-zA-Z0-9_]+)/g,(m,p1,p2)=>`${p1.replace(/\s+/g,'_')}->${p2.replace(/\s+/g,'_')}`);
+            return d+"\n}";
+        }
+
+        function ensureSrchPop(){
+            if(!srchPop){
+                srchPop=document.createElement('button');srchPop.id='gsp';srchPop.type='button';
+                srchPop.innerHTML=`${gIcon}<span>搜索</span>`;document.body.appendChild(srchPop);
+                srchPop.addEventListener('mouseover',()=>{if(hidePopTimeout)clearTimeout(hidePopTimeout);});
+                srchPop.addEventListener('mouseout',()=>{hidePopTimeout=setTimeout(()=>srchPop.classList.remove('vis'),300);});
+                srchPop.addEventListener('click',e=>{const q=e.currentTarget.dataset.st;if(q){window.open(`https://www.google.com/search?q=${encodeURIComponent(q + " 项目研究")}`,'_blank','noopener,noreferrer');srchPop.classList.remove('vis');}});
+            }
+        }
+        function dlMap(){
+            const sE=document.querySelector("#map-out svg");if(!sE){alert("未找到路线图SVG元素。");return;}
+            const cv=document.createElement('canvas'),c=cv.getContext('2d'),r=sE.getBoundingClientRect(),sc=2;
+            cv.width=r.width*sc;cv.height=r.height*sc;c.fillStyle='white';c.fillRect(0,0,cv.width,cv.height);
+            const sS=new XMLSerializer().serializeToString(sE),i=new Image(),sB=new Blob([sS],{type:'image/svg+xml;charset=utf-8'}),u=URL.createObjectURL(sB);
+            i.onload=function(){c.drawImage(i,0,0,cv.width,cv.height);URL.revokeObjectURL(u);const pU=cv.toDataURL('image/png'),l=document.createElement('a');l.href=pU;l.download='technical-roadmap.png';document.body.appendChild(l);l.click();document.body.removeChild(l);};
+            i.onerror=()=>{URL.revokeObjectURL(u);alert("下载路线图失败：无法加载SVG图像。");};i.src=u;
+        }
+        document.addEventListener('DOMContentLoaded',()=>{
+            const QSA=(s)=>document.querySelectorAll(s), Q=(s)=>document.querySelector(s), GID=(id)=>document.getElementById(id),
+            allTerms=QSA('.rc .tm[data-id]'),explEl=GID('explain-content'),pfb=GID('pfb'),mapOut=GID('map-out'),
+            zmBtn=GID('map-zoom-btn'),lytBtn=GID('map-layout-btn'),dlBtn=GID('map-download-btn'),
+            zmModal=GID('map-zoom-modal'),zmDisp=GID('map-zoom-display'),clzmBtn=GID('close-map-zoom-btn');
+            let actTerm=null,actMapNodeId=null,pz=null,viz=new Viz(),curRankdir='TB'; // Default TB
+            const rdTermIds=new Set();allTerms.forEach(s=>rdTermIds.add(s.dataset.id));
+
+            function hiMapNode(id){
+                if(actMapNodeId){
+                    const pNs=QSA(`#map-out svg g.node[id="${actMapNodeId}"], #map-zoom-display svg g.node[id="${actMapNodeId}"]`);
+                    pNs.forEach(pN => pN.classList.remove('mna'));
+                }
+                const mId=`node-${id.replace(/\s+/g,'_')}`;
+                const mNs=QSA(`#map-out svg g.node[id="${mId}"], #map-zoom-display svg g.node[id="${mId}"]`);
+                if(mNs.length > 0){
+                    mNs.forEach(mN => mN.classList.add('mna'));
+                    actMapNodeId=mId;
+                    const mainMapNode = Q(`#map-out svg g.node[id="${mId}"]`);
+                    if (mainMapNode) {
+                        setTimeout(() => {
+                            if (typeof mainMapNode.scrollIntoViewIfNeeded === "function") {
+                                mainMapNode.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                            } else {
+                                mainMapNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                            }
+                        }, 100);
+                    }
+                } else actMapNodeId=null;
+            }
+
+            function clrMapHi(){
+                if(actMapNodeId){
+                    const mNs=QSA(`#map-out svg g.node[id="${actMapNodeId}"], #map-zoom-display svg g.node[id="${actMapNodeId}"]`);
+                    mNs.forEach(mN => mN.classList.remove('mna'));
+                    actMapNodeId=null;
+                }
+            }
+            
+            function isInViewport(el) {
+                const rect = el.getBoundingClientRect();
+                const mainRc = Q('.rc');
+                const mainRcRect = mainRc.getBoundingClientRect();
+                return (
+                    rect.top >= mainRcRect.top &&
+                    rect.left >= mainRcRect.left &&
+                    rect.bottom <= mainRcRect.bottom &&
+                    rect.right <= mainRcRect.right
+                );
+            }
+
+            function dispExpl(id,fromPanel=0){
+                const nD=notes[id];if(actTerm)actTerm.classList.remove('active');
+                const tIR=Q(`.rc .tm[data-id="${id}"]`);
+                
+                if(tIR){
+                    tIR.classList.add('active');actTerm=tIR;
+                    if(fromPanel && !isInViewport(tIR)) tIR.scrollIntoView({behavior:'smooth',block:'center'});
+                }else actTerm=null;
+                
+                if(nD){
+                    let c=`<div class="ei"><div class="eih"><h3>${nD.t}</h3><button class="gsb" data-st="${nD.t}" title="用 Google 搜索此术语">${gIcon}</button></div>`;
+                    if(nD.d)c+=`<p><strong>描述:</strong> ${nD.d.replace(/<</g,'<').replace(/>>/g,'>')}</p>`;
+                    if(nD.e)c+=`<p><strong>要点/产出:</strong> ${nD.e.replace(/<</g,'<').replace(/>>/g,'>')}</p>`;
+                    if(nD.r&&nD.r.length>0){
+                        c+='<p><strong>相关条目:</strong> ';
+                        nD.r.forEach((rId,idx)=>{const rN=notes[rId];if(rN){const s=typeStyles[rN.type]||typeStyles.default;c+=`<span class="tm ${s.cssClass}" data-id="${rId}" title="点击查看解释">${rN.t}</span>`+(idx<nD.r.length-1?', ':'');}});
+                        c+='</p>';
+                    }
+                    explEl.innerHTML=c+'</div>';ensureSrchPop();
+                    QSA('#explain-content .tm[data-id]').forEach(el=>{el.addEventListener('click',ev=>{const nId=ev.currentTarget.dataset.id;dispExpl(nId,1);hiMapNode(nId);});});
+                    Q('#explain-content .gsb').addEventListener('click',ev=>{const q=ev.currentTarget.dataset.st;if(q)window.open(`https://www.google.com/search?q=${encodeURIComponent(q + " 项目研究")}`,'_blank','noopener,noreferrer');});
+                }else{explEl.innerHTML='<p class="ph">未找到该术语的详细解释。</p>';}
+                if (!fromPanel) hiMapNode(id); 
+            }
+
+            function buildMap(rankdir = 'TB') { // Default TB
+                mapOut.classList.add('ld');
+                viz.renderSVGElement(genDot(rankdir, notes, rdTermIds))
+                .then(svgEl => {
+                    mapOut.innerHTML = ''; mapOut.appendChild(svgEl);
+                    QSA('#map-out svg .node').forEach(n => { // All nodes clickable in roadmap by default
+                        if (n.getAttribute('data-ia') !== "false") { // Respect data-ia if explicitly false
+                             n.addEventListener('click', ev => {
+                                const nId = ev.currentTarget.id.replace('node-', '');
+                                dispExpl(nId);
+                            });
+                        }
+                    });
+                    mapOut.classList.remove('ld');
+                    if (actTerm) hiMapNode(actTerm.dataset.id); 
+                    setupPanzoom(svgEl, zmDisp);
+                })
+                .catch(err => { mapOut.classList.remove('ld'); console.error(err); mapOut.innerHTML = '<p style="color:red;text-align:center;">路线图加载失败。</p>'; });
+            }
+            
+            function setupPanzoom(svgElement, targetContainer, isModal = false) {
+                if (targetContainer.panzoomInstance) { // Destroy previous instance if any
+                    targetContainer.panzoomInstance.destroy();
+                    targetContainer.panzoomInstance = null;
+                }
+                const clonedSvg = svgElement.cloneNode(true);
+                targetContainer.innerHTML = '';
+                targetContainer.appendChild(clonedSvg);
+
+                const pzInstance = Panzoom(clonedSvg, {
+                    maxScale: 5, minScale: 0.3, contain: 'outside', canvas: true
+                });
+                targetContainer.panzoomInstance = pzInstance; 
+                targetContainer.addEventListener('wheel', pzInstance.zoomWithWheel, {passive: false}); // passive false for wheel zoom
+                
+                QSA( (isModal ? '#map-zoom-display' : '#map-out') + ' svg .node').forEach(n => {
+                     if (n.getAttribute('data-ia') !== "false") {
+                        n.addEventListener('click', ev => {
+                            const nId = ev.currentTarget.id.replace('node-', '');
+                            dispExpl(nId);
+                            if (isModal) { 
+                               const mainMapNodeTarget = Q(`#map-out svg g.node[id="node-${nId.replace(/\s+/g,'_')}"]`);
+                               if(mainMapNodeTarget) mainMapNodeTarget.classList.add('mna');
+                               // Also highlight in explanation panel if opened from modal map
+                               const termInText = QSA(`.rc .tm[data-id="${nId}"]`);
+                               termInText.forEach(t => t.classList.add('active'));
+                               if (actTerm && actTerm !== termInText[0]) actTerm.classList.remove('active');
+                               actTerm = termInText[0];
+                            }
+                        });
+                    }
+                });
+                 if (actMapNodeId) { 
+                    const activeNodesInNewSvg = targetContainer.querySelectorAll(`g.node[id="${actMapNodeId}"]`);
+                    activeNodesInNewSvg.forEach(an => an.classList.add('mna'));
+                }
+            }
+
+            allTerms.forEach(termEl=>{termEl.addEventListener('click',ev=>{const tId=ev.currentTarget.dataset.id;dispExpl(tId);});});
+            document.addEventListener('click',ev=>{
+                if(!ev.target.closest('.rc .tm, .ep, #map-out svg .node, #map-zoom-modal svg .node, .mcb, #gsp')){
+                    if(actTerm){actTerm.classList.remove('active');actTerm=null;}
+                    clrMapHi();
+                    explEl.innerHTML='<p class="ph">点击原文中的高亮术语或路线图中的节点查看相关解释。</p>';
+                }
+            });
+            
+            lytBtn.addEventListener('click',()=>{curRankdir=(curRankdir==='TB'?'LR':'TB');lytBtn.textContent=curRankdir;buildMap(curRankdir);});
+            dlBtn.addEventListener('click',dlMap);
+            
+            zmBtn.addEventListener('click', () => {
+                const mainSvg = Q('#map-out svg');
+                if (mainSvg) {
+                    setupPanzoom(mainSvg, zmDisp, true); 
+                    zmModal.classList.add('vis');
+                } else {
+                    alert("路线图尚未加载。");
+                }
+            });
+            clzmBtn.addEventListener('click',()=>{zmModal.classList.remove('vis'); if(zmDisp.panzoomInstance) { zmDisp.panzoomInstance.destroy(); zmDisp.panzoomInstance = null; } zmDisp.innerHTML = '';});
+            
+            pfb.addEventListener('click',()=>{const d=document.documentElement;if(!document.fullscreenElement){d.requestFullscreen().catch(e=>alert(`无法进入全屏模式: ${e.message} (${e.name})`));pfb.querySelector('.ie').style.display='none';pfb.querySelector('.ic').style.display='';pfb.title="退出全屏";}else{if(document.exitFullscreen)document.exitFullscreen();pfb.querySelector('.ie').style.display='';pfb.querySelector('.ic').style.display='none';pfb.title="全屏";}});
+            document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement){pfb.querySelector('.ie').style.display='';pfb.querySelector('.ic').style.display='none';pfb.title="全屏";}});
+            
+            explEl.addEventListener('mouseover', e => {
+                if (e.target.classList.contains('tm') || e.target.closest('.gsb')) {
+                    const termText = e.target.classList.contains('tm') ? e.target.textContent : e.target.closest('.gsb').dataset.st;
+                    if (termText && srchPop) {
+                        if (hidePopTimeout) clearTimeout(hidePopTimeout);
+                        const rect = e.target.getBoundingClientRect();
+                        srchPop.style.left = `${rect.left + window.scrollX}px`;
+                        srchPop.style.top = `${rect.bottom + window.scrollY + POPUP_Y_OFF}px`;
+                        srchPop.dataset.st = termText;
+                        srchPop.classList.add('vis');
+                    }
+                }
+            });
+            explEl.addEventListener('mouseout', e => {
+                if (e.target.classList.contains('tm') || e.target.closest('.gsb')) {
+                    if (srchPop) hidePopTimeout = setTimeout(() => srchPop.classList.remove('vis'), 300);
+                }
+            });
+            buildMap(curRankdir); // Initial build with TB
+        });
+    </script>
+</body>
+</html>

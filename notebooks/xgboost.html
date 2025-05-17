@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XGBoost核心原理解析</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
+    <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+    <style>
+        :root{--rad:4px;--text-pri:#1f2937;--text-sec:#4b5563;--bg-main:#fff;--bg-page:#f3f4f6;--bg-panel:#f9fafb;--bord-soft:#e5e7eb;--bord-med:#d1d5db;--brand:#2563eb;--brand-light:#dbeafe;--anim-fast:0.25s;--anim-norm:0.4s;--map-node-active-stroke:var(--brand);--map-node-active-stroke-width:2.5px;--map-node-non-interactive-font:#6b7280;--map-node-non-interactive-border:#adb5bd;}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif,'Apple Color Emoji','Segoe UI Emoji';line-height:1.65;margin:0;background-color:var(--bg-page);color:var(--text-pri);}
+        .pw{max-width:1366px;margin:16px auto;padding:0 24px;}
+        .cc{background-color:var(--bg-main);box-shadow:0 2px 8px #0000000f;border-radius:var(--rad);overflow:hidden;}
+        .la{display:flex;border-bottom:1px solid var(--bord-soft);}
+        .rc{flex:3;padding:24px 32px;overflow-y:auto;border-right:1px solid var(--bord-soft);}
+        .ep{flex:2;padding:24px 32px;background-color:var(--bg-panel);overflow-y:auto;position:relative;}
+        .rc h1,.ep h2{color:var(--text-pri);font-weight:600;margin-top:0;border-bottom:1px solid var(--bord-soft);padding-bottom:10px;margin-bottom:16px;}
+        .rc h1{font-size:1.75rem;}
+        .ep h2{font-size:1.375rem;}
+        .msh{display:flex;justify-content:space-between;align-items:center;padding:16px 32px 8px;border-bottom:1px solid var(--bord-soft);margin-bottom:16px;}
+        .msh h2{font-size:1.375rem;color:var(--text-pri);font-weight:600;margin:0;padding:0;border-bottom:none;flex-grow:1;}
+        .mhc{display:flex;gap:8px;}
+        p{margin-bottom:1.2em;}
+        .tm{padding:.1em .3em;margin:0 .05em;border-radius:3px;cursor:pointer;transition:background-color var(--anim-fast) ease,box-shadow var(--anim-fast) ease,color var(--anim-fast) ease;border:1px solid transparent;position:relative;}
+        .tm:hover{box-shadow:0 0 4px #0000001a;}
+        .tmc{background-color:#fef3c7;border-color:#fde68a;} /* concept type */
+        .tmb{background-color:#d1fae5;border-color:#a7f3d0;} /* branch type */
+        .tmt{background-color:#dbeafe;border-color:#bfdbfe;} /* tech type */
+        .tma{background-color:#fee2e2;border-color:#fecaca;} /* app type */
+        .ei .tm{background-color:var(--brand-light);border:1px solid var(--brand);color:var(--brand);}
+        .ei .tm:hover{background-color:var(--brand);color:white;}
+        .tm.active{background-color:var(--brand);color:white;border-color:var(--brand);box-shadow:0 0 6px #2563eb66;}
+        figure { margin: 20px auto; text-align: center; } /* Added for figure styling */
+        figure img { max-width: 90%; height: auto; border: 1px solid var(--bord-soft); padding: 8px; border-radius: var(--rad); box-shadow: 0 1px 3px #0000000f; } /* Added for img styling */
+        figure figcaption { font-size: 0.85em; color: var(--text-sec); margin-top: 10px; padding: 0 10%;} /* Added for figcaption styling */
+        @keyframes slideUpFadeIn{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+        @keyframes simpleFadeIn{0%{opacity:0}100%{opacity:1}}
+        #explain-content>.ph{color:var(--text-sec);font-style:italic;text-align:center;margin-top:40px;animation:simpleFadeIn var(--anim-norm) ease-out forwards;}
+        #explain-content>.ei{margin-bottom:16px;padding:16px;background-color:var(--bg-main);border:1px solid var(--bord-soft);border-left:4px solid var(--brand);border-radius:var(--rad);box-shadow:0 1px 3px #0000000a;animation:slideUpFadeIn var(--anim-norm) ease-out forwards;}
+        .eih{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .eih h3{margin-top:0;font-size:1.125rem;color:var(--brand);margin-bottom:0;flex-grow:1;}
+        .gsb{background:0 0;border:none;padding:4px;cursor:pointer;color:#9ca3af;display:inline-flex;align-items:center;margin-left:8px;line-height:1;}
+        .gsb svg{width:1.1em;height:1.1em;}
+        .gsb:hover{opacity:0.8;}
+        .ei p{margin-bottom:.75em;font-size:.9rem;}
+        .ei strong{color:#374151;font-weight:600;}
+        .ei p:last-child{margin-bottom:0;}
+        .ms{background-color:var(--bg-main);}
+        #map-canvas-wrap{padding:16px 32px 24px;box-sizing:border-box;position:relative;overflow:hidden;}
+        #map-out{display:flex;justify-content:center;align-items:center;min-height:300px;border:1px solid var(--bord-soft);border-radius:var(--rad);background-color:#fdfdfe;transition:opacity var(--anim-fast) ease-in-out;}
+        #map-out.ld{opacity:.5;}
+        #map-out svg{display:block;width:100%;max-width:100%;height:auto;max-height:100%;}
+        #map-out svg .node{cursor:pointer;}
+        #map-out svg .node[data-ia="false"]{cursor:default;}
+        #map-out svg .node.mna>polygon,#map-out svg .node.mna>ellipse{stroke:var(--map-node-active-stroke)!important;stroke-width:var(--map-node-active-stroke-width)!important;transition:stroke var(--anim-fast) ease,stroke-width var(--anim-fast) ease;}
+        .mcb{padding:6px 10px;background-color:#f9fafb;color:var(--text-sec);border:1px solid var(--bord-med);border-radius:var(--rad);cursor:pointer;font-size:.75rem;z-index:10;transition:background-color var(--anim-fast) ease,color var(--anim-fast) ease,border-color var(--anim-fast) ease;font-family:inherit;line-height:1.2;display:inline-flex;align-items:center;gap:5px;}
+        .mcb:hover{background-color:#f3f4f6;color:var(--text-pri);border-color:#9ca3af;}
+        .mcb:disabled{cursor:not-allowed;opacity:.7;}
+        .mcb svg{width:1.1em;height:1.1em;vertical-align:middle;fill:currentColor;}
+        #map-layout-btn{width:75px;justify-content:center;}
+        #map-download-btn svg{transform:translateY(1px);}
+        #map-zoom-modal{display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background-color:#1f2937d9;z-index:1000;justify-content:center;align-items:center;overflow:hidden;backdrop-filter:blur(2px);opacity:0;visibility:hidden;transform:scale(.95) translateY(10px);transition:opacity var(--anim-fast) ease-out,transform var(--anim-fast) ease-out,visibility 0s linear var(--anim-fast);}
+        #map-zoom-modal.vis{opacity:1;visibility:visible;transform:scale(1) translateY(0);transition-delay:0s;}
+        #map-zoom-display{position:relative;width:95%;height:95%;background-color:var(--bg-main);overflow:hidden;display:flex;justify-content:center;align-items:center;border-radius:calc(var(--rad)*1.5);box-shadow:0 10px 30px #00000026;}
+        #map-zoom-display svg{max-width:none;max-height:none;width:100%;height:100%;cursor:grab;display:block;}
+        #map-zoom-display svg:active{cursor:grabbing;}
+        #close-map-zoom-btn{position:absolute;top:16px;right:16px;background:#374151b3;color:white;border:none;border-radius:50%;width:36px;height:36px;font-size:20px;line-height:36px;text-align:center;cursor:pointer;z-index:1001;transition:background-color var(--anim-fast) ease,transform .15s ease;}
+        #close-map-zoom-btn:hover{background:#1f2937e6;transform:scale(1.05);}
+        #gsp{position:fixed;background-color:#fff;color:#333;padding:6px 12px;border-radius:var(--rad);font-size:0.8rem;font-weight:500;z-index:1050;border:1px solid #ccc;cursor:pointer;box-shadow:0 3px 8px #00000026;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility 0s linear .15s,transform .15s ease;transform:translateY(8px) scale(.95);white-space:nowrap;display:inline-flex;align-items:center;}
+        #gsp.vis{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition-delay:0s,0s,0s;}
+        #gsp svg{width:1.1em;height:1.1em;vertical-align:middle;margin-right:6px;}
+        #gsp:hover{background-color:#f8f9fa;border-color:#bbb;}
+        #pfb{position:fixed;top:16px;right:16px;z-index:1005;background-color:#ffffffd9;border:1px solid var(--bord-med);border-radius:50%;width:36px;height:36px;padding:0;display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 1px 4px #0000001a;transition:background-color var(--anim-fast) ease,border-color var(--anim-fast) ease;}
+        #pfb:hover{background-color:white;border-color:var(--text-sec);}
+        #pfb svg{width:18px;height:18px;fill:var(--text-sec);transition:fill var(--anim-fast) ease;}
+        #pfb:hover svg{fill:var(--text-pri);}
+        @media (max-width:900px){
+            .pw{margin:0;padding:0;}
+            .cc{border-radius:0;box-shadow:none;}
+            .la{flex-direction:column;}
+            .rc{border-right:none;border-bottom:1px solid var(--bord-soft);padding:20px;}
+            .ep{padding:20px;min-height:200px;}
+            .msh{padding:16px 20px 8px;flex-wrap:wrap;}
+            .msh h2{font-size:1.25rem;width:100%;margin-bottom:8px;}
+            .mhc{width:100%;justify-content:flex-end;}
+            #map-canvas-wrap{padding:16px 20px 20px;}
+            .rc h1{font-size:1.5rem;}
+            .ep h2{font-size:1.25rem;}
+            #pfb{top:10px;right:10px;}
+            figure img { max-width: 100%; padding: 5px; } /* Adjust image style for mobile */
+            figure figcaption { padding: 0 5%;} /* Adjust figcaption style for mobile */
+        }
+    </style>
+</head>
+<body>
+    <button id="pfb" title="全屏"><svg class="ie" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg><svg class="ic" style="display:none;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg></button>
+    <div class="pw">
+        <div class="cc">
+            <div class="la">
+                <main class="rc">
+                    <h1>XGBoost核心原理解析</h1>
+                    <p><span class="tm tmt" data-id="xgb" title="点击查看解释">XGBoost (eXtreme Gradient Boosting)</span> 是一种高效、灵活且可移植的梯度提升框架，它基于 <span class="tm tmb" data-id="gb" title="点击查看解释">梯度提升 (Gradient Boosting)</span> 算法。XGBoost 使用 <span class="tm tmt" data-id="dt" title="点击查看解释">决策树 (Decision Tree)</span> 作为基学习器，并通过 <span class="tm tmc" data-id="ensemble" title="点击查看解释">集成学习</span> 的方式将多个弱学习器组合成一个强学习器。</p>
+
+                    <!-- BEGIN: Image Placeholder for XGBoost Architecture -->
+                    <figure>
+                        <img src="https://via.placeholder.com/600x400.png?text=在此处替换为您的XGBoost架构图" 
+                             alt="XGBoost 架构设计示意图 - 展示了决策树如何转换输入特征并可能结合线性分类器" 
+                             style="max-width: 80%; height: auto; border: 1px solid #ddd; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <figcaption>
+                            图1: XGBoost 架构设计示意图。
+                            <em>请将上方的 <code>src</code> 属性替换为您自己图片的有效链接。该图通常展示了XGBoost如何利用决策树进行特征提取和转换，并可能结合线性模型进行最终预测，以及其迭代提升的过程。</em>
+                        </figcaption>
+                    </figure>
+                    <!-- END: Image Placeholder -->
+
+                    <p>其核心在于优化一个明确定义的 <span class="tm tmc" data-id="obj_func" title="点击查看解释">目标函数 (Objective Function)</span>，该函数包含 <span class="tm tmc" data-id="loss_func" title="点击查看解释">损失函数 (Loss Function)</span> 和 <span class="tm tmc" data-id="reg" title="点击查看解释">正则化项 (Regularization)</span>。XGBoost 在优化过程中使用了损失函数的二阶泰勒展开，引入了 <span class="tm tmc" data-id="hessian" title="点击查看解释">Hessian矩阵 (二阶导数)</span> 信息，这使得它能更快更准确地找到最优分裂点。此外，XGBoost 还具备 <span class="tm tmt" data-id="sparsity" title="点击查看解释">稀疏感知 (Sparsity Awareness)</span> 能力，可以高效处理 <span class="tm tmc" data-id="missing_val" title="点击查看解释">缺失值 (Missing Value Handling)</span>。它还支持 <span class="tm tmc" data-id="parallel" title="点击查看解释">并行处理 (Parallel Processing)</span> 和有效的 <span class="tm tmt" data-id="pruning" title="点击查看解释">树剪枝 (Tree Pruning)</span> 策略，以防止过拟合并提升性能。XGBoost广泛应用于 <span class="tm tma" data-id="app_class" title="点击查看解释">分类任务</span> 和 <span class="tm tma" data-id="app_reg" title="点击查看解释">回归任务</span>。</p>
+                </main>
+                <aside class="ep">
+                    <h2>概念详解</h2>
+                    <div id="explain-content" aria-live="polite"><p class="ph">点击原文中的高亮术语查看相关解释。</p></div>
+                </aside>
+            </div>
+            <section class="ms">
+                <div class="msh">
+                    <h2>知识图谱</h2>
+                    <div class="mhc">
+                        <button id="map-zoom-btn" class="mcb" title="全屏查看与交互"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg><span>全屏</span></button>
+                        <button id="map-layout-btn" class="mcb" title="切换布局方向">LR</button>
+                        <button id="map-download-btn" class="mcb" title="下载关系图 (PNG)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg><span>下载</span></button>
+                    </div>
+                </div>
+                <div id="map-canvas-wrap"><div id="map-out"></div></div>
+            </section>
+        </div>
+    </div>
+    <div id="map-zoom-modal" class="mzm">
+        <div id="map-zoom-display" class="mzd"></div>
+        <button id="close-map-zoom-btn" class="czb" title="关闭">×</button>
+    </div>
+    <script>
+        const notes = {
+            xgb: {t:"XGBoost (极限梯度提升)", type:"tech", d:"一种高效、灵活且可移植的梯度提升框架，通过优化目标函数（包含损失函数和正则化项）并利用二阶导数信息来迭代地构建决策树集成模型。", e:"Kaggle竞赛获胜方案、金融风控、推荐系统。", r:["gb", "dt", "obj_func", "reg", "hessian", "parallel", "sparsity", "missing_val", "pruning", "app_class", "app_reg"]},
+            gb: {t:"梯度提升 (Gradient Boosting)", type:"branch", d:"一种集成学习技术，通过迭代地添加弱学习器（通常是决策树）来构建强学习器，每个新学习器都试图纠正前一个学习器的残差（梯度）。", e:"GBDT (Gradient Boosting Decision Tree)。", r:["xgb", "dt", "ensemble", "obj_func"]},
+            dt: {t:"决策树 (Decision Tree)", type:"tech", d:"一种监督学习模型，它通过学习简单的决策规则来预测目标变量的值。是XGBoost等提升算法的常用基学习器。", e:"CART (Classification and Regression Trees)。", r:["gb", "xgb", "pruning"]},
+            ensemble: {t:"集成学习 (Ensemble Learning)", type:"concept", d:"结合多个学习算法的预测以获得比任何单个学习算法更好的预测性能的机器学习范式。", e:"Bagging (如随机森林), Boosting (如XGBoost, AdaBoost), Stacking。", r:["gb", "xgb"]},
+            obj_func: {t:"目标函数 (Objective Function)", type:"concept", d:"在机器学习中，模型训练的目标是最小化或最大化的函数。XGBoost的目标函数由损失函数和正则化项组成。", e:"最小化 (损失函数 + 正则化项)。", r:["xgb", "loss_func", "reg", "hessian"]},
+            loss_func: {t:"损失函数 (Loss Function)", type:"concept", d:"衡量模型预测值与真实值之间差异的函数。XGBoost允许自定义损失函数。", e:"均方误差 (MSE) 用于回归，对数损失 (LogLoss) 用于分类。", r:["obj_func"]},
+            reg: {t:"正则化 (Regularization)", type:"concept", d:"防止模型过拟合的技术。XGBoost包含L1 (Lasso) 和L2 (Ridge) 正则化，以及对树复杂度的惩罚（如叶子节点数量、叶子节点权重）。", e:"L1正则化 (叶子数量)、L2正则化 (叶子权重)。", r:["xgb", "obj_func", "pruning"]},
+            hessian: {t:"Hessian矩阵 (二阶导数)", type:"concept", d:"损失函数相对于模型参数的二阶偏导数。XGBoost使用二阶泰勒展开来近似目标函数，从而利用Hessian信息进行更精确和快速的树分裂点查找。", e:"用于牛顿法优化，加速收敛。", r:["xgb", "obj_func"]},
+            sparsity: {t:"稀疏感知 (Sparsity Awareness)", type:"tech", d:"XGBoost能够有效地处理稀疏数据（如one-hot编码后的特征），通过为每个树节点学习默认的分裂方向来处理缺失值或稀疏特征。", e:"处理包含大量零值或缺失值的特征。", r:["xgb", "missing_val"]},
+            missing_val: {t:"缺失值处理 (Missing Value Handling)", type:"concept", d:"XGBoost内置了处理缺失值的机制。在训练时，它会学习将带有缺失值的样本分配到左子节点还是右子节点，以最大化分裂增益。", e:"自动处理数据中的NaN或None值，无需预先填充。", r:["xgb", "sparsity"]},
+            parallel: {t:"并行处理 (Parallel Processing)", type:"concept", d:"XGBoost在特征级别上支持并行计算（例如，在构建树时对特征进行排序或构建直方图的过程可以并行化），以加速树的构建过程。", e:"在寻找最佳分裂点时，并行计算各个特征的候选分裂点的统计信息。", r:["xgb"]},
+            pruning: {t:"树剪枝 (Tree Pruning)", type:"tech", d:"减少决策树大小以防止过拟合的技术。XGBoost采用一种后剪枝策略，当分裂带来的增益小于设定阈值（gamma）或者树达到最大深度时停止分裂。", e:"基于gamma参数的剪枝，max_depth参数限制。", r:["xgb", "dt", "reg"]},
+            app_class: {t:"分类任务", type:"app", d:"一种监督学习任务，目标是将输入数据分配到一个或多个预定义的类别中。", e:"垃圾邮件检测、图像识别、欺诈检测。", r:["xgb", "loss_func"]},
+            app_reg: {t:"回归任务", type:"app", d:"一种监督学习任务，目标是预测连续值输出。", e:"房价预测、股票价格预测、销量预测。", r:["xgb", "loss_func"]}
+        }, typeStyles = {
+            concept:{fillcolor:"#fef3c7", cssClass: "tmc"},
+            branch:{fillcolor:"#d1fae5", cssClass: "tmb"},
+            tech:{fillcolor:"#dbeafe", cssClass: "tmt"},
+            app:{fillcolor:"#fee2e2", cssClass: "tma"},
+            default:{fillcolor:"#e0e0e0", cssClass: "tmc"}
+        },
+        graphEdges = `
+            xgb -> gb [label="基于"];
+            gb -> ensemble [label="属于"];
+            xgb -> dt [label="使用基学习器"];
+            xgb -> obj_func [label="优化"];
+            obj_func -> loss_func [label="包含"];
+            obj_func -> reg [label="包含"];
+            obj_func -> hessian [label="利用信息"];
+            xgb -> hessian [label="利用"];
+            xgb -> sparsity [label="特性"];
+            sparsity -> missing_val [label="关键实现"];
+            xgb -> missing_val [label="内置处理"];
+            xgb -> parallel [label="支持"];
+            xgb -> pruning [label="采用"];
+            dt -> pruning [style=dashed,label="可应用"];
+            reg -> pruning [style=dashed,label="目标之一"];
+            xgb -> app_class [label="应用于"];
+            xgb -> app_reg [label="应用于"];
+            loss_func -> app_class [style=dashed,label="影响选择"];
+            loss_func -> app_reg [style=dashed,label="影响选择"];
+        `,
+        gIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.72c-.79-2.36-.79-4.9 0-7.27l-7.98-6.19C.92 18.05 0 21.13 0 24.27s.92 6.22 2.56 8.74l7.97-6.03z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>`,
+        POPUP_Y_OFF = 8;
+        let srchPop = null, hidePopTimeout = null;
+
+        function genDot(rd,allN,termIds){
+            let d=`digraph XGBoostConcepts {graph [labelloc=t,label="XGBoost 知识图谱",fontsize=16,fontname="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",bgcolor=transparent,rankdir="${rd}",nodesep=.4,ranksep=.6];node [fontname="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",fontsize=10,style=filled,shape=box,margin=".12,.06",color="#d1d5db",fontcolor="#1f2937"];edge [fontsize=9,color="#6b7280",fontname="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",arrowsize=.7];`;
+            for(const id in allN){
+                if(allN.hasOwnProperty(id)){
+                    const n=allN[id];
+                    if (n.hideFromGraph) {
+                        continue;
+                    }
+                    const s=typeStyles[n.type]||typeStyles.default;
+                    let a=`label="${n.t.replace(/"/g,'\\"')}", fillcolor="${s.fillcolor}", id="node-${id}", "data-ia"="${termIds.has(id) || !!Object.values(allN).find(item => !item.hideFromGraph && item.r && item.r.includes(id))}"`;
+                    if(!termIds.has(id) && !Object.values(allN).find(item => !item.hideFromGraph && item.r && item.r.includes(id))) { 
+                         a+=`, fontcolor="var(--map-node-non-interactive-font)", color="var(--map-node-non-interactive-border)", style="filled,dashed"`;
+                    }
+                    d+=`${id.replace(/\s+/g,'_')} [${a}];\n`;
+                }
+            }
+            d+=graphEdges.replace(/([a-zA-Z0-9_]+)\s*->\s*([a-zA-Z0-9_]+)/g,(m,p1,p2)=>{
+                const n1 = allN[p1];
+                const n2 = allN[p2];
+                if ((n1 && n1.hideFromGraph) || (n2 && n2.hideFromGraph)) {
+                    return ""; 
+                }
+                return `${p1.replace(/\s+/g,'_')}->${p2.replace(/\s+/g,'_')}`;
+            });
+            return d+"\n}";
+        }
+
+        function ensureSrchPop(){
+            if(!srchPop){
+                srchPop=document.createElement('button');srchPop.id='gsp';srchPop.type='button';
+                srchPop.innerHTML=`${gIcon}<span>搜索</span>`;document.body.appendChild(srchPop);
+                srchPop.addEventListener('mouseover',()=>{if(hidePopTimeout)clearTimeout(hidePopTimeout);});
+                srchPop.addEventListener('mouseout',()=>{hidePopTimeout=setTimeout(()=>srchPop.classList.remove('vis'),300);});
+                srchPop.addEventListener('click',e=>{const q=e.currentTarget.dataset.st;if(q){window.open(`https://www.google.com/search?q=${encodeURIComponent(q + " XGBoost")}`,'_blank','noopener,noreferrer');srchPop.classList.remove('vis');}});
+            }
+        }
+        function dlMap(){
+            const sE=document.querySelector("#map-out svg");if(!sE){alert("未找到关系图SVG元素。");return;}
+            const cv=document.createElement('canvas'),c=cv.getContext('2d'),r=sE.getBoundingClientRect(),sc=2;
+            cv.width=r.width*sc;cv.height=r.height*sc;c.fillStyle='white';c.fillRect(0,0,cv.width,cv.height);
+            const sS=new XMLSerializer().serializeToString(sE),i=new Image(),sB=new Blob([sS],{type:'image/svg+xml;charset=utf-8'}),u=URL.createObjectURL(sB);
+            i.onload=function(){c.drawImage(i,0,0,cv.width,cv.height);URL.revokeObjectURL(u);const pU=cv.toDataURL('image/png'),l=document.createElement('a');l.href=pU;l.download='xgboost-knowledge-graph.png';document.body.appendChild(l);l.click();document.body.removeChild(l);};
+            i.onerror=()=>{URL.revokeObjectURL(u);alert("下载关系图失败：无法加载SVG图像。");};i.src=u;
+        }
+        document.addEventListener('DOMContentLoaded',()=>{
+            const QSA=(s)=>document.querySelectorAll(s), Q=(s)=>document.querySelector(s), GID=(id)=>document.getElementById(id),
+            allTerms=QSA('.rc .tm[data-id]'),explEl=GID('explain-content'),pfb=GID('pfb'),mapOut=GID('map-out'),
+            zmBtn=GID('map-zoom-btn'),lytBtn=GID('map-layout-btn'),dlBtn=GID('map-download-btn'),
+            zmModal=GID('map-zoom-modal'),zmDisp=GID('map-zoom-display'),clzmBtn=GID('close-map-zoom-btn');
+            let actTerm=null,actMapNodeId=null,pz=null,viz=new Viz(),curRankdir='LR';
+            const rdTermIds=new Set();allTerms.forEach(s=>rdTermIds.add(s.dataset.id));
+
+            function hiMapNode(id){
+                if(actMapNodeId){const pN=Q(`#map-out svg g.node[id="${actMapNodeId}"]`);if(pN)pN.classList.remove('mna');}
+                const mId=`node-${id.replace(/\s+/g,'_')}`,mN=Q(`#map-out svg g.node[id="${mId}"]`);
+                if(mN){
+                    mN.classList.add('mna');
+                    actMapNodeId=mId;
+                } else actMapNodeId=null;
+            }
+            function clrMapHi(){if(actMapNodeId){const mN=Q(`#map-out svg g.node[id="${actMapNodeId}"]`);if(mN)mN.classList.remove('mna');actMapNodeId=null;}}
+            
+            function dispExpl(id,fromPanel=0){
+                const nD=notes[id];if(actTerm)actTerm.classList.remove('active');
+                const tIR=Q(`.rc .tm[data-id="${id}"]`);
+                
+                if(tIR){
+                    tIR.classList.add('active');actTerm=tIR;
+                    if(fromPanel && !isInViewport(tIR)) tIR.scrollIntoView({behavior:'smooth',block:'center'});
+                }else actTerm=null;
+
+                if(nD){
+                    let rHtml = '';
+                    if(nD.r && nD.r.length > 0){
+                        rHtml = `<p><strong>相关概念：</strong>`;
+                        nD.r.forEach(rId => {
+                            if(notes[rId] && (!notes[rId].hideFromGraph || rdTermIds.has(rId) || Object.values(notes).some(item => !item.hideFromGraph && item.r && item.r.includes(rId))  ) ){
+                                const rNote = notes[rId];
+                                const rTypeStyle = typeStyles[rNote.type] || typeStyles.default;
+                                rHtml += `<span class="tm ${rTypeStyle.cssClass}" data-id="${rId}" title="点击查看解释">${rNote.t}</span> `;
+                            }
+                        });
+                        rHtml += `</p>`;
+                    }
+
+                    explEl.innerHTML = `<div class="ei" data-eid="${id}">
+                        <div class="eih"><h3>${nD.t}</h3><button class="gsb" data-term="${nD.t}" title="在Google上搜索此术语">${gIcon}</button></div>
+                        <p>${nD.d}</p>
+                        ${nD.e ? `<p><strong>例如：</strong> ${nD.e}</p>` : ''}
+                        ${rHtml}
+                    </div>`;
+                    hiMapNode(id);
+                    QSA('#explain-content .tm[data-id]').forEach(t => t.addEventListener('click', e => dispExpl(e.currentTarget.dataset.id, 1)));
+                    const gBtn = explEl.querySelector('.gsb');
+                    if(gBtn) gBtn.addEventListener('click', e => {
+                        const term = e.currentTarget.dataset.term;
+                        window.open(`https://www.google.com/search?q=${encodeURIComponent(term + " XGBoost")}`,'_blank','noopener,noreferrer');
+                    });
+                } else {
+                    explEl.innerHTML = `<p class="ph">未找到关于 "${id}" 的解释。</p>`;
+                    clrMapHi();
+                }
+            }
+
+            function renderGraph(){
+                mapOut.classList.add('ld');
+                const dotSrc=genDot(curRankdir,notes,rdTermIds);
+                viz.renderSVGElement(dotSrc)
+                .then(el=>{
+                    mapOut.innerHTML='';mapOut.appendChild(el);
+                    QSA('#map-out svg .node').forEach(n=>{
+                        const nId=n.id.replace('node-','');
+                        if(n.dataset.ia === "true"){
+                             n.addEventListener('click',()=>{dispExpl(nId,1);});
+                        }
+                        n.addEventListener('mouseover',e=>{
+                            if(n.dataset.ia !== "true") return;
+                            ensureSrchPop();const r=e.currentTarget.getBoundingClientRect(),t=notes[nId]?.t || nId;
+                            srchPop.dataset.st = t; srchPop.style.top = `${r.bottom + POPUP_Y_OFF + window.scrollY}px`;
+                            srchPop.style.left = `${r.left + r.width/2 - srchPop.offsetWidth/2 + window.scrollX}px`;
+                            if(hidePopTimeout)clearTimeout(hidePopTimeout); srchPop.classList.add('vis');
+                        });
+                        n.addEventListener('mouseout',()=>{if(srchPop)hidePopTimeout=setTimeout(()=>srchPop.classList.remove('vis'),300);});
+                    });
+                    if(pz)pz.destroy();
+                    pz=Panzoom(el,{maxScale:5,minScale:.2,contain:'outside'});
+                    el.parentElement.addEventListener('wheel',pz.zoomWithWheel);
+                    mapOut.classList.remove('ld');
+                    if(actTerm) hiMapNode(actTerm.dataset.id); 
+                })
+                .catch(err=>{console.error(err);viz=new Viz();mapOut.innerHTML='<p style="color:red;text-align:center;padding:20px;">关系图加载失败。</p>';mapOut.classList.remove('ld');});
+            }
+
+            allTerms.forEach(t=>t.addEventListener('click',e=>{dispExpl(e.currentTarget.dataset.id,0);}));
+            lytBtn.addEventListener('click',()=>{curRankdir=curRankdir==='LR'?'TB':'LR';lytBtn.textContent=curRankdir;renderGraph();});
+            dlBtn.addEventListener('click',dlMap);
+            zmBtn.addEventListener('click',()=>{
+                const sE=Q('#map-out svg');
+                if(sE){
+                    zmDisp.innerHTML='';
+                    const cS=sE.cloneNode(true);
+                    zmDisp.appendChild(cS);
+                    Panzoom(cS,{maxScale:10,minScale:.1,contain:'inside',canvas:true});
+                    zmModal.classList.add('vis');
+                }else alert("请先生成关系图。");
+            });
+            clzmBtn.addEventListener('click',()=>{zmModal.classList.remove('vis');setTimeout(()=>zmDisp.innerHTML='',250);});
+            pfb.addEventListener('click',()=>{
+                if(!document.fullscreenElement){document.documentElement.requestFullscreen();pfb.title="退出全屏";pfb.children[0].style.display='none';pfb.children[1].style.display='';}
+                else{if(document.exitFullscreen)document.exitFullscreen();pfb.title="全屏";pfb.children[0].style.display='';pfb.children[1].style.display='none';}
+            });
+            document.addEventListener('fullscreenchange',()=>{
+                if(!document.fullscreenElement){pfb.title="全屏";pfb.children[0].style.display='';pfb.children[1].style.display='none';}
+            });
+            const isInViewport = el => {const r=el.getBoundingClientRect();return r.top>=0&&r.left>=0&&r.bottom<=(window.innerHeight||document.documentElement.clientHeight)&&r.right<=(window.innerWidth||document.documentElement.clientWidth);};
+            renderGraph();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高分辨率降雨融合与机器学习预测技术路线图</title>
+<style>
+    body {
+        font-family: 'Arial', 'SimSun', sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f7f6;
+        color: #333;
+    }
+    .flowchart-container {
+        width: 95%;
+        margin: auto;
+        border: 2px solid #004080; /* Deep blue border for container */
+        border-radius: 10px;
+        overflow: hidden; /* Ensures inner elements don't break layout */
+    }
+    .main-title-bar {
+        background-color: #004080; /* Deep blue */
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .flowchart-content {
+        padding: 20px;
+        background-color: #ffffff; /* White background for content area */
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 14px;
+    }
+    .section-title {
+        background-color: #e9ecef; /* Light grey for section titles */
+        font-weight: bold;
+        font-size: 16px;
+        padding: 12px;
+    }
+    .block {
+        background-color: #f8f9fa; /* Very light grey for blocks */
+        border-radius: 5px;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        line-height: 1.4;
+    }
+    .input-data { background-color: #fff3cd; /* Light yellow for input */ }
+    .process { background-color: #d1ecf1; /* Light blue for process */ }
+    .feature { background-color: #cce5ff; /* Lighter blue for features */ }
+    .model { background-color: #f5c6cb; /* Light red/pink for model */ }
+    .evaluation { background-color: #e2e3e5; /* Grey for evaluation */ }
+    .output-app { background-color: #d4edda; /* Light green for output */ }
+    .interpretation { background-color: #ffeeba; /* Light orange for interpretation */}
+
+    .arrow {
+        font-size: 20px;
+        font-weight: bold;
+        color: #004080; /* Arrow color */
+    }
+    .arrow-right { transform: rotate(0deg); }
+    .arrow-down { transform: rotate(90deg); display: inline-block; margin: 5px 0; }
+    .arrow-up { transform: rotate(-90deg); display: inline-block; margin: 5px 0;}
+    .arrow-col { width: 30px; border: none !important; } /* For vertical arrows */
+    .arrow-row td { height: 30px; border: none !important; } /* For horizontal arrows */
+
+    ul {
+        list-style-type: none;
+        padding-left: 0;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-size: 0.9em;
+    }
+    li {
+        margin-bottom: 3px;
+    }
+    .iteration-note {
+        font-style: italic;
+        color: #555;
+        font-size: 0.8em;
+        margin-top: 5px;
+    }
+    .small-text {
+        font-size: 0.85em;
+    }
+    .placeholder { /* For aligning items when colspan is used */
+        border: none !important;
+    }
+</style>
+</head>
+<body>
+
+<div class="flowchart-container">
+    <div class="main-title-bar">
+        高分辨率降雨融合与机器学习预测技术路线图
+    </div>
+    <div class="flowchart-content">
+
+        <!-- 数据准备与预处理 -->
+        <table>
+            <tr><td colspan="5" class="section-title">1. 数据准备与预处理</td></tr>
+            <tr>
+                <td class="block input-data">
+                    <strong>多源原始数据</strong><br>
+                    (CMORPH, CHIRPS, GSMAP, IMERG, PERSIANN, SM2RAIN, CHM)
+                </td>
+                <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block process">
+                    <strong>数据预处理</strong><br>
+                    <ul>
+                        <li>数据读取与解析</li>
+                        <li>时空对齐与插值</li>
+                        <li>NaN值处理 (时空插值/阈值替换)</li>
+                        <li>地理掩码应用 (中国区域/流域)</li>
+                    </ul>
+                </td>
+                <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block output-app">
+                    <strong>标准化格点/站点数据</strong><br>
+                    (.mat 文件)
+                </td>
+            </tr>
+        </table>
+
+        <!-- 特征工程 -->
+        <table>
+            <tr><td colspan="3" class="section-title">2. 特征工程</td></tr>
+            <tr>
+                <td class="block feature" style="width:60%">
+                    <strong>多维度特征构建</strong>
+                    <ul>
+                        <li>基础信息: 各产品原始降雨量</li>
+                        <li>多产品协同: 均值, 标准差, 中位数, 一致降雨产品数等</li>
+                        <li>时序动态: 周期性(正余弦,季节), 记忆性(滞后项), 变化率(差分), 累积效应(滑动窗口统计)</li>
+                        <li>空间关联: 邻域统计(均值,标准差,最大值), 空间梯度 (V5.1格点数据)</li>
+                        <li>弱信号增强: 低强度降雨探测特征 (距阈值距离, CV, 特定强度分箱)</li>
+                        <li>高阶交互: 产品标准差 * 季节因子等</li>
+                    </ul>
+                    <span class="iteration-note">特征集迭代优化 (V1 → V5.1), 基于模型反馈</span>
+                </td>
+                <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block output-app" style="width:35%">
+                    <strong>大规模特征库</strong>
+                </td>
+            </tr>
+        </table>
+        <table>
+             <tr class="arrow-row"><td colspan="3"><span class="arrow arrow-down">⇩</span></td></tr>
+        </table>
+
+        <!-- 机器学习建模 -->
+        <table>
+            <tr><td colspan="7" class="section-title">3. 机器学习建模</td></tr>
+            <tr>
+                <td class="block input-data" style="width:20%;"><strong>特征集 & CHM (真值)</strong></td>
+                <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block process" style="width:20%;">
+                    <strong>数据划分</strong><br>
+                    (训练集/验证集/测试集 或 K-Fold交叉验证)
+                </td>
+                <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block model" style="width:30%;">
+                    <strong>模型选择与训练</strong>
+                    <ul>
+                        <li>主力模型: XGBoost, LightGBM</li>
+                        <li>辅助模型: Naive Bayes</li>
+                        <li>超参数优化: Optuna</li>
+                        <li>集成学习: Stacking (基模型, FP/FN专家模型, 元学习器)</li>
+                    </ul>
+                </td>
+                <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block output-app" style="width:20%;">
+                    <strong>训练好的模型 & 预测结果</strong>
+                </td>
+            </tr>
+        </table>
+        <table>
+             <tr class="arrow-row">
+                <td style="width: 70%;" class="placeholder"></td>
+                <td style="width: 30%;"><span class="arrow arrow-down">⇩</span></td>
+             </tr>
+        </table>
+
+        <!-- 模型评估与诊断 & 解译 -->
+        <table>
+            <tr>
+                <td colspan="3" class="section-title" style="width:65%;">4. 模型评估与诊断</td>
+                <td colspan="3" class="section-title" style="width:35%;">5. 模型解译与应用</td>
+            </tr>
+            <tr>
+                <!-- 评估 -->
+                <td class="block evaluation" style="width:30%;">
+                    <strong>性能指标计算</strong>
+                    <ul>
+                        <li>标准指标: Accuracy, Precision, Recall, F1, AUC</li>
+                        <li>气象指标: POD, FAR, CSI, HSS, ETS</li>
+                    </ul>
+                </td>
+                <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block evaluation" style="width:30%;">
+                    <strong>深度诊断</strong>
+                    <ul>
+                        <li>训练过程监控 (损失曲线)</li>
+                        <li>误差分析 (空间/时间分布)</li>
+                        <li>FP/FN样本特征分析</li>
+                        <li>预测阈值敏感性</li>
+                    </ul>
+                </td>
+                <!-- 解译与应用 -->
+                <td class="block interpretation" style="width:20%;">
+                    <strong>模型解译 (SHAP)</strong><br>
+                    评估特征对模型输出的影响
+                </td>
+                 <td class="arrow-col"><span class="arrow arrow-right">➔</span></td>
+                <td class="block output-app" style="width:20%;">
+                    <strong>应用输出</strong><br>
+                    高分辨率降雨预测图/数据
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <span class="arrow arrow-up">⇧</span> <span class="small-text">反馈以指导特征工程迭代与模型调优</span> <span class="arrow arrow-up">⇧</span>
+                </td>
+                <td colspan="3" class="placeholder"></td>
+            </tr>
+        </table>
+
+         <div style="text-align:center; margin-top:20px; font-weight:bold; font-size:18px;">
+            技术路线图
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

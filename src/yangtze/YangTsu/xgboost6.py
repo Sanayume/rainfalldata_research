@@ -10,10 +10,10 @@ import joblib
 
 # --- 配置 ---
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
-X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features.npy")
-Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target.npy")
+X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features_v6.npy")
+Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target_v6.npy")
 MODEL_PREDICT_DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "model_predict")
-FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu.txt")
+FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu_v6.txt")
 RAIN_THRESHOLD = 0.1
 TEST_SIZE_RATIO = 0.2
 MAX_LOOKBACK = 30
@@ -154,7 +154,7 @@ final_model.fit(X_train, y_train, eval_set=eval_set, verbose=50)
 print("Model training complete.")
 
 # --- Save the trained model ---
-MODEL_SAVE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "models", "xgboost_v1_yangtsu.joblib")
+MODEL_SAVE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "models", "xgboost_v1_yangtsu_v6.joblib")
 print(f"\nSaving the trained model to {MODEL_SAVE_PATH}...")
 try:
     joblib.dump(final_model, MODEL_SAVE_PATH)
@@ -267,8 +267,8 @@ else:
         ax[1].set_title('XGBoost Classification Error')
 
         plt.tight_layout()
-        plt.savefig("xgboost_training_history_default_full.png")
-        print("Training history plot saved to xgboost_training_history_default_full.png")
+        plt.savefig("xgboost_training_history_default_full_v6.png")
+        print("Training history plot saved to xgboost_training_history_default_full_v6.png")
     else:
         print("Training history plotting skipped as only one eval set result found.")
 
@@ -278,8 +278,8 @@ try:
     xgb.plot_importance(final_model, ax=ax_imp, max_num_features=50, height=0.8)
     ax_imp.set_title('XGBoost Feature Importance (Top 50 - Default Model)')
     plt.tight_layout()
-    plt.savefig("xgboost_feature_importance_default_full.png")
-    print("Feature importance plot saved to xgboost_feature_importance_default_full.png")
+    plt.savefig("xgboost_feature_importance_default_full_v6.png")
+    print("Feature importance plot saved to xgboost_feature_importance_default_full_v6.png")
 except Exception as e:
     print(f"Could not plot feature importance: {e}")
 

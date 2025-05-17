@@ -29,8 +29,9 @@ print(f"Y shape: {Y.shape}")   # (1827, n_points)
 
 # --- 3. Handle Time Dependency ---
 print("\n--- Step 3: Time Alignment ---")
-max_lookback = 30 # Keep 30
-# nday, n_points, n_products defined earlier
+# Determine max_lookback based on features (window=15, lag=3)
+max_lookback = 30 # Keep 30, sufficient for window=15, lag=3
+# nday, n_points, nproduct defined earlier
 
 valid_time_range = slice(max_lookback, nday)
 n_valid_days = nday - max_lookback
@@ -45,30 +46,43 @@ Y_aligned = Y[valid_time_range] # Shape: (n_valid_days, n_points)
 print(f"Aligned X shape: {X_aligned.shape}")
 print(f"Aligned Y shape: {Y_aligned.shape}")
 
-# --- 4. Feature Engineering (Simplified - V4: V3 + sin/cos day - Adapted for Points) ---
-print("\n--- Step 4: Feature Engineering (Yangtze V4 - Simplified + sin/cos day) ---")
+# --- 4. Feature Engineering (Enhanced - Adapted for Points) ---
+print("\n--- Step 4: Feature Engineering (Yangtze) ---")
 start_feat = time.time()
 features_dict = {}
 epsilon = 1e-6
 RAIN_THR = 0.1 # Threshold for counting rain products
 
+# Helper function for safe division
+def safe_divide(numerator, denominator, default=0.0):
+    with np.errstate(divide='ignore', invalid='ignore'):
+        result = numerator / (denominator + epsilon)
+    return np.nan_to_num(result, nan=default, posinf=default, neginf=default)
+
 # --- 4.1 Basic Features ---
 print("  Calculating basic features...")
 features_dict['raw_values'] = X_aligned
 
-# --- 4.2 Multi-product Consistency/Difference Features (Simplified) ---
-print("  Calculating simplified multi-product stats (current time)...")
+# --- 4.2 Multi-product Consistency/Difference Features ---
+print("  Calculating multi-product stats (current time)...")
+# Calculate stats across the product dimension (axis=2)
+features_dict['product_mean'] = np.nanmean(X_aligned, axis=2, keepdims=True).astype(np.float32)
+features_dict['product_std'] = np.nanstd(X_aligned, axis=2, keepdims=True).astype(np.float32)
+features_dict['product_median'] = np.nanmedian(X_aligned, axis=2, keepdims=True).astype(np.float32)
+product_max = np.nanmax(X_aligned, axis=2, keepdims=True).astype(np.float32)
+product_min = np.nanmin(X_aligned, axis=2, keepdims=True).astype(np.float32)
+features_dict['product_max'] = product_max
+features_dict['product_min'] = product_min
+features_dict['product_range'] = (product_max - product_min).astype(np.float32)
 X_rain = (np.nan_to_num(X_aligned, nan=0.0) > RAIN_THR)
 features_dict['rain_product_count'] = np.sum(X_rain, axis=2, keepdims=True).astype(np.float32)
-del X_rain
 
-# --- 4.3 Temporal Evolution Features (Simplified + sin/cos day) ---
-# 4.3.1 Periodicity (Re-add sin/cos day)
-print("  Calculating periodicity features (Season + Sin/Cos Day)...")
+# --- 4.3 Temporal Evolution Features ---
+# 4.3.1 Periodicity
+print("  Calculating periodicity features...")
 days_in_year = 365.25
 day_index_original = np.arange(nday, dtype=np.float32)
 day_of_year = day_index_original % days_in_year
-# --- Re-add sin/cos calculation ---
 sin_time = np.sin(2 * np.pi * day_of_year / days_in_year).astype(np.float32)
 cos_time = np.cos(2 * np.pi * day_of_year / days_in_year).astype(np.float32)
 # Slice and expand: (n_valid_days,) -> (n_valid_days, 1, 1) -> broadcast to (n_valid_days, n_points, 1)
@@ -76,7 +90,7 @@ sin_time_aligned = sin_time[valid_time_range, np.newaxis, np.newaxis] * np.ones(
 cos_time_aligned = cos_time[valid_time_range, np.newaxis, np.newaxis] * np.ones((1, n_points, 1), dtype=np.float32)
 features_dict['sin_day'] = sin_time_aligned
 features_dict['cos_day'] = cos_time_aligned
-# --- Keep Season One-Hot ---
+# Season One-Hot
 month = (day_of_year // 30.4375).astype(int) % 12 + 1
 season_map = {1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 3, 10: 3, 11: 3, 12: 0}
 season = np.array([season_map[m] for m in month])
@@ -85,41 +99,50 @@ seasons_onehot[np.arange(nday), season] = 1
 # Slice and expand: (n_valid_days, 4) -> (n_valid_days, 1, 4) -> broadcast to (n_valid_days, n_points, 4)
 season_aligned = seasons_onehot[valid_time_range, np.newaxis, :] * np.ones((1, n_points, 1), dtype=np.float32)
 features_dict['season_onehot'] = season_aligned
-del day_index_original, day_of_year, month, season, seasons_onehot, season_aligned, sin_time, cos_time, sin_time_aligned, cos_time_aligned # Clean up
 
-# 4.3.2 Lag Features (Simplified)
-print("  Calculating simplified lag features...")
-lag_data_cache = {} # Cache raw lag data
-lag_std_cache = {} # Cache lag stds
-lag_rain_count_cache = {} # Cache lag rain counts
+# 4.3.2 Lag Features (Deepened)
+print("  Calculating deepened lag features...")
+lag_data_cache = {}
+lag_mean_cache = {}
+lag_std_cache = {}
+lag_rain_count_cache = {}
 
 for lag in [1, 2, 3]:
     print(f"    Lag {lag}...")
     lag_slice = slice(max_lookback - lag, nday - lag)
     lag_data = X[lag_slice] # Shape: (n_valid_days, n_points, n_products)
     lag_data_cache[lag] = lag_data
-    features_dict[f'lag_{lag}_values'] = lag_data # Raw values
+    features_dict[f'lag_{lag}_values'] = lag_data
 
-    # Calculate and cache lag statistics (Std and Rain Count only)
+    lag_mean = np.nanmean(lag_data, axis=2, keepdims=True).astype(np.float32)
     lag_std = np.nanstd(lag_data, axis=2, keepdims=True).astype(np.float32)
     lag_rain = (np.nan_to_num(lag_data, nan=0.0) > RAIN_THR)
     lag_rain_count = np.sum(lag_rain, axis=2, keepdims=True).astype(np.float32)
 
+    lag_mean_cache[lag] = lag_mean
     lag_std_cache[lag] = lag_std
     lag_rain_count_cache[lag] = lag_rain_count
 
-    features_dict[f'lag_{lag}_std'] = lag_std # Std
-    features_dict[f'lag_{lag}_rain_count'] = lag_rain_count # Lag rain product count
+    features_dict[f'lag_{lag}_mean'] = lag_mean
+    features_dict[f'lag_{lag}_std'] = lag_std
+    features_dict[f'lag_{lag}_rain_count'] = lag_rain_count
 
-# 4.3.3 Difference Features (Simplified)
-print("  Calculating difference features (Values only)...")
-prev_data = lag_data_cache[1] # t-1 (already sliced)
+if 1 in lag_mean_cache and 2 in lag_mean_cache:
+    features_dict['lag_1_2_mean_diff'] = (lag_mean_cache[1] - lag_mean_cache[2]).astype(np.float32)
+if 2 in lag_mean_cache and 3 in lag_mean_cache:
+    features_dict['lag_2_3_mean_diff'] = (lag_mean_cache[2] - lag_mean_cache[3]).astype(np.float32)
+
+# 4.3.3 Difference Features (t - (t-1))
+print("  Calculating difference features (t - t-1)...")
+prev_data = lag_data_cache[1] # t-1
 features_dict['diff_1_values'] = (X_aligned - prev_data).astype(np.float32)
+features_dict['diff_1_mean'] = features_dict['product_mean'] - lag_mean_cache[1]
+features_dict['diff_1_std'] = features_dict['product_std'] - lag_std_cache[1]
 print("    Deleting raw lag data cache...")
 del lag_data_cache, prev_data
 
-# 4.3.4 Moving Window Features (Keep as in v3)
-print("  Calculating moving window features (on product mean)...")
+# 4.3.4 Moving Window Features (Deepened)
+print("  Calculating deepened moving window features...")
 # Calculate product mean over full time first
 product_mean_full = np.nanmean(X, axis=2, keepdims=True).astype(np.float32) # Shape: (nday, n_points, 1)
 for window in [3, 7, 15]:
@@ -140,7 +163,9 @@ for window in [3, 7, 15]:
     features_dict[f'window_{window}_max'] = window_max.astype(np.float32)
     features_dict[f'window_{window}_min'] = window_min.astype(np.float32)
     features_dict[f'window_{window}_range'] = (window_max - window_min).astype(np.float32)
-del product_mean_full
+del product_mean_full # Clean up
+
+# Per-product moving window stats (example for window=7, GSMAP, PERSIANN)
 window = 7
 print(f"    Window {window} (per product - GSMAP, PERSIANN)...")
 gsmap_idx = product_names.index("GSMAP")
@@ -149,18 +174,32 @@ window_mean_gsmap = np.zeros((n_valid_days, n_points, 1), dtype=np.float32)
 window_std_persiann = np.zeros((n_valid_days, n_points, 1), dtype=np.float32)
 for i in range(n_valid_days):
     current_original_idx = i + max_lookback
-    window_data_X = X[current_original_idx - window : current_original_idx]
+    window_data_X = X[current_original_idx - window : current_original_idx] # Shape: (window, n_points, n_products)
+    # Calculate mean over time axis (axis=0), result shape (n_points,)
     mean_gsmap_result = np.nanmean(window_data_X[:, :, gsmap_idx], axis=0)
+    # Calculate std over time axis (axis=0), result shape (n_points,)
     std_persiann_result = np.nanstd(window_data_X[:, :, persiann_idx], axis=0)
+    # Assign to target array, adding the feature dimension
     window_mean_gsmap[i] = mean_gsmap_result[..., np.newaxis]
     window_std_persiann[i] = std_persiann_result[..., np.newaxis]
 features_dict[f'window_{window}_mean_GSMAP'] = window_mean_gsmap.astype(np.float32)
 features_dict[f'window_{window}_std_PERSIANN'] = window_std_persiann.astype(np.float32)
-del window_mean_gsmap, window_std_persiann, mean_gsmap_result, std_persiann_result
 
-# --- 4.4 Spatial Context Features (Simplified - 5x5 and Gradients only - Adapted for Points) ---
-print("  Calculating simplified spatial features (5x5 and Gradients - Adapted for Points)...")
-# 4.4.2 5x5 Neighborhood (NaN Placeholder)
+
+# --- 4.4 Spatial Context Features (Deepened - Adapted for Points) ---
+print("  Calculating deepened spatial features (Adapted for Points - Expect NaNs)...")
+# 4.4.1 3x3 Neighborhood
+print("    3x3 neighborhood (NaN placeholder)...")
+spatial_mean_3x3 = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
+spatial_std_3x3 = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
+spatial_max_3x3 = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
+print("    WARNING: Spatial 3x3 calculation assumes grid structure and will produce NaNs for point data.")
+features_dict['spatial_mean_3x3'] = spatial_mean_3x3
+features_dict['spatial_std_3x3'] = spatial_std_3x3
+features_dict['spatial_max_3x3'] = spatial_max_3x3
+features_dict['spatial_center_diff_3x3'] = (features_dict['raw_values'] - spatial_mean_3x3).astype(np.float32) # Will be NaN
+
+# 4.4.2 5x5 Neighborhood
 print("    5x5 neighborhood (NaN placeholder)...")
 spatial_mean_5x5 = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
 spatial_std_5x5 = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
@@ -170,20 +209,49 @@ features_dict['spatial_mean_5x5'] = spatial_mean_5x5
 features_dict['spatial_std_5x5'] = spatial_std_5x5
 features_dict['spatial_max_5x5'] = spatial_max_5x5
 features_dict['spatial_center_diff_5x5'] = (features_dict['raw_values'] - spatial_mean_5x5).astype(np.float32) # Will be NaN
-del spatial_mean_5x5
-# 4.4.3 Spatial Gradients (NaN Placeholder)
+
+# 4.4.3 Spatial Gradients
 print("    Spatial gradients (NaN placeholder)...")
 print("    WARNING: Spatial gradient calculation assumes grid structure and will produce NaNs for point data.")
+# Fill gradient features with NaNs
 features_dict['gradient_magnitude_GSMAP'] = np.full((n_valid_days, n_points, 1), np.nan, dtype=np.float32)
 features_dict['gradient_magnitude_PERSIANN'] = np.full((n_valid_days, n_points, 1), np.nan, dtype=np.float32)
 features_dict['gradient_magnitude_mean'] = np.full((n_valid_days, n_points, 1), np.nan, dtype=np.float32)
+
+# --- Delete X_aligned after spatial calculations ---
 print("    Deleting X_aligned...")
 del X_aligned # Delete alias
 
-# --- 4.5 Low Intensity Signal Features (Simplified) ---
-print("  Calculating simplified low intensity features...")
+# --- 4.5 Low Intensity Signal Features (Enhanced) ---
+print("  Calculating enhanced low intensity features...")
+# 4.5.1 Threshold Proximity
+features_dict['threshold_proximity'] = np.abs(features_dict['product_mean'] - RAIN_THR).astype(np.float32)
+
+# 4.5.2 Coefficient of Variation & Lagged version
+cv = safe_divide(features_dict['product_std'], features_dict['product_mean'])
+features_dict['coef_of_variation'] = cv.astype(np.float32)
+cv_lag1 = safe_divide(lag_std_cache[1], lag_mean_cache[1])
+features_dict['lag_1_coef_of_variation'] = cv_lag1.astype(np.float32)
 print("    Deleting lag stats caches...")
-del lag_std_cache, lag_rain_count_cache
+del lag_mean_cache, lag_std_cache, lag_rain_count_cache, cv_lag1
+
+# 4.5.3 Conditional Uncertainty
+low_intensity_std = np.where(
+    features_dict['product_mean'] < 1.0,
+    features_dict['product_std'],
+    0.0
+).astype(np.float32)
+features_dict['low_intensity_std'] = low_intensity_std
+
+# 4.5.4 Intensity Bins (mean and count)
+mean_values = features_dict['product_mean']
+intensity_bins_mean = np.zeros((n_valid_days, n_points, 4), dtype=np.float32)
+intensity_bins_mean[:, :, 0] = (mean_values <= 0.1).squeeze(axis=-1)
+intensity_bins_mean[:, :, 1] = ((mean_values > 0.1) & (mean_values <= 0.5)).squeeze(axis=-1)
+intensity_bins_mean[:, :, 2] = ((mean_values > 0.5) & (mean_values <= 1.0)).squeeze(axis=-1)
+intensity_bins_mean[:, :, 3] = (mean_values > 1.0).squeeze(axis=-1)
+features_dict['intensity_bins_mean'] = intensity_bins_mean
+
 count_values = features_dict['rain_product_count']
 intensity_bins_count = np.zeros((n_valid_days, n_points, 4), dtype=np.float32)
 intensity_bins_count[:, :, 0] = (count_values == 0).squeeze(axis=-1)
@@ -191,19 +259,45 @@ intensity_bins_count[:, :, 1] = (count_values == 1).squeeze(axis=-1)
 intensity_bins_count[:, :, 2] = (count_values == 2).squeeze(axis=-1)
 intensity_bins_count[:, :, 3] = (count_values >= 3).squeeze(axis=-1)
 features_dict['intensity_bins_count'] = intensity_bins_count
-del count_values, intensity_bins_count
+
+# --- 4.6 Interaction Features (Enhanced) ---
+print("  Calculating enhanced interaction features...")
+features_dict['std_season_interaction'] = (features_dict['product_std'] * np.abs(features_dict['sin_day'])).astype(np.float32)
+features_dict['low_intense_high_uncertain'] = (low_intensity_std * features_dict['coef_of_variation']).astype(np.float32)
+features_dict['rain_count_std_interaction'] = (features_dict['rain_product_count'] * features_dict['product_std']).astype(np.float32)
+
+# Interactions involving spatial diff will be NaN due to spatial diff being NaN
+print("    Calculating std_x_spatial_diff interaction (expect NaNs)...")
+# Use the NaN-filled spatial_center_diff_3x3
+mean_spatial_center_diff_3x3 = np.nanmean(features_dict['spatial_center_diff_3x3'], axis=2, keepdims=True) # Will be NaN
+features_dict['std_x_spatial_diff'] = (features_dict['product_std'] * np.abs(mean_spatial_center_diff_3x3)).astype(np.float32) # Will be NaN
+del mean_spatial_center_diff_3x3
+
+print("    Calculating std_x_diff_1_mean interaction...")
+features_dict['std_x_diff_1_mean'] = (features_dict['product_std'] * np.abs(features_dict['diff_1_mean'])).astype(np.float32)
+
+print("    Deleting remaining intermediate feature variables...")
+del cv, low_intensity_std
+# Delete the large spatial diff arrays now that they're used (or NaN)
+if 'spatial_center_diff_3x3' in features_dict:
+    print("    Deleting spatial_center_diff_3x3...")
+    del features_dict['spatial_center_diff_3x3']
+if 'spatial_center_diff_5x5' in features_dict:
+     print("    Deleting spatial_center_diff_5x5...")
+     del features_dict['spatial_center_diff_5x5']
 
 end_feat = time.time()
 print(f"Feature engineering finished in {end_feat - start_feat:.2f} seconds.")
 
+
 # --- 5. Concatenate Features and Generate Names ---
-print("\n--- Step 5: Concatenating Features & Naming (Yangtze v4) ---")
+print("\n--- Step 5: Concatenating Features & Naming (Yangtze v2) ---")
 start_concat = time.time()
 # Build feature matrix by concatenating arrays in features_dict
 features_list_final = []
 feature_names = []
 
-# Use the same naming logic as national turn4.py (which includes sin/cos day)
+# Use the same naming logic as national turn2.py
 for name, feat_array in features_dict.items():
     if feat_array is None or not isinstance(feat_array, np.ndarray): continue
     try:
@@ -215,14 +309,14 @@ for name, feat_array in features_dict.items():
 
     base_name = name
     if n_cols == 1:
-        feature_names.append(base_name) # Includes sin_day, cos_day
+        feature_names.append(base_name)
     # Adjust naming for features that originally had product dimension
     elif base_name == 'raw_values' or \
          (base_name.startswith('lag_') and '_values' in base_name) or \
          base_name == 'diff_1_values' or \
-         base_name.startswith('spatial_std_5x5') or \
-         base_name.startswith('spatial_max_5x5') or \
-         base_name == 'spatial_center_diff_5x5': # spatial_mean_5x5 was deleted
+         base_name.startswith('spatial_mean_') or \
+         base_name.startswith('spatial_std_') or \
+         base_name.startswith('spatial_max_'):
         if n_cols == n_products:
             for i in range(n_cols): feature_names.append(f"{base_name}_{product_names[i]}")
         else:
@@ -230,6 +324,13 @@ for name, feat_array in features_dict.items():
             for i in range(n_cols): feature_names.append(f"{base_name}_{i}")
     elif base_name == 'season_onehot':
         for i in range(n_cols): feature_names.append(f"{base_name}_{i}")
+    elif base_name == 'intensity_bins_mean':
+        bin_labels = ['<=0.1', '0.1-0.5', '0.5-1.0', '>1.0']
+        if n_cols == len(bin_labels):
+             for i in range(n_cols): feature_names.append(f"{base_name}_{bin_labels[i]}")
+        else:
+             print(f"Warning: Mismatch in columns for {base_name}. Expected {len(bin_labels)}, got {n_cols}. Using index.")
+             for i in range(n_cols): feature_names.append(f"{base_name}_{i}")
     elif base_name == 'intensity_bins_count':
         bin_labels = ['0', '1', '2', '>=3']
         if n_cols == len(bin_labels):
@@ -256,7 +357,7 @@ if len(feature_names) != total_features:
      print(f"FATAL: Mismatch between calculated total features ({total_features}) and feature name list length ({len(feature_names)})!")
      exit()
 
-# Define output directory and filenames explicitly for Yangtze v4
+# Define output directory and filenames explicitly for Yangtze v2
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
@@ -308,3 +409,4 @@ print(f"Saving finished in {end_save - start_save:.2f} seconds.")
 
 print(f"\nTotal processing time: {time.time() - start_load:.2f} seconds")
 print("Data processing complete.")
+

@@ -56,7 +56,6 @@ class SelfAttention(nn.Module):
         return output, attention
 
 class RainfallLSTM(nn.Module):
-    """增强版降水预测模型"""
     def __init__(self, input_size=5, hidden_size=128, num_layers=2, dropout=0.3, use_attention=True):
         super(RainfallLSTM, self).__init__()
         self.hidden_size = hidden_size
