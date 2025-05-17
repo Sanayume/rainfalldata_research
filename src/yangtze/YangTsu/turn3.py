@@ -9,7 +9,7 @@ start_load = time.time()
 ALL_DATA = mydata()
 # Load Yangtze data
 X_raw, Y_raw, _, _ = ALL_DATA.yangtsu() # Shape: (prod, time, points), (time, points)
-product_names = ALL_DATA.features
+product_names = ALL_DATA.get_products() # Get product names
 n_products, nday, n_points = X_raw.shape
 print(f"Initial X_raw shape: {X_raw.shape}")
 print(f"Initial Y_raw shape: {Y_raw.shape}")
