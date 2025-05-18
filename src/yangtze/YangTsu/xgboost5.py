@@ -10,14 +10,14 @@ import pandas as pd
 
 # --- 配置 ---
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
-# Use Yangtze v4 data files
-X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features_v4.npy")  # Changed filename
-Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target_v4.npy")  # Changed filename
-FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu_v4.txt")  # Changed filename
-# Save Yangtze v4 model and plot
-MODEL_SAVE_PATH = os.path.join(PROJECT_DIR, "xgboost_yangtsu_v4_model.joblib")  # Changed filename
-IMPORTANCE_PLOT_PATH = os.path.join(PROJECT_DIR, "xgboost_yangtsu_v4_feature_importance.png")  # Changed filename
-PERFORMANCE_CSV_PATH = os.path.join(PROJECT_DIR, "threshold_performance_yangtsu_v4.csv")  # Changed filename
+# Use Yangtze v5 data files
+X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features_v5.npy")  # Changed filename
+Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target_v5.npy")  # Changed filename
+FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu_v5.txt")  # Changed filename
+# Save Yangtze v5 model and plot
+MODEL_SAVE_PATH = os.path.join(PROJECT_DIR, "xgboost_yangtsu_v5_model.joblib")  # Changed filename
+IMPORTANCE_PLOT_PATH = os.path.join(PROJECT_DIR, "xgboost_yangtsu_v5_feature_importance.png")  # Changed filename
+PERFORMANCE_CSV_PATH = os.path.join(PROJECT_DIR, "threshold_performance_yangtsu_v5.csv")  # Changed filename
 
 RAIN_THRESHOLD = 0.1
 TEST_SIZE_RATIO = 0.2
@@ -45,7 +45,7 @@ def calculate_metrics(y_true, y_pred, title=""):
     return {'tn': tn, 'fp': fp, 'fn': fn, 'tp': tp, 'accuracy': accuracy, 'pod': pod, 'far': far, 'csi': csi}
 
 # --- 1. 加载数据 ---
-print("Loading flattened Yangtze data (v4)...")
+print("Loading flattened Yangtze data (v5)...")
 try:
     # Load directly as Yangtze subset should be smaller
     X_flat = np.load(X_FLAT_PATH)
@@ -96,7 +96,7 @@ print(f"Train distribution: No Rain={train_counts[0]}, Rain={train_counts[1]}")
 print(f"Test distribution: No Rain={test_counts[0]}, Rain={test_counts[1]}")
 
 # --- 4. 定义并训练 XGBoost 模型 ---
-print("Defining and training XGBoost model (Yangtze v4)...")
+print("Defining and training XGBoost model (Yangtze v5)...")
 # Calculate scale_pos_weight based on the FULL training set
 num_neg = np.sum(y_train == 0)
 num_pos = np.sum(y_train == 1)
@@ -145,7 +145,7 @@ except Exception as e:
     print(f"Error retrieving best score: {e}")
 
 # --- 5. 特征重要性 ---
-print("\n--- Feature Importances (Yangtze v4) ---")
+print("\n--- Feature Importances (Yangtze v5) ---")
 try:
     importances = model.feature_importances_
     importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
@@ -162,7 +162,7 @@ try:
     plt.barh(top_features['Feature'], top_features['Importance'])
     plt.xlabel("Importance Score")
     plt.ylabel("Feature")
-    plt.title(f"Top {n_plot} Feature Importances (XGBoost Yangtze v4)")  # Updated title
+    plt.title(f"Top {n_plot} Feature Importances (XGBoost Yangtze v5)")  # Updated title
     plt.gca().invert_yaxis()
     plt.tight_layout()
     plt.savefig(IMPORTANCE_PLOT_PATH)
@@ -173,7 +173,7 @@ except Exception as plot_e:
     print(f"Warning: Could not generate feature importance plot - {plot_e}")
 
 # --- 6. 评估模型 ---
-print("\n--- Evaluating Model on Test Set (Yangtze v4) ---")
+print("\n--- Evaluating Model on Test Set (Yangtze v5) ---")
 y_pred_proba = model.predict_proba(X_test)[:, 1]
 
 # Evaluate across thresholds
@@ -181,14 +181,14 @@ thresholds_to_evaluate = [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
 metrics_by_threshold = {}
 for threshold in thresholds_to_evaluate:
     y_pred_threshold = (y_pred_proba >= threshold).astype(int)
-    metrics = calculate_metrics(y_test, y_pred_threshold, title=f"XGBoost Yangtze v4 (Threshold {threshold:.2f})")  # Updated title
+    metrics = calculate_metrics(y_test, y_pred_threshold, title=f"XGBoost Yangtze v5 (Threshold {threshold:.2f})")  # Updated title
     metrics_by_threshold[threshold] = metrics
 
-print("\n--- XGBoost Yangtze v4 Performance across different thresholds (Test Set) ---")  # Updated title
+print("\n--- XGBoost Yangtze v5 Performance across different thresholds (Test Set) ---")  # Updated title
 metrics_to_show = ['accuracy', 'pod', 'far', 'csi', 'fp', 'fn']
 threshold_metrics_data = {}
 for threshold, metrics in metrics_by_threshold.items():
-    threshold_metrics_data[f'XGB_Yangtsu_v4_Thr_{threshold:.2f}'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}  # Updated row names
+    threshold_metrics_data[f'XGB_Yangtsu_v5_Thr_{threshold:.2f}'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}  # Updated row names
 
 threshold_df = pd.DataFrame(threshold_metrics_data).T
 threshold_df = threshold_df[metrics_to_show]

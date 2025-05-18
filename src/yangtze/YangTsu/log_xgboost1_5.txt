@@ -1,0 +1,409 @@
+--- Starting execution of xgboost6.py ---
+
+Standard Output:
+Loading data...
+Attempting to load f:\rainfalldata\results\yangtze\features\X_Yangtsu_flat_features_v6.npy (this may take time/memory)...
+Attempting to load f:\rainfalldata\results\yangtze\features\Y_Yangtsu_flat_target_v6.npy...
+Loaded flattened features X_flat: shape (5288571, 100)
+Loaded flattened target Y_flat: shape (5288571,)
+Loaded 100 feature names.
+Loading original data for baseline calculation (using loaddata.py's current slice)...
+Extracting spatial data for basin mask value 2...
+Loading mask data...
+  Finished loading mask. Shape: (144, 256)
+Loading all product data (X)...
+  Loading CMORPH...
+  Loading CHIRPS...
+  Loading SM2RAIN...
+  Loading IMERG...
+  Loading GSMAP...
+  Loading PERSIANN...
+  Finished loading X. Shape: (6, 1827, 144, 256)
+Loading target data (Y)...
+  Finished loading Y. Shape: (1827, 144, 256)
+  Finished extracting spatial basin data.
+  X_spatial shape: (6, 1827, 144, 256)
+  Y_spatial shape: (1827, 144, 256)
+Warning: original_data has no 'features'. Using indices.
+Preparing true labels and baseline predictions...
+Calculating baseline performance for all products...
+  Calculating for: Product_0
+
+--- Baseline (Product_0) Performance ---
+Confusion Matrix:
+[[1620778  361158]
+ [1577665 1687639]]
+  True Negatives (TN): 1620778
+  False Positives (FP): 361158
+  False Negatives (FN): 1577665
+  True Positives (TP): 1687639
+Accuracy: 0.6305
+POD (Hit Rate/Recall): 0.5168
+FAR (False Alarm Ratio): 0.1763
+CSI (Critical Success Index): 0.4654
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.51      0.82      0.63   1981936
+        Rain       0.82      0.52      0.64   3265304
+
+    accuracy                           0.63   5247240
+   macro avg       0.67      0.67      0.63   5247240
+weighted avg       0.70      0.63      0.63   5247240
+
+  Calculating for: Product_1
+
+--- Baseline (Product_1) Performance ---
+Confusion Matrix:
+[[1641126  340810]
+ [1824393 1440911]]
+  True Negatives (TN): 1641126
+  False Positives (FP): 340810
+  False Negatives (FN): 1824393
+  True Positives (TP): 1440911
+Accuracy: 0.5874
+POD (Hit Rate/Recall): 0.4413
+FAR (False Alarm Ratio): 0.1913
+CSI (Critical Success Index): 0.3996
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.47      0.83      0.60   1981936
+        Rain       0.81      0.44      0.57   3265304
+
+    accuracy                           0.59   5247240
+   macro avg       0.64      0.63      0.59   5247240
+weighted avg       0.68      0.59      0.58   5247240
+
+  Calculating for: Product_2
+
+--- Baseline (Product_2) Performance ---
+Confusion Matrix:
+[[ 674326 1307610]
+ [ 315866 2949438]]
+  True Negatives (TN): 674326
+  False Positives (FP): 1307610
+  False Negatives (FN): 315866
+  True Positives (TP): 2949438
+Accuracy: 0.6906
+POD (Hit Rate/Recall): 0.9033
+FAR (False Alarm Ratio): 0.3072
+CSI (Critical Success Index): 0.6450
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.68      0.34      0.45   1981936
+        Rain       0.69      0.90      0.78   3265304
+
+    accuracy                           0.69   5247240
+   macro avg       0.69      0.62      0.62   5247240
+weighted avg       0.69      0.69      0.66   5247240
+
+  Calculating for: Product_3
+
+--- Baseline (Product_3) Performance ---
+Confusion Matrix:
+[[1427813  554123]
+ [ 955706 2309598]]
+  True Negatives (TN): 1427813
+  False Positives (FP): 554123
+  False Negatives (FN): 955706
+  True Positives (TP): 2309598
+Accuracy: 0.7123
+POD (Hit Rate/Recall): 0.7073
+FAR (False Alarm Ratio): 0.1935
+CSI (Critical Success Index): 0.6047
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.60      0.72      0.65   1981936
+        Rain       0.81      0.71      0.75   3265304
+
+    accuracy                           0.71   5247240
+   macro avg       0.70      0.71      0.70   5247240
+weighted avg       0.73      0.71      0.72   5247240
+
+  Calculating for: Product_4
+
+--- Baseline (Product_4) Performance ---
+Confusion Matrix:
+[[1853206  128730]
+ [1270999 1994305]]
+  True Negatives (TN): 1853206
+  False Positives (FP): 128730
+  False Negatives (FN): 1270999
+  True Positives (TP): 1994305
+Accuracy: 0.7332
+POD (Hit Rate/Recall): 0.6108
+FAR (False Alarm Ratio): 0.0606
+CSI (Critical Success Index): 0.5876
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.59      0.94      0.73   1981936
+        Rain       0.94      0.61      0.74   3265304
+
+    accuracy                           0.73   5247240
+   macro avg       0.77      0.77      0.73   5247240
+weighted avg       0.81      0.73      0.73   5247240
+
+  Calculating for: Product_5
+
+--- Baseline (Product_5) Performance ---
+Confusion Matrix:
+[[1309742  672194]
+ [1179721 2085583]]
+  True Negatives (TN): 1309742
+  False Positives (FP): 672194
+  False Negatives (FN): 1179721
+  True Positives (TP): 2085583
+Accuracy: 0.6471
+POD (Hit Rate/Recall): 0.6387
+FAR (False Alarm Ratio): 0.2437
+CSI (Critical Success Index): 0.5297
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.53      0.66      0.59   1981936
+        Rain       0.76      0.64      0.69   3265304
+
+    accuracy                           0.65   5247240
+   macro avg       0.64      0.65      0.64   5247240
+weighted avg       0.67      0.65      0.65   5247240
+
+Preparing data for XGBoost...
+Creating train/test splits (this might take time/memory)...
+Train set size: 4230856
+Test set size: 1057715
+
+--- Training model with DEFAULT parameters on FULL training data (using early stopping) ---
+Starting model fitting with default parameters: {'objective': 'binary:logistic', 'eval_metric': ['logloss', 'error'], 'use_label_encoder': False, 'n_estimators': 500, 'learning_rate': 0.1, 'max_depth': 7, 'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0.1, 'random_state': 42, 'tree_method': 'hist', 'early_stopping_rounds': 30}
+[0]	validation_0-logloss:0.61606	validation_0-error:0.37649
+[50]	validation_0-logloss:0.35094	validation_0-error:0.15875
+[85]	validation_0-logloss:0.35130	validation_0-error:0.15871
+Model training complete.
+
+Saving the trained model to f:\rainfalldata\results\yangtze\models\xgboost_v1_yangtsu_v6.joblib...
+Model saved successfully.
+
+--- Evaluating FINAL XGBoost model (Default Params) on the test set with varying thresholds ---
+Calculating metrics for different thresholds...
+
+--- Threshold: 0.40 ---
+
+--- XGBoost Classifier (Threshold 0.40) Performance ---
+Confusion Matrix:
+[[309083  89141]
+ [ 79455 580036]]
+  True Negatives (TN): 309083
+  False Positives (FP): 89141
+  False Negatives (FN): 79455
+  True Positives (TP): 580036
+Accuracy: 0.8406
+POD (Hit Rate/Recall): 0.8795
+FAR (False Alarm Ratio): 0.1332
+CSI (Critical Success Index): 0.7748
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.80      0.78      0.79    398224
+        Rain       0.87      0.88      0.87    659491
+
+    accuracy                           0.84   1057715
+   macro avg       0.83      0.83      0.83   1057715
+weighted avg       0.84      0.84      0.84   1057715
+
+
+--- Threshold: 0.45 ---
+
+--- XGBoost Classifier (Threshold 0.45) Performance ---
+Confusion Matrix:
+[[318609  79615]
+ [ 87857 571634]]
+  True Negatives (TN): 318609
+  False Positives (FP): 79615
+  False Negatives (FN): 87857
+  True Positives (TP): 571634
+Accuracy: 0.8417
+POD (Hit Rate/Recall): 0.8668
+FAR (False Alarm Ratio): 0.1222
+CSI (Critical Success Index): 0.7734
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.78      0.80      0.79    398224
+        Rain       0.88      0.87      0.87    659491
+
+    accuracy                           0.84   1057715
+   macro avg       0.83      0.83      0.83   1057715
+weighted avg       0.84      0.84      0.84   1057715
+
+
+--- Threshold: 0.50 ---
+
+--- XGBoost Classifier (Threshold 0.50) Performance ---
+Confusion Matrix:
+[[326581  71643]
+ [ 96090 563401]]
+  True Negatives (TN): 326581
+  False Positives (FP): 71643
+  False Negatives (FN): 96090
+  True Positives (TP): 563401
+Accuracy: 0.8414
+POD (Hit Rate/Recall): 0.8543
+FAR (False Alarm Ratio): 0.1128
+CSI (Critical Success Index): 0.7706
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.77      0.82      0.80    398224
+        Rain       0.89      0.85      0.87    659491
+
+    accuracy                           0.84   1057715
+   macro avg       0.83      0.84      0.83   1057715
+weighted avg       0.84      0.84      0.84   1057715
+
+
+--- Threshold: 0.55 ---
+
+--- XGBoost Classifier (Threshold 0.55) Performance ---
+Confusion Matrix:
+[[333972  64252]
+ [104674 554817]]
+  True Negatives (TN): 333972
+  False Positives (FP): 64252
+  False Negatives (FN): 104674
+  True Positives (TP): 554817
+Accuracy: 0.8403
+POD (Hit Rate/Recall): 0.8413
+FAR (False Alarm Ratio): 0.1038
+CSI (Critical Success Index): 0.7666
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.76      0.84      0.80    398224
+        Rain       0.90      0.84      0.87    659491
+
+    accuracy                           0.84   1057715
+   macro avg       0.83      0.84      0.83   1057715
+weighted avg       0.85      0.84      0.84   1057715
+
+
+--- Threshold: 0.60 ---
+
+--- XGBoost Classifier (Threshold 0.60) Performance ---
+Confusion Matrix:
+[[341468  56756]
+ [114507 544984]]
+  True Negatives (TN): 341468
+  False Positives (FP): 56756
+  False Negatives (FN): 114507
+  True Positives (TP): 544984
+Accuracy: 0.8381
+POD (Hit Rate/Recall): 0.8264
+FAR (False Alarm Ratio): 0.0943
+CSI (Critical Success Index): 0.7609
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.75      0.86      0.80    398224
+        Rain       0.91      0.83      0.86    659491
+
+    accuracy                           0.84   1057715
+   macro avg       0.83      0.84      0.83   1057715
+weighted avg       0.85      0.84      0.84   1057715
+
+
+--- Threshold: 0.65 ---
+
+--- XGBoost Classifier (Threshold 0.65) Performance ---
+Confusion Matrix:
+[[349200  49024]
+ [125929 533562]]
+  True Negatives (TN): 349200
+  False Positives (FP): 49024
+  False Negatives (FN): 125929
+  True Positives (TP): 533562
+Accuracy: 0.8346
+POD (Hit Rate/Recall): 0.8091
+FAR (False Alarm Ratio): 0.0841
+CSI (Critical Success Index): 0.7531
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.73      0.88      0.80    398224
+        Rain       0.92      0.81      0.86    659491
+
+    accuracy                           0.83   1057715
+   macro avg       0.83      0.84      0.83   1057715
+weighted avg       0.85      0.83      0.84   1057715
+
+
+--- Threshold: 0.70 ---
+
+--- XGBoost Classifier (Threshold 0.70) Performance ---
+Confusion Matrix:
+[[357055  41169]
+ [139735 519756]]
+  True Negatives (TN): 357055
+  False Positives (FP): 41169
+  False Negatives (FN): 139735
+  True Positives (TP): 519756
+Accuracy: 0.8290
+POD (Hit Rate/Recall): 0.7881
+FAR (False Alarm Ratio): 0.0734
+CSI (Critical Success Index): 0.7418
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     No Rain       0.72      0.90      0.80    398224
+        Rain       0.93      0.79      0.85    659491
+
+    accuracy                           0.83   1057715
+   macro avg       0.82      0.84      0.82   1057715
+weighted avg       0.85      0.83      0.83   1057715
+
+
+--- Final Performance Comparison (Test Set - Full Data, Default Threshold 0.5) ---
+Calculating baseline performance for all products on the TEST SET...
+  Calculating for: Product_0 (Test Set)
+
+Standard Error:
+F:\Dev\python312\Lib\site-packages\xgboost\core.py:158: UserWarning: [12:11:11] WARNING: C:\buildkite-agent\builds\buildkite-windows-cpu-autoscaling-group-i-08cbc0333d8d4aae1-1\xgboost\xgboost-ci-windows\src\learner.cc:740: 
+Parameters: { "use_label_encoder" } are not used.
+
+  warnings.warn(smsg, UserWarning)
+Traceback (most recent call last):
+  File "f:\rainfalldata\src\yangtze\YangTsu\xgboost6.py", line 197, in <module>
+    metrics = calculate_metrics(y_test, baseline_pred_test, title=f"Baseline ({product_name}) on Test Set")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\rainfalldata\src\yangtze\YangTsu\xgboost6.py", line 23, in calculate_metrics
+    cm = confusion_matrix(y_true, y_pred)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Dev\python312\Lib\site-packages\sklearn\utils\_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Dev\python312\Lib\site-packages\sklearn\metrics\_classification.py", line 340, in confusion_matrix
+    y_type, y_true, y_pred = _check_targets(y_true, y_pred)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Dev\python312\Lib\site-packages\sklearn\metrics\_classification.py", line 98, in _check_targets
+    check_consistent_length(y_true, y_pred)
+  File "F:\Dev\python312\Lib\site-packages\sklearn\utils\validation.py", line 475, in check_consistent_length
+    raise ValueError(
+ValueError: Found input variables with inconsistent numbers of samples: [1057715, 1016384]
+
+--- xgboost6.py finished with errors (return code: 1) ---
+

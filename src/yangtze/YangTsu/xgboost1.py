@@ -14,7 +14,7 @@ PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_flat_features_v1.npy")  # v1
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_flat_target_v1.npy")  # v1
 FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_v1.txt")  # v1
-# Save v5.1 model and plot
+# Save v1 model and plot
 MODEL_SAVE_PATH = os.path.join(PROJECT_DIR, "xgboost_v1_model.joblib")  # v1
 IMPORTANCE_PLOT_PATH = os.path.join(PROJECT_DIR, "xgboost_v1_feature_importance.png")  # v1
 
@@ -45,7 +45,7 @@ def calculate_metrics(y_true, y_pred, title=""):
     return {'tn': tn, 'fp': fp, 'fn': fn, 'tp': tp, 'accuracy': accuracy, 'pod': pod, 'far': far, 'csi': csi}
 
 # --- 1. 加载数据 ---
-print("Loading flattened data (v5.1)...")
+print("Loading flattened data (v1)...")
 try:
     print("Attempting to load full arrays into memory...")
     X_flat = np.load(X_FLAT_PATH)
@@ -111,7 +111,7 @@ print(f"Training set shape: X={X_train.shape}, y={y_train.shape}")
 print(f"Test set shape: X={X_test.shape}, y={y_test.shape}")
 
 # --- 4. 定义并训练 XGBoost 模型 ---
-print("Defining and training XGBoost model (v5.1)...")
+print("Defining and training XGBoost model (v1)...")
 num_neg = np.sum(y_train == 0)
 num_pos = np.sum(y_train == 1)
 scale_pos_weight = num_neg / num_pos if num_pos > 0 else 1
@@ -159,7 +159,7 @@ except Exception as e:
     print(f"Error retrieving best score: {e}")
 
 # --- 5. 特征重要性 ---
-print("\n--- Feature Importances (v5.1) ---")
+print("\n--- Feature Importances (v1) ---")
 try:
     importances = model.feature_importances_
     importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
@@ -176,7 +176,7 @@ try:
     plt.barh(top_features['Feature'], top_features['Importance'])
     plt.xlabel("Importance Score")
     plt.ylabel("Feature")
-    plt.title(f"Top {n_plot} Feature Importances (XGBoost v5.1)")
+    plt.title(f"Top {n_plot} Feature Importances (XGBoost v1)")
     plt.gca().invert_yaxis()
     plt.tight_layout()
     plt.savefig(IMPORTANCE_PLOT_PATH)
@@ -187,21 +187,21 @@ except Exception as plot_e:
     print(f"Warning: Could not generate feature importance plot - {plot_e}")
 
 # --- 6. 评估模型 ---
-print("\n--- Evaluating Model on Test Set (v5.1) ---")
+print("\n--- Evaluating Model on Test Set (v1) ---")
 y_pred_proba = model.predict_proba(X_test)[:, 1]
 
 thresholds_to_evaluate = [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
 metrics_by_threshold = {}
 for threshold in thresholds_to_evaluate:
     y_pred_threshold = (y_pred_proba >= threshold).astype(int)
-    metrics = calculate_metrics(y_test, y_pred_threshold, title=f"XGBoost v5.1 (Threshold {threshold:.2f})")
+    metrics = calculate_metrics(y_test, y_pred_threshold, title=f"XGBoost v1 (Threshold {threshold:.2f})")
     metrics_by_threshold[threshold] = metrics
 
 print("\n--- XGBoost v1 Performance across different thresholds (Test Set) ---")
 metrics_to_show = ['accuracy', 'pod', 'far', 'csi', 'fp', 'fn']
 threshold_metrics_data = {}
 for threshold, metrics in metrics_by_threshold.items():
-    threshold_metrics_data[f'XGB_v5.1_Thr_{threshold:.2f}'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
+    threshold_metrics_data[f'XGB_v1_Thr_{threshold:.2f}'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
 
 threshold_df = pd.DataFrame(threshold_metrics_data).T
 threshold_df = threshold_df[metrics_to_show]
