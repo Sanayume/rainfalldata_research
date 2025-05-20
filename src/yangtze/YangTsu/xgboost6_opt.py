@@ -1,4 +1,3 @@
-import numpy as np
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_auc_score
@@ -11,6 +10,10 @@ import time
 import optuna
 import logging
 from datetime import datetime
+import numpy as np
+# --- 设置中文字体 ---
+import matplotlib.pyplot as plt
+from matplotlib import font_manager
 
 # --- 配置 ---
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
