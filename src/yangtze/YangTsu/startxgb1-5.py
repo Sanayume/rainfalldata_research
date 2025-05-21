@@ -7,7 +7,8 @@ log_file_path = os.path.join(current_dir, "log_xgboost1_5.txt")
 
 # 要按顺序执行的脚本列表
 scripts_to_run = [
-    "xgboost6.py"
+    "xgboost_best.py",
+    "xgboost_optimization_main.py"
 ]
 
 # 打开日志文件以追加模式写入
