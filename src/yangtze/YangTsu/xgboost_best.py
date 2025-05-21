@@ -138,24 +138,24 @@ else:
 print("正在定义并训练 XGBoost 模型 (长江流域 V1 特征, Optuna 优化参数)...")
 print("(Defining and training XGBoost model (Yangtze V1 features, Optuna optimized parameters)...)")
 
-# Optuna 优化的超参数 (来自您之前的提供)
+# Optuna 优化的超参数 (来自您之前的提供) - 更新为新的最佳参数
 optuna_best_params_v1 = {
-    'n_estimators': 1600,
-    'learning_rate': 0.14853278798829103,
-    'max_depth': 12,
-    'subsample': 0.9290691945109609,
-    'colsample_bytree': 0.6438409241178931,
-    'gamma': 0.08754060377305081,
-    'lambda': 3.197192690742817e-05,
-    'alpha': 7.247084975494008e-08,
-    # --- 以下为标准参数 ---
     'objective': 'binary:logistic',
-    'eval_metric': ['logloss', 'auc'], # Optuna 优化时可能也关注了 AUC
-    'use_label_encoder': False,
-    'random_state': RANDOM_STATE,
+    'eval_metric': ['logloss', 'auc'],
     'tree_method': 'hist',
-    'early_stopping_rounds': EARLY_STOPPING_ROUNDS, # 从全局配置中获取
-    'device': 'cuda', # 如果可用，使用 GPU 加速
+    # 'scale_pos_weight' will be calculated and added later
+    'random_state': RANDOM_STATE, # Uses the global RANDOM_STATE
+    'early_stopping_rounds': EARLY_STOPPING_ROUNDS, # Uses the global EARLY_STOPPING_ROUNDS
+    'device': 'cuda',
+    'n_estimators': 2582,
+    'learning_rate': 0.03480882479433697,
+    'max_depth': 17,
+    'subsample': 0.9273230022264735,
+    'colsample_bytree': 0.850202469493706,
+    'gamma': 0.1252469721920858,
+    'lambda': 4.346099670573116e-05,
+    'alpha': 1.3767826511091745e-06,
+    'use_label_encoder': False # Standard practice for newer XGBoost versions
 }
 
 # 计算 scale_pos_weight 并添加到参数中
