@@ -243,3 +243,560 @@ This warning will only be shown once.
 
 --- Finished execution of xgboost_best.py (return code: 0) ---
 
+--- Starting execution of xgboost_optimization_main.py ---
+
+Standard Output:
+Extracting spatial data for basin mask value 2...
+Loading mask data...
+  Finished loading mask. Shape: (144, 256)
+Loading all product data (X)...
+  Loading CMORPH...
+  Loading CHIRPS...
+  Loading SM2RAIN...
+  Loading IMERG...
+  Loading GSMAP...
+  Loading PERSIANN...
+  Finished loading X. Shape: (6, 1827, 144, 256)
+Loading target data (Y)...
+  Finished loading Y. Shape: (1827, 144, 256)
+  Finished extracting spatial basin data.
+  X_spatial shape: (6, 1827, 144, 256)
+  Y_spatial shape: (1827, 144, 256)
+[0]	validation_0-logloss:0.67442	validation_0-auc:0.92588
+[50]	validation_0-logloss:0.30982	validation_0-auc:0.96530
+[100]	validation_0-logloss:0.23841	validation_0-auc:0.97042
+[150]	validation_0-logloss:0.21564	validation_0-auc:0.97347
+[200]	validation_0-logloss:0.20358	validation_0-auc:0.97586
+[250]	validation_0-logloss:0.19522	validation_0-auc:0.97767
+[300]	validation_0-logloss:0.18792	validation_0-auc:0.97928
+[350]	validation_0-logloss:0.18177	validation_0-auc:0.98055
+[400]	validation_0-logloss:0.17655	validation_0-auc:0.98159
+[450]	validation_0-logloss:0.17212	validation_0-auc:0.98243
+[500]	validation_0-logloss:0.16877	validation_0-auc:0.98304
+[550]	validation_0-logloss:0.16527	validation_0-auc:0.98368
+[600]	validation_0-logloss:0.16247	validation_0-auc:0.98416
+[650]	validation_0-logloss:0.16010	validation_0-auc:0.98456
+[700]	validation_0-logloss:0.15805	validation_0-auc:0.98490
+[750]	validation_0-logloss:0.15612	validation_0-auc:0.98522
+[800]	validation_0-logloss:0.15414	validation_0-auc:0.98554
+[850]	validation_0-logloss:0.15243	validation_0-auc:0.98582
+[900]	validation_0-logloss:0.15125	validation_0-auc:0.98600
+[950]	validation_0-logloss:0.14977	validation_0-auc:0.98624
+[1000]	validation_0-logloss:0.14854	validation_0-auc:0.98644
+[1050]	validation_0-logloss:0.14753	validation_0-auc:0.98659
+[1100]	validation_0-logloss:0.14648	validation_0-auc:0.98675
+[1150]	validation_0-logloss:0.14547	validation_0-auc:0.98691
+[1200]	validation_0-logloss:0.14476	validation_0-auc:0.98702
+[1250]	validation_0-logloss:0.14386	validation_0-auc:0.98716
+[1300]	validation_0-logloss:0.14317	validation_0-auc:0.98727
+[1350]	validation_0-logloss:0.14240	validation_0-auc:0.98739
+[1400]	validation_0-logloss:0.14186	validation_0-auc:0.98748
+[1450]	validation_0-logloss:0.14123	validation_0-auc:0.98758
+[1500]	validation_0-logloss:0.14061	validation_0-auc:0.98768
+[1550]	validation_0-logloss:0.14009	validation_0-auc:0.98776
+[1600]	validation_0-logloss:0.13967	validation_0-auc:0.98783
+[1650]	validation_0-logloss:0.13921	validation_0-auc:0.98791
+[1700]	validation_0-logloss:0.13876	validation_0-auc:0.98798
+[1750]	validation_0-logloss:0.13832	validation_0-auc:0.98805
+[1800]	validation_0-logloss:0.13804	validation_0-auc:0.98810
+[1850]	validation_0-logloss:0.13769	validation_0-auc:0.98816
+[1900]	validation_0-logloss:0.13742	validation_0-auc:0.98821
+[1950]	validation_0-logloss:0.13711	validation_0-auc:0.98827
+[2000]	validation_0-logloss:0.13684	validation_0-auc:0.98832
+[2050]	validation_0-logloss:0.13657	validation_0-auc:0.98836
+[2100]	validation_0-logloss:0.13638	validation_0-auc:0.98840
+[2150]	validation_0-logloss:0.13618	validation_0-auc:0.98844
+[2200]	validation_0-logloss:0.13601	validation_0-auc:0.98847
+[2250]	validation_0-logloss:0.13587	validation_0-auc:0.98850
+[2300]	validation_0-logloss:0.13574	validation_0-auc:0.98852
+[2350]	validation_0-logloss:0.13565	validation_0-auc:0.98854
+[2400]	validation_0-logloss:0.13551	validation_0-auc:0.98857
+[2450]	validation_0-logloss:0.13545	validation_0-auc:0.98858
+[2500]	validation_0-logloss:0.13540	validation_0-auc:0.98859
+[2550]	validation_0-logloss:0.13531	validation_0-auc:0.98861
+[2600]	validation_0-logloss:0.13528	validation_0-auc:0.98862
+[2608]	validation_0-logloss:0.13529	validation_0-auc:0.98861
+
+Standard Error:
+2025-05-21 19:15:04,045 - INFO - main_opt - Log file for main script will be saved to: f:\rainfalldata\results\yangtze\model_predict\xgboost6_opt_log_main.txt
+2025-05-21 19:15:04,046 - INFO - main_opt - Optuna study: 'xgboost_hyperparam_search_v1', storage: 'sqlite:///my_optimization_history.db'
+2025-05-21 19:15:04,046 - INFO - main_opt - Loading Yangtze flattened data...
+2025-05-21 19:15:04,046 - INFO - main_opt - Attempting to load f:\rainfalldata\results\yangtze\features\X_Yangtsu_flat_features_v6.npy...
+2025-05-21 19:15:05,020 - INFO - main_opt - Attempting to load f:\rainfalldata\results\yangtze\features\Y_Yangtsu_flat_target_v6.npy...
+2025-05-21 19:15:05,041 - INFO - main_opt - Loaded flattened features X_flat: shape (5288571, 100)
+2025-05-21 19:15:05,041 - INFO - main_opt - Loaded flattened target Y_flat: shape (5288571,)
+2025-05-21 19:15:05,041 - INFO - main_opt - Loaded 100 feature names.
+2025-05-21 19:15:05,041 - INFO - main_opt - Flattened data loading finished in 1.00 seconds.
+2025-05-21 19:15:05,041 - INFO - main_opt - 
+Loading original SPATIAL Yangtze data for baseline calculation...
+2025-05-21 19:15:08,109 - INFO - main_opt - Original spatial Yangtze data loaded in 3.07 seconds.
+2025-05-21 19:15:08,109 - INFO - main_opt - X_orig_spatial shape: (6, 1827, 144, 256), Y_orig_spatial shape: (1827, 144, 256)
+2025-05-21 19:15:08,109 - INFO - main_opt - 
+Preparing true labels and baseline predictions for Yangtze (using spatial data)...
+2025-05-21 19:15:08,227 - INFO - main_opt - Shape of flattened true labels for baseline (valid points): (5247240,)
+2025-05-21 19:15:08,227 - INFO - main_opt - 
+Calculating baseline performance for all products (Yangtze Data - using spatial data)...
+2025-05-21 19:15:08,491 - INFO - main_opt -   Calculating for: CMORPH
+2025-05-21 19:15:08,692 - INFO - main_opt - 
+--- Baseline (CMORPH) - Yangtze Spatial Performance ---
+2025-05-21 19:15:08,692 - INFO - main_opt - Confusion Matrix:
+[[1620778  361158]
+ [1577665 1687639]]
+2025-05-21 19:15:08,692 - INFO - main_opt -   True Negatives (TN): 1620778
+2025-05-21 19:15:08,692 - INFO - main_opt -   False Positives (FP): 361158
+2025-05-21 19:15:08,692 - INFO - main_opt -   False Negatives (FN): 1577665
+2025-05-21 19:15:08,692 - INFO - main_opt -   True Positives (TP): 1687639
+2025-05-21 19:15:08,692 - INFO - main_opt - Accuracy: 0.6305
+2025-05-21 19:15:08,692 - INFO - main_opt - POD (Hit Rate/Recall): 0.5168
+2025-05-21 19:15:08,692 - INFO - main_opt - FAR (False Alarm Ratio): 0.1763
+2025-05-21 19:15:08,692 - INFO - main_opt - CSI (Critical Success Index): 0.4654
+2025-05-21 19:15:08,692 - INFO - main_opt - 
+Classification Report:
+2025-05-21 19:15:09,241 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.51      0.82      0.63   1981936
+        Rain       0.82      0.52      0.64   3265304
+
+    accuracy                           0.63   5247240
+   macro avg       0.67      0.67      0.63   5247240
+weighted avg       0.70      0.63      0.63   5247240
+
+2025-05-21 19:15:09,241 - INFO - main_opt -   Calculating for: CHIRPS
+2025-05-21 19:15:09,442 - INFO - main_opt - 
+--- Baseline (CHIRPS) - Yangtze Spatial Performance ---
+2025-05-21 19:15:09,442 - INFO - main_opt - Confusion Matrix:
+[[1641126  340810]
+ [1824393 1440911]]
+2025-05-21 19:15:09,442 - INFO - main_opt -   True Negatives (TN): 1641126
+2025-05-21 19:15:09,442 - INFO - main_opt -   False Positives (FP): 340810
+2025-05-21 19:15:09,442 - INFO - main_opt -   False Negatives (FN): 1824393
+2025-05-21 19:15:09,442 - INFO - main_opt -   True Positives (TP): 1440911
+2025-05-21 19:15:09,442 - INFO - main_opt - Accuracy: 0.5874
+2025-05-21 19:15:09,442 - INFO - main_opt - POD (Hit Rate/Recall): 0.4413
+2025-05-21 19:15:09,443 - INFO - main_opt - FAR (False Alarm Ratio): 0.1913
+2025-05-21 19:15:09,443 - INFO - main_opt - CSI (Critical Success Index): 0.3996
+2025-05-21 19:15:09,443 - INFO - main_opt - 
+Classification Report:
+2025-05-21 19:15:09,984 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.47      0.83      0.60   1981936
+        Rain       0.81      0.44      0.57   3265304
+
+    accuracy                           0.59   5247240
+   macro avg       0.64      0.63      0.59   5247240
+weighted avg       0.68      0.59      0.58   5247240
+
+2025-05-21 19:15:09,984 - INFO - main_opt -   Calculating for: SM2RAIN
+2025-05-21 19:15:10,185 - INFO - main_opt - 
+--- Baseline (SM2RAIN) - Yangtze Spatial Performance ---
+2025-05-21 19:15:10,186 - INFO - main_opt - Confusion Matrix:
+[[ 674326 1307610]
+ [ 315866 2949438]]
+2025-05-21 19:15:10,186 - INFO - main_opt -   True Negatives (TN): 674326
+2025-05-21 19:15:10,186 - INFO - main_opt -   False Positives (FP): 1307610
+2025-05-21 19:15:10,186 - INFO - main_opt -   False Negatives (FN): 315866
+2025-05-21 19:15:10,186 - INFO - main_opt -   True Positives (TP): 2949438
+2025-05-21 19:15:10,186 - INFO - main_opt - Accuracy: 0.6906
+2025-05-21 19:15:10,186 - INFO - main_opt - POD (Hit Rate/Recall): 0.9033
+2025-05-21 19:15:10,186 - INFO - main_opt - FAR (False Alarm Ratio): 0.3072
+2025-05-21 19:15:10,186 - INFO - main_opt - CSI (Critical Success Index): 0.6450
+2025-05-21 19:15:10,186 - INFO - main_opt - 
+Classification Report:
+2025-05-21 19:15:10,751 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.68      0.34      0.45   1981936
+        Rain       0.69      0.90      0.78   3265304
+
+    accuracy                           0.69   5247240
+   macro avg       0.69      0.62      0.62   5247240
+weighted avg       0.69      0.69      0.66   5247240
+
+2025-05-21 19:15:10,751 - INFO - main_opt -   Calculating for: IMERG
+2025-05-21 19:15:10,938 - INFO - main_opt - 
+--- Baseline (IMERG) - Yangtze Spatial Performance ---
+2025-05-21 19:15:10,938 - INFO - main_opt - Confusion Matrix:
+[[1427813  554123]
+ [ 955706 2309598]]
+2025-05-21 19:15:10,938 - INFO - main_opt -   True Negatives (TN): 1427813
+2025-05-21 19:15:10,938 - INFO - main_opt -   False Positives (FP): 554123
+2025-05-21 19:15:10,938 - INFO - main_opt -   False Negatives (FN): 955706
+2025-05-21 19:15:10,938 - INFO - main_opt -   True Positives (TP): 2309598
+2025-05-21 19:15:10,938 - INFO - main_opt - Accuracy: 0.7123
+2025-05-21 19:15:10,938 - INFO - main_opt - POD (Hit Rate/Recall): 0.7073
+2025-05-21 19:15:10,938 - INFO - main_opt - FAR (False Alarm Ratio): 0.1935
+2025-05-21 19:15:10,938 - INFO - main_opt - CSI (Critical Success Index): 0.6047
+2025-05-21 19:15:10,938 - INFO - main_opt - 
+Classification Report:
+2025-05-21 19:15:11,485 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.60      0.72      0.65   1981936
+        Rain       0.81      0.71      0.75   3265304
+
+    accuracy                           0.71   5247240
+   macro avg       0.70      0.71      0.70   5247240
+weighted avg       0.73      0.71      0.72   5247240
+
+2025-05-21 19:15:11,485 - INFO - main_opt -   Calculating for: GSMAP
+2025-05-21 19:15:11,653 - INFO - main_opt - 
+--- Baseline (GSMAP) - Yangtze Spatial Performance ---
+2025-05-21 19:15:11,653 - INFO - main_opt - Confusion Matrix:
+[[1853206  128730]
+ [1270999 1994305]]
+2025-05-21 19:15:11,653 - INFO - main_opt -   True Negatives (TN): 1853206
+2025-05-21 19:15:11,653 - INFO - main_opt -   False Positives (FP): 128730
+2025-05-21 19:15:11,653 - INFO - main_opt -   False Negatives (FN): 1270999
+2025-05-21 19:15:11,653 - INFO - main_opt -   True Positives (TP): 1994305
+2025-05-21 19:15:11,653 - INFO - main_opt - Accuracy: 0.7332
+2025-05-21 19:15:11,653 - INFO - main_opt - POD (Hit Rate/Recall): 0.6108
+2025-05-21 19:15:11,653 - INFO - main_opt - FAR (False Alarm Ratio): 0.0606
+2025-05-21 19:15:11,653 - INFO - main_opt - CSI (Critical Success Index): 0.5876
+2025-05-21 19:15:11,653 - INFO - main_opt - 
+Classification Report:
+2025-05-21 19:15:12,181 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.59      0.94      0.73   1981936
+        Rain       0.94      0.61      0.74   3265304
+
+    accuracy                           0.73   5247240
+   macro avg       0.77      0.77      0.73   5247240
+weighted avg       0.81      0.73      0.73   5247240
+
+2025-05-21 19:15:12,181 - INFO - main_opt -   Calculating for: PERSIANN
+2025-05-21 19:15:12,344 - INFO - main_opt - 
+--- Baseline (PERSIANN) - Yangtze Spatial Performance ---
+2025-05-21 19:15:12,344 - INFO - main_opt - Confusion Matrix:
+[[1309742  672194]
+ [1179721 2085583]]
+2025-05-21 19:15:12,344 - INFO - main_opt -   True Negatives (TN): 1309742
+2025-05-21 19:15:12,344 - INFO - main_opt -   False Positives (FP): 672194
+2025-05-21 19:15:12,344 - INFO - main_opt -   False Negatives (FN): 1179721
+2025-05-21 19:15:12,344 - INFO - main_opt -   True Positives (TP): 2085583
+2025-05-21 19:15:12,344 - INFO - main_opt - Accuracy: 0.6471
+2025-05-21 19:15:12,344 - INFO - main_opt - POD (Hit Rate/Recall): 0.6387
+2025-05-21 19:15:12,344 - INFO - main_opt - FAR (False Alarm Ratio): 0.2437
+2025-05-21 19:15:12,344 - INFO - main_opt - CSI (Critical Success Index): 0.5297
+2025-05-21 19:15:12,344 - INFO - main_opt - 
+Classification Report:
+2025-05-21 19:15:12,884 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.53      0.66      0.59   1981936
+        Rain       0.76      0.64      0.69   3265304
+
+    accuracy                           0.65   5247240
+   macro avg       0.64      0.65      0.64   5247240
+weighted avg       0.67      0.65      0.65   5247240
+
+2025-05-21 19:15:12,940 - INFO - main_opt - 
+Preparing data for XGBoost (Yangtze)...
+2025-05-21 19:15:14,706 - INFO - main_opt - Train set size: 4230856, Test set size: 1057715
+2025-05-21 19:15:14,706 - INFO - main_opt - 
+--- Starting Hyperparameter Optimization with Optuna ---
+[I 2025-05-21 19:15:15,315] Using an existing study with name 'xgboost_hyperparam_search_v1' instead of creating a new one.
+2025-05-21 19:15:15,398 - INFO - main_opt - Study 'xgboost_hyperparam_search_v1' loaded/created. Already completed 214 trials.
+2025-05-21 19:15:15,422 - INFO - main_opt - Target total trials: 300. Current trials in DB (any state): 220.
+2025-05-21 19:15:15,433 - INFO - main_opt - Optimization will continue or start, aiming for a total of 300 trials.
+[I 2025-05-21 19:29:54,090] Trial 220 finished with value: 0.9884568533429342 and parameters: {'n_estimators': 2831, 'learning_rate': 0.03135367477736212, 'max_depth': 17, 'subsample': 0.9230503666438362, 'colsample_bytree': 0.8515669417221927, 'gamma': 0.15153838128688782, 'lambda': 3.1436686264953056e-05, 'alpha': 5.6194560535580845e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 19:44:17,268] Trial 221 finished with value: 0.9884856556365453 and parameters: {'n_estimators': 2798, 'learning_rate': 0.03252462308703296, 'max_depth': 17, 'subsample': 0.922797437722799, 'colsample_bytree': 0.851622029726777, 'gamma': 0.1521207020108092, 'lambda': 2.9928352919988036e-05, 'alpha': 5.749417381318546e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 19:58:54,883] Trial 222 finished with value: 0.988509388941236 and parameters: {'n_estimators': 2804, 'learning_rate': 0.031715537508951605, 'max_depth': 17, 'subsample': 0.920861977894914, 'colsample_bytree': 0.8485583225787304, 'gamma': 0.150056680011133, 'lambda': 2.9819853500475472e-05, 'alpha': 4.890965566160661e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 20:13:36,121] Trial 223 finished with value: 0.988507844696116 and parameters: {'n_estimators': 2808, 'learning_rate': 0.03175275229944747, 'max_depth': 17, 'subsample': 0.9212432746460907, 'colsample_bytree': 0.8483551039199729, 'gamma': 0.15096990713852007, 'lambda': 3.442924670103381e-05, 'alpha': 4.702452121774937e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 20:28:27,289] Trial 224 finished with value: 0.9885020805910366 and parameters: {'n_estimators': 2805, 'learning_rate': 0.03100081176066342, 'max_depth': 17, 'subsample': 0.9209912116045949, 'colsample_bytree': 0.8481679474169564, 'gamma': 0.15104890052127085, 'lambda': 3.133318813953507e-05, 'alpha': 5.0785387054492255e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 20:43:09,221] Trial 225 finished with value: 0.9885014851801925 and parameters: {'n_estimators': 2805, 'learning_rate': 0.031427431897524075, 'max_depth': 17, 'subsample': 0.9207437542181744, 'colsample_bytree': 0.8479838155406789, 'gamma': 0.150204225172501, 'lambda': 3.181300476018735e-05, 'alpha': 4.7721549573465676e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 20:57:59,536] Trial 226 finished with value: 0.9885015593295993 and parameters: {'n_estimators': 2807, 'learning_rate': 0.03139123682330766, 'max_depth': 17, 'subsample': 0.9209720751931117, 'colsample_bytree': 0.846555305763545, 'gamma': 0.1502877490353317, 'lambda': 3.178945580900262e-05, 'alpha': 4.824889126005338e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 21:12:43,585] Trial 227 finished with value: 0.988472799894686 and parameters: {'n_estimators': 2807, 'learning_rate': 0.03135296726252161, 'max_depth': 17, 'subsample': 0.9209374275092058, 'colsample_bytree': 0.8463326494546151, 'gamma': 0.15153820923369224, 'lambda': 3.0948485991140644e-05, 'alpha': 4.671227251360534e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 21:27:29,494] Trial 228 finished with value: 0.9885085853709268 and parameters: {'n_estimators': 2806, 'learning_rate': 0.03133412672263942, 'max_depth': 17, 'subsample': 0.9212728337422073, 'colsample_bytree': 0.8467996657872543, 'gamma': 0.15220564681300316, 'lambda': 3.2678229178117796e-05, 'alpha': 4.478169310680784e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 21:42:20,897] Trial 229 finished with value: 0.9885055041480475 and parameters: {'n_estimators': 2809, 'learning_rate': 0.031222140642873743, 'max_depth': 17, 'subsample': 0.9208542017379772, 'colsample_bytree': 0.8466591219549194, 'gamma': 0.15062019711470812, 'lambda': 3.081401210014225e-05, 'alpha': 4.722891767289462e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 21:57:08,995] Trial 230 finished with value: 0.9885296245376168 and parameters: {'n_estimators': 2808, 'learning_rate': 0.03138387167334334, 'max_depth': 17, 'subsample': 0.9207672133370117, 'colsample_bytree': 0.8459832679927772, 'gamma': 0.15055575959237782, 'lambda': 3.0257181568250776e-05, 'alpha': 4.616824129476565e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 22:11:52,618] Trial 231 finished with value: 0.9884429625328741 and parameters: {'n_estimators': 2804, 'learning_rate': 0.03156699416028822, 'max_depth': 17, 'subsample': 0.9208987311115943, 'colsample_bytree': 0.8456400142780623, 'gamma': 0.14937287367964078, 'lambda': 3.068985767042492e-05, 'alpha': 4.446705686232055e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 22:28:11,602] Trial 232 finished with value: 0.9885405867053186 and parameters: {'n_estimators': 2786, 'learning_rate': 0.03080767668251816, 'max_depth': 17, 'subsample': 0.914779726492411, 'colsample_bytree': 0.8481557254577338, 'gamma': 0.15018288890252565, 'lambda': 2.8914210724974475e-05, 'alpha': 4.405316850119092e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 22:44:26,906] Trial 233 finished with value: 0.9884905740826818 and parameters: {'n_estimators': 2778, 'learning_rate': 0.030818194588100246, 'max_depth': 18, 'subsample': 0.9144641356748487, 'colsample_bytree': 0.8481610490324409, 'gamma': 0.1501873068365935, 'lambda': 2.8213098310789426e-05, 'alpha': 4.388187818476979e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 23:00:13,279] Trial 234 finished with value: 0.9884704990342409 and parameters: {'n_estimators': 2785, 'learning_rate': 0.03070756961411687, 'max_depth': 17, 'subsample': 0.914948303244776, 'colsample_bytree': 0.8477896653522452, 'gamma': 0.15062632201867815, 'lambda': 2.1905448780948202e-05, 'alpha': 4.280183279676921e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 23:16:03,738] Trial 235 finished with value: 0.9884845884432417 and parameters: {'n_estimators': 2794, 'learning_rate': 0.030645741703332077, 'max_depth': 17, 'subsample': 0.9147340379304698, 'colsample_bytree': 0.8480617209723565, 'gamma': 0.1501956784524254, 'lambda': 2.1374325662192284e-05, 'alpha': 4.391651969906239e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 23:33:39,949] Trial 236 finished with value: 0.9884648635355274 and parameters: {'n_estimators': 2803, 'learning_rate': 0.030507144170485594, 'max_depth': 18, 'subsample': 0.9143854631849228, 'colsample_bytree': 0.8476146799430885, 'gamma': 0.1511153769307669, 'lambda': 2.229378210801721e-05, 'alpha': 3.868444921877469e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-21 23:51:06,887] Trial 237 finished with value: 0.9884928731513564 and parameters: {'n_estimators': 2776, 'learning_rate': 0.030755418520049684, 'max_depth': 18, 'subsample': 0.9123883597514555, 'colsample_bytree': 0.8439621966164842, 'gamma': 0.14991834932783832, 'lambda': 2.9931966998617483e-05, 'alpha': 4.670655260684472e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-22 00:08:05,282] Trial 238 finished with value: 0.9884266272369167 and parameters: {'n_estimators': 2786, 'learning_rate': 0.029941505568241385, 'max_depth': 18, 'subsample': 0.9118995313130536, 'colsample_bytree': 0.8445386548640859, 'gamma': 0.14991448600596488, 'lambda': 2.865841137216404e-05, 'alpha': 4.646648521757231e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-22 00:23:19,940] Trial 239 finished with value: 0.9884891817804621 and parameters: {'n_estimators': 2828, 'learning_rate': 0.030972779004417094, 'max_depth': 17, 'subsample': 0.9203051238282528, 'colsample_bytree': 0.849042040600928, 'gamma': 0.14981187535534668, 'lambda': 2.062220947856809e-05, 'alpha': 2.6827147851891995e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-22 00:38:27,374] Trial 240 finished with value: 0.9883187387847813 and parameters: {'n_estimators': 2824, 'learning_rate': 0.03004962658217847, 'max_depth': 18, 'subsample': 0.9200964706742376, 'colsample_bytree': 0.8493771167983963, 'gamma': 0.15230981586483852, 'lambda': 2.9139842794104718e-05, 'alpha': 2.656044737943559e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-22 00:53:10,669] Trial 241 finished with value: 0.9885226033342591 and parameters: {'n_estimators': 2868, 'learning_rate': 0.031492056486133665, 'max_depth': 17, 'subsample': 0.9199093225095608, 'colsample_bytree': 0.8439506482539154, 'gamma': 0.15025606806190697, 'lambda': 2.6596351961431704e-05, 'alpha': 5.015849138108092e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-22 01:08:58,336] Trial 242 finished with value: 0.9884821438494976 and parameters: {'n_estimators': 2884, 'learning_rate': 0.030983824311833875, 'max_depth': 18, 'subsample': 0.9115057606194116, 'colsample_bytree': 0.8439838103420062, 'gamma': 0.14898090553866733, 'lambda': 2.7103594508990615e-05, 'alpha': 2.5086736895167015e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-22 01:24:09,883] Trial 243 finished with value: 0.9884537151372103 and parameters: {'n_estimators': 2889, 'learning_rate': 0.031693100939157774, 'max_depth': 18, 'subsample': 0.910198370329701, 'colsample_bytree': 0.8424031920293739, 'gamma': 0.14888702852200128, 'lambda': 2.7039938347838422e-05, 'alpha': 2.6160871487139977e-06}. Best is trial 181 with value: 0.9886070636559899.
+[I 2025-05-22 01:40:57,794] Trial 244 finished with value: 0.9886492714774309 and parameters: {'n_estimators': 2849, 'learning_rate': 0.030100434167880878, 'max_depth': 18, 'subsample': 0.919924324297598, 'colsample_bytree': 0.8443373201478034, 'gamma': 0.1267024501106858, 'lambda': 3.227231004486746e-05, 'alpha': 3.6312679055468375e-06}. Best is trial 244 with value: 0.9886492714774309.
+[I 2025-05-22 01:57:23,667] Trial 245 finished with value: 0.9886420234798157 and parameters: {'n_estimators': 2849, 'learning_rate': 0.030986095555622928, 'max_depth': 18, 'subsample': 0.9196907936471154, 'colsample_bytree': 0.8439158197705272, 'gamma': 0.12469520762456879, 'lambda': 2.5056607582135176e-05, 'alpha': 3.488412963057646e-06}. Best is trial 244 with value: 0.9886492714774309.
+[I 2025-05-22 02:13:27,045] Trial 246 finished with value: 0.9885237381115589 and parameters: {'n_estimators': 2851, 'learning_rate': 0.03004019026832084, 'max_depth': 18, 'subsample': 0.919704642345158, 'colsample_bytree': 0.8444176020919952, 'gamma': 0.14684748118802926, 'lambda': 2.4108610342127208e-05, 'alpha': 3.454465056440362e-06}. Best is trial 244 with value: 0.9886492714774309.
+[I 2025-05-22 02:30:42,863] Trial 247 finished with value: 0.9886494431790006 and parameters: {'n_estimators': 2856, 'learning_rate': 0.02939836678007544, 'max_depth': 18, 'subsample': 0.9201647343174603, 'colsample_bytree': 0.8440221151053757, 'gamma': 0.12223501490901001, 'lambda': 3.294257654792356e-05, 'alpha': 5.106637531340574e-06}. Best is trial 247 with value: 0.9886494431790006.
+[I 2025-05-22 02:47:36,696] Trial 248 finished with value: 0.9886137843943719 and parameters: {'n_estimators': 2843, 'learning_rate': 0.029565558288925386, 'max_depth': 18, 'subsample': 0.9197770212640943, 'colsample_bytree': 0.8444495273440402, 'gamma': 0.1255970960885425, 'lambda': 3.207427632959607e-05, 'alpha': 3.650252223196457e-06}. Best is trial 247 with value: 0.9886494431790006.
+[I 2025-05-22 03:04:55,399] Trial 249 finished with value: 0.9886381895240963 and parameters: {'n_estimators': 2858, 'learning_rate': 0.02928492292010198, 'max_depth': 18, 'subsample': 0.919886091797561, 'colsample_bytree': 0.8439181886516909, 'gamma': 0.12430318914697362, 'lambda': 3.3041223113023985e-05, 'alpha': 3.3754004393897943e-06}. Best is trial 247 with value: 0.9886494431790006.
+[I 2025-05-22 03:22:11,108] Trial 250 finished with value: 0.9886584686262557 and parameters: {'n_estimators': 2864, 'learning_rate': 0.02927746088708863, 'max_depth': 18, 'subsample': 0.9203648941593694, 'colsample_bytree': 0.8440193193087926, 'gamma': 0.12491522111731725, 'lambda': 2.46029211711703e-05, 'alpha': 3.243942433436361e-06}. Best is trial 250 with value: 0.9886584686262557.
+[I 2025-05-22 03:39:23,261] Trial 251 finished with value: 0.988621047244573 and parameters: {'n_estimators': 2858, 'learning_rate': 0.029206274339747446, 'max_depth': 18, 'subsample': 0.9200941729776597, 'colsample_bytree': 0.844178146448036, 'gamma': 0.1266458409644104, 'lambda': 2.4477480319271427e-05, 'alpha': 3.4009661891099167e-06}. Best is trial 250 with value: 0.9886584686262557.
+[I 2025-05-22 03:56:18,469] Trial 252 finished with value: 0.9886257190166915 and parameters: {'n_estimators': 2865, 'learning_rate': 0.02919783290696828, 'max_depth': 18, 'subsample': 0.9191176262566226, 'colsample_bytree': 0.8441435056537469, 'gamma': 0.12770866099603817, 'lambda': 2.3917691138728972e-05, 'alpha': 3.333592565010492e-06}. Best is trial 250 with value: 0.9886584686262557.
+[I 2025-05-22 04:13:29,533] Trial 253 finished with value: 0.9886238813563709 and parameters: {'n_estimators': 2860, 'learning_rate': 0.029046642292805902, 'max_depth': 18, 'subsample': 0.9193385108684023, 'colsample_bytree': 0.8403362226381286, 'gamma': 0.126719870542791, 'lambda': 2.436610674832018e-05, 'alpha': 3.3305758535362764e-06}. Best is trial 250 with value: 0.9886584686262557.
+[I 2025-05-22 04:30:48,017] Trial 254 finished with value: 0.9886014167084869 and parameters: {'n_estimators': 2863, 'learning_rate': 0.029118002084959935, 'max_depth': 18, 'subsample': 0.9190843075026811, 'colsample_bytree': 0.8407794836732138, 'gamma': 0.1268300907731419, 'lambda': 2.4710867368371685e-05, 'alpha': 3.3216883278708727e-06}. Best is trial 250 with value: 0.9886584686262557.
+[I 2025-05-22 04:48:11,022] Trial 255 finished with value: 0.9886450127604578 and parameters: {'n_estimators': 2863, 'learning_rate': 0.029095888470618253, 'max_depth': 18, 'subsample': 0.9190297584393132, 'colsample_bytree': 0.8399777771935866, 'gamma': 0.12572531698730396, 'lambda': 2.4220064025635825e-05, 'alpha': 3.344413663353995e-06}. Best is trial 250 with value: 0.9886584686262557.
+[I 2025-05-22 05:05:16,646] Trial 256 finished with value: 0.9886071726134252 and parameters: {'n_estimators': 2860, 'learning_rate': 0.029184605916725437, 'max_depth': 18, 'subsample': 0.9167017086083067, 'colsample_bytree': 0.8405303981436105, 'gamma': 0.12575006643385747, 'lambda': 2.503222175781176e-05, 'alpha': 3.5070870373314014e-06}. Best is trial 250 with value: 0.9886584686262557.
+[I 2025-05-22 05:22:40,587] Trial 257 finished with value: 0.9886858133778997 and parameters: {'n_estimators': 2867, 'learning_rate': 0.028979739434920097, 'max_depth': 18, 'subsample': 0.9171222740237283, 'colsample_bytree': 0.8428135413946611, 'gamma': 0.1249727796990742, 'lambda': 2.442147638110241e-05, 'alpha': 3.3795603898734616e-06}. Best is trial 257 with value: 0.9886858133778997.
+2025-05-22 05:22:40,588 - INFO - main_opt - Hyperparameter optimization process finished/paused in 36445.88 seconds.
+2025-05-22 05:22:40,591 - INFO - main_opt - 
+Best trial found:
+2025-05-22 05:22:40,591 - INFO - main_opt -   Value (auc): 0.988686
+2025-05-22 05:22:40,591 - INFO - main_opt -   Params: 
+2025-05-22 05:22:40,591 - INFO - main_opt -     n_estimators: 2867
+2025-05-22 05:22:40,591 - INFO - main_opt -     learning_rate: 0.028979739434920097
+2025-05-22 05:22:40,591 - INFO - main_opt -     max_depth: 18
+2025-05-22 05:22:40,591 - INFO - main_opt -     subsample: 0.9171222740237283
+2025-05-22 05:22:40,591 - INFO - main_opt -     colsample_bytree: 0.8428135413946611
+2025-05-22 05:22:40,591 - INFO - main_opt -     gamma: 0.1249727796990742
+2025-05-22 05:22:40,591 - INFO - main_opt -     lambda: 2.442147638110241e-05
+2025-05-22 05:22:40,591 - INFO - main_opt -     alpha: 3.3795603898734616e-06
+2025-05-22 05:22:40,591 - INFO - main_opt - 
+--- Training FINAL model with OPTIMIZED parameters on Yangtze training data ---
+2025-05-22 05:22:40,604 - INFO - main_opt - Final model parameters: {'objective': 'binary:logistic', 'eval_metric': ['logloss', 'auc'], 'tree_method': 'hist', 'scale_pos_weight': np.float64(0.6196257392593262), 'random_state': 42, 'early_stopping_rounds': 30, 'device': 'cuda', 'n_estimators': 2867, 'learning_rate': 0.028979739434920097, 'max_depth': 18, 'subsample': 0.9171222740237283, 'colsample_bytree': 0.8428135413946611, 'gamma': 0.1249727796990742, 'lambda': 2.442147638110241e-05, 'alpha': 3.3795603898734616e-06}
+2025-05-22 05:39:43,338 - INFO - main_opt - Final model training complete in 1022.73 seconds.
+2025-05-22 05:39:43,338 - INFO - main_opt - Best iteration for final model (from XGBoost's early stopping): 2578
+2025-05-22 05:39:43,338 - INFO - main_opt - Best score for final model on eval set: 0.9886158002819398
+2025-05-22 05:39:43,338 - INFO - main_opt - 
+Saving the OPTIMIZED trained model to f:\rainfalldata\results\yangtze\model_predict\xgboost_optimized_yangtsu_model_from_db.joblib...
+2025-05-22 05:39:46,680 - INFO - main_opt - 
+--- Evaluating FINAL XGBoost model (Optimized Params) on the Yangtze test set with varying thresholds ---
+F:\Dev\python312\Lib\site-packages\xgboost\core.py:158: UserWarning: [05:39:46] WARNING: C:\buildkite-agent\builds\buildkite-windows-cpu-autoscaling-group-i-08cbc0333d8d4aae1-1\xgboost\xgboost-ci-windows\src\common\error_msg.cc:58: Falling back to prediction using DMatrix due to mismatched devices. This might lead to higher memory usage and slower performance. XGBoost is running on: cuda:0, while the input data is on: cpu.
+Potential solutions:
+- Use a data structure that matches the device ordinal in the booster.
+- Set the device for booster before call to inplace_predict.
+
+This warning will only be shown once.
+
+  warnings.warn(smsg, UserWarning)
+2025-05-22 05:39:51,907 - INFO - main_opt - Calculating metrics for different thresholds...
+2025-05-22 05:39:51,907 - INFO - main_opt - 
+--- Threshold: 0.40 ---
+2025-05-22 05:39:51,935 - INFO - main_opt - 
+--- XGBoost Classifier Yangtze (Optimized, Threshold 0.40) Performance ---
+2025-05-22 05:39:51,935 - INFO - main_opt - Confusion Matrix:
+[[377132  27522]
+ [ 29081 623980]]
+2025-05-22 05:39:51,935 - INFO - main_opt -   True Negatives (TN): 377132
+2025-05-22 05:39:51,935 - INFO - main_opt -   False Positives (FP): 27522
+2025-05-22 05:39:51,936 - INFO - main_opt -   False Negatives (FN): 29081
+2025-05-22 05:39:51,936 - INFO - main_opt -   True Positives (TP): 623980
+2025-05-22 05:39:51,936 - INFO - main_opt - Accuracy: 0.9465
+2025-05-22 05:39:51,936 - INFO - main_opt - POD (Hit Rate/Recall): 0.9555
+2025-05-22 05:39:51,936 - INFO - main_opt - FAR (False Alarm Ratio): 0.0422
+2025-05-22 05:39:51,936 - INFO - main_opt - CSI (Critical Success Index): 0.9168
+2025-05-22 05:39:51,936 - INFO - main_opt - 
+Classification Report:
+2025-05-22 05:39:52,058 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.93      0.93      0.93    404654
+        Rain       0.96      0.96      0.96    653061
+
+    accuracy                           0.95   1057715
+   macro avg       0.94      0.94      0.94   1057715
+weighted avg       0.95      0.95      0.95   1057715
+
+2025-05-22 05:39:52,059 - INFO - main_opt - 
+--- Threshold: 0.45 ---
+2025-05-22 05:39:52,084 - INFO - main_opt - 
+--- XGBoost Classifier Yangtze (Optimized, Threshold 0.45) Performance ---
+2025-05-22 05:39:52,084 - INFO - main_opt - Confusion Matrix:
+[[380297  24357]
+ [ 32612 620449]]
+2025-05-22 05:39:52,084 - INFO - main_opt -   True Negatives (TN): 380297
+2025-05-22 05:39:52,084 - INFO - main_opt -   False Positives (FP): 24357
+2025-05-22 05:39:52,084 - INFO - main_opt -   False Negatives (FN): 32612
+2025-05-22 05:39:52,084 - INFO - main_opt -   True Positives (TP): 620449
+2025-05-22 05:39:52,084 - INFO - main_opt - Accuracy: 0.9461
+2025-05-22 05:39:52,084 - INFO - main_opt - POD (Hit Rate/Recall): 0.9501
+2025-05-22 05:39:52,084 - INFO - main_opt - FAR (False Alarm Ratio): 0.0378
+2025-05-22 05:39:52,084 - INFO - main_opt - CSI (Critical Success Index): 0.9159
+2025-05-22 05:39:52,084 - INFO - main_opt - 
+Classification Report:
+2025-05-22 05:39:52,206 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.92      0.94      0.93    404654
+        Rain       0.96      0.95      0.96    653061
+
+    accuracy                           0.95   1057715
+   macro avg       0.94      0.94      0.94   1057715
+weighted avg       0.95      0.95      0.95   1057715
+
+2025-05-22 05:39:52,206 - INFO - main_opt - 
+--- Threshold: 0.50 ---
+2025-05-22 05:39:52,231 - INFO - main_opt - 
+--- XGBoost Classifier Yangtze (Optimized, Threshold 0.50) Performance ---
+2025-05-22 05:39:52,231 - INFO - main_opt - Confusion Matrix:
+[[383103  21551]
+ [ 36521 616540]]
+2025-05-22 05:39:52,231 - INFO - main_opt -   True Negatives (TN): 383103
+2025-05-22 05:39:52,231 - INFO - main_opt -   False Positives (FP): 21551
+2025-05-22 05:39:52,231 - INFO - main_opt -   False Negatives (FN): 36521
+2025-05-22 05:39:52,231 - INFO - main_opt -   True Positives (TP): 616540
+2025-05-22 05:39:52,231 - INFO - main_opt - Accuracy: 0.9451
+2025-05-22 05:39:52,231 - INFO - main_opt - POD (Hit Rate/Recall): 0.9441
+2025-05-22 05:39:52,231 - INFO - main_opt - FAR (False Alarm Ratio): 0.0338
+2025-05-22 05:39:52,231 - INFO - main_opt - CSI (Critical Success Index): 0.9139
+2025-05-22 05:39:52,231 - INFO - main_opt - 
+Classification Report:
+2025-05-22 05:39:52,353 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.91      0.95      0.93    404654
+        Rain       0.97      0.94      0.96    653061
+
+    accuracy                           0.95   1057715
+   macro avg       0.94      0.95      0.94   1057715
+weighted avg       0.95      0.95      0.95   1057715
+
+2025-05-22 05:39:52,353 - INFO - main_opt - 
+--- Threshold: 0.55 ---
+2025-05-22 05:39:52,378 - INFO - main_opt - 
+--- XGBoost Classifier Yangtze (Optimized, Threshold 0.55) Performance ---
+2025-05-22 05:39:52,378 - INFO - main_opt - Confusion Matrix:
+[[385609  19045]
+ [ 40520 612541]]
+2025-05-22 05:39:52,378 - INFO - main_opt -   True Negatives (TN): 385609
+2025-05-22 05:39:52,378 - INFO - main_opt -   False Positives (FP): 19045
+2025-05-22 05:39:52,378 - INFO - main_opt -   False Negatives (FN): 40520
+2025-05-22 05:39:52,378 - INFO - main_opt -   True Positives (TP): 612541
+2025-05-22 05:39:52,378 - INFO - main_opt - Accuracy: 0.9437
+2025-05-22 05:39:52,378 - INFO - main_opt - POD (Hit Rate/Recall): 0.9380
+2025-05-22 05:39:52,378 - INFO - main_opt - FAR (False Alarm Ratio): 0.0302
+2025-05-22 05:39:52,378 - INFO - main_opt - CSI (Critical Success Index): 0.9114
+2025-05-22 05:39:52,378 - INFO - main_opt - 
+Classification Report:
+2025-05-22 05:39:52,502 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.90      0.95      0.93    404654
+        Rain       0.97      0.94      0.95    653061
+
+    accuracy                           0.94   1057715
+   macro avg       0.94      0.95      0.94   1057715
+weighted avg       0.95      0.94      0.94   1057715
+
+2025-05-22 05:39:52,502 - INFO - main_opt - 
+--- Threshold: 0.60 ---
+2025-05-22 05:39:52,527 - INFO - main_opt - 
+--- XGBoost Classifier Yangtze (Optimized, Threshold 0.60) Performance ---
+2025-05-22 05:39:52,527 - INFO - main_opt - Confusion Matrix:
+[[387828  16826]
+ [ 44902 608159]]
+2025-05-22 05:39:52,527 - INFO - main_opt -   True Negatives (TN): 387828
+2025-05-22 05:39:52,527 - INFO - main_opt -   False Positives (FP): 16826
+2025-05-22 05:39:52,527 - INFO - main_opt -   False Negatives (FN): 44902
+2025-05-22 05:39:52,527 - INFO - main_opt -   True Positives (TP): 608159
+2025-05-22 05:39:52,527 - INFO - main_opt - Accuracy: 0.9416
+2025-05-22 05:39:52,527 - INFO - main_opt - POD (Hit Rate/Recall): 0.9312
+2025-05-22 05:39:52,527 - INFO - main_opt - FAR (False Alarm Ratio): 0.0269
+2025-05-22 05:39:52,527 - INFO - main_opt - CSI (Critical Success Index): 0.9079
+2025-05-22 05:39:52,527 - INFO - main_opt - 
+Classification Report:
+2025-05-22 05:39:52,647 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.90      0.96      0.93    404654
+        Rain       0.97      0.93      0.95    653061
+
+    accuracy                           0.94   1057715
+   macro avg       0.93      0.94      0.94   1057715
+weighted avg       0.94      0.94      0.94   1057715
+
+2025-05-22 05:39:52,647 - INFO - main_opt - 
+--- Threshold: 0.65 ---
+2025-05-22 05:39:52,670 - INFO - main_opt - 
+--- XGBoost Classifier Yangtze (Optimized, Threshold 0.65) Performance ---
+2025-05-22 05:39:52,670 - INFO - main_opt - Confusion Matrix:
+[[389946  14708]
+ [ 49819 603242]]
+2025-05-22 05:39:52,670 - INFO - main_opt -   True Negatives (TN): 389946
+2025-05-22 05:39:52,670 - INFO - main_opt -   False Positives (FP): 14708
+2025-05-22 05:39:52,670 - INFO - main_opt -   False Negatives (FN): 49819
+2025-05-22 05:39:52,670 - INFO - main_opt -   True Positives (TP): 603242
+2025-05-22 05:39:52,670 - INFO - main_opt - Accuracy: 0.9390
+2025-05-22 05:39:52,670 - INFO - main_opt - POD (Hit Rate/Recall): 0.9237
+2025-05-22 05:39:52,670 - INFO - main_opt - FAR (False Alarm Ratio): 0.0238
+2025-05-22 05:39:52,670 - INFO - main_opt - CSI (Critical Success Index): 0.9034
+2025-05-22 05:39:52,670 - INFO - main_opt - 
+Classification Report:
+2025-05-22 05:39:52,791 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.89      0.96      0.92    404654
+        Rain       0.98      0.92      0.95    653061
+
+    accuracy                           0.94   1057715
+   macro avg       0.93      0.94      0.94   1057715
+weighted avg       0.94      0.94      0.94   1057715
+
+2025-05-22 05:39:52,791 - INFO - main_opt - 
+--- Threshold: 0.70 ---
+2025-05-22 05:39:52,816 - INFO - main_opt - 
+--- XGBoost Classifier Yangtze (Optimized, Threshold 0.70) Performance ---
+2025-05-22 05:39:52,816 - INFO - main_opt - Confusion Matrix:
+[[391946  12708]
+ [ 55205 597856]]
+2025-05-22 05:39:52,816 - INFO - main_opt -   True Negatives (TN): 391946
+2025-05-22 05:39:52,816 - INFO - main_opt -   False Positives (FP): 12708
+2025-05-22 05:39:52,816 - INFO - main_opt -   False Negatives (FN): 55205
+2025-05-22 05:39:52,816 - INFO - main_opt -   True Positives (TP): 597856
+2025-05-22 05:39:52,816 - INFO - main_opt - Accuracy: 0.9358
+2025-05-22 05:39:52,816 - INFO - main_opt - POD (Hit Rate/Recall): 0.9155
+2025-05-22 05:39:52,816 - INFO - main_opt - FAR (False Alarm Ratio): 0.0208
+2025-05-22 05:39:52,816 - INFO - main_opt - CSI (Critical Success Index): 0.8980
+2025-05-22 05:39:52,816 - INFO - main_opt - 
+Classification Report:
+2025-05-22 05:39:52,936 - INFO - main_opt -               precision    recall  f1-score   support
+
+     No Rain       0.88      0.97      0.92    404654
+        Rain       0.98      0.92      0.95    653061
+
+    accuracy                           0.94   1057715
+   macro avg       0.93      0.94      0.93   1057715
+weighted avg       0.94      0.94      0.94   1057715
+
+2025-05-22 05:39:52,937 - INFO - main_opt - Evaluation finished in 6.26 seconds.
+2025-05-22 05:39:52,937 - INFO - main_opt - 
+--- Final Performance Comparison (Yangtze Test Set - Optimized Threshold 0.5 vs Spatial Baseline) ---
+2025-05-22 05:39:52,951 - INFO - main_opt - 
+--- Final Performance Comparison (Yangtze - Optimized Threshold 0.5 vs Spatial Baseline) ---
+2025-05-22 05:39:52,958 - INFO - main_opt - 
+                                    accuracy     pod     far     csi       fp       fn
+XGBoost_Yangtsu_Optimized (Thr 0.5)   0.9451  0.9441  0.0338  0.9139    21551    36521
+Baseline_CMORPH_Spatial               0.6305  0.5168  0.1763  0.4654   361158  1577665
+Baseline_CHIRPS_Spatial               0.5874  0.4413  0.1913  0.3996   340810  1824393
+Baseline_SM2RAIN_Spatial              0.6906  0.9033  0.3072  0.6450  1307610   315866
+Baseline_IMERG_Spatial                0.7123  0.7073  0.1935  0.6047   554123   955706
+Baseline_GSMAP_Spatial                0.7332  0.6108  0.0606  0.5876   128730  1270999
+Baseline_PERSIANN_Spatial             0.6471  0.6387  0.2437  0.5297   672194  1179721
+2025-05-22 05:39:52,958 - INFO - main_opt - Saving comparison table to f:\rainfalldata\results\yangtze\features\performance_comparison_yangtsu_v1_optimized.csv
+2025-05-22 05:39:52,964 - INFO - main_opt - 
+--- XGBoost Performance across different thresholds (Yangtze - Optimized Model) ---
+2025-05-22 05:39:52,966 - INFO - main_opt - 
+                         accuracy     pod     far     csi     fp     fn
+Optimized_Threshold_0.40   0.9465  0.9555  0.0422  0.9168  27522  29081
+Optimized_Threshold_0.45   0.9461  0.9501  0.0378  0.9159  24357  32612
+Optimized_Threshold_0.50   0.9451  0.9441  0.0338  0.9139  21551  36521
+Optimized_Threshold_0.55   0.9437  0.9380  0.0302  0.9114  19045  40520
+Optimized_Threshold_0.60   0.9416  0.9312  0.0269  0.9079  16826  44902
+Optimized_Threshold_0.65   0.9390  0.9237  0.0238  0.9034  14708  49819
+Optimized_Threshold_0.70   0.9358  0.9155  0.0208  0.8980  12708  55205
+2025-05-22 05:39:52,966 - INFO - main_opt - Saving threshold performance table to f:\rainfalldata\results\yangtze\features\threshold_performance_yangtsu_v1_optimized.csv
+2025-05-22 05:39:52,967 - INFO - main_opt - Plotting training history (Optimized Params - Yangtze)...
+2025-05-22 05:39:53,192 - INFO - main_opt - Training history plot saved to f:\rainfalldata\results\yangtze\features\xgboost_training_history_yangtsu_v1_optimized.png
+2025-05-22 05:39:53,200 - INFO - main_opt - 
+--- Feature Importances (Optimized Params - Yangtze) ---
+2025-05-22 05:39:53,393 - INFO - main_opt - Top 10 Features:
+2025-05-22 05:39:53,394 - INFO - main_opt - 
+                Feature  Importance
+23   lag_1_values_GSMAP    0.364156
+47  diff_1_values_GSMAP    0.173626
+17      season_onehot_2    0.098798
+4      raw_values_GSMAP    0.078788
+25           lag_1_mean    0.010056
+13              sin_day    0.008237
+14              cos_day    0.007774
+16      season_onehot_1    0.007345
+18      season_onehot_3    0.006192
+15      season_onehot_0    0.006053
+2025-05-22 05:39:53,594 - INFO - main_opt - Feature importance plot saved to f:\rainfalldata\results\yangtze\features\xgboost_feature_importance_yangtsu_v1_optimized.png
+2025-05-22 05:39:53,599 - INFO - main_opt - 
+Analysis complete for Yangtze dataset using OPTIMIZED parameters, evaluated multiple thresholds.
+2025-05-22 05:39:54,188 - WARNING - main_opt - Optuna visualization is not available. Please install plotly or matplotlib.
+2025-05-22 05:39:54,188 - INFO - main_opt - 
+Analysis complete for Yangtze dataset using OPTIMIZED parameters (from DB), evaluated multiple thresholds.
+
+--- xgboost_optimization_main.py finished with errors (return code: 3221226505) ---
+
