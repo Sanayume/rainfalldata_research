@@ -12,13 +12,13 @@ import optuna
 
 # --- 配置 ---
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
-X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features.npy") # V1 特征
-Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target.npy") # V1 目标
+X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features.npy") # v6 特征
+Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target.npy") # v6 目标
 # 输出目录调整，用于存放 K-Fold 相关产出
-KFOLD_OUTPUT_DIR = os.path.join(PROJECT_DIR, "kfold_optimization_v1")
+KFOLD_OUTPUT_DIR = os.path.join(PROJECT_DIR, "kfold_optimization_v6")
 os.makedirs(KFOLD_OUTPUT_DIR, exist_ok=True)
 
-FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu.txt") # V1 特征名
+FEATURE_NAMES_PATH = os.path.join(PROJECT_DIR, "feature_names_yangtsu.txt") # v6 特征名
 RAIN_THRESHOLD = 0.1
 # TEST_SIZE_RATIO 将用于从完整数据中分出最终的 Hold-out 测试集
 # K-Fold CV 将在 (1 - TEST_SIZE_RATIO) 的数据上进行
@@ -59,10 +59,10 @@ def calculate_metrics(y_true, y_pred, title=""):
     return {'tn': tn, 'fp': fp, 'fn': fn, 'tp': tp, 'accuracy': accuracy, 'pod': pod, 'far': far, 'csi': csi}
 
 # --- 1. 加载数据 ---
-print("--- Step 1: Loading Yangtze V1 Flattened Data ---")
+print("--- Step 1: Loading Yangtze v6 Flattened Data ---")
 start_load_flat = time.time()
 if not (os.path.exists(X_FLAT_PATH) and os.path.exists(Y_FLAT_PATH) and os.path.exists(FEATURE_NAMES_PATH)):
-    raise FileNotFoundError(f"Flattened data files for Yangtze V1 dataset not found in {PROJECT_DIR}. Run turn1.py first.")
+    raise FileNotFoundError(f"Flattened data files for Yangtze v6 dataset not found in {PROJECT_DIR}. Run turn1.py first.")
 
 try:
     print(f"Attempting to load {X_FLAT_PATH}...")
@@ -188,11 +188,11 @@ print(f"\n--- Step 4: Performing {N_SPLITS_KFold}-Fold Cross-Validation with Opt
 kf = StratifiedKFold(n_splits=N_SPLITS_KFold, shuffle=True, random_state=42)
 
 # 初始化用于存储折外预测的数组
-oof_preds_L0_V1_Opt = np.zeros(len(y_train_cv_pool))
+oof_preds_L0_v6_Opt = np.zeros(len(y_train_cv_pool))
 # 初始化用于存储每折在 Hold-out Test Set 上的预测的列表
 holdout_test_preds_from_folds = []
 # 初始化用于存储每折模型的列表
-fold_models_V1_Opt = []
+fold_models_v6_Opt = []
 
 # 准备最终模型的参数，加入 Optuna 找到的最佳参数
 # n_estimators 和 learning_rate 通常是 Optuna 优化的重点，其他可以固定或也加入优化
@@ -226,7 +226,7 @@ for fold_num, (train_idx, val_idx) in enumerate(kf.split(X_train_cv_pool, y_trai
                    verbose=100) # 每100轮打印一次
 
     # 生成折外预测 (Out-of-Fold Predictions)
-    oof_preds_L0_V1_Opt[val_idx] = fold_model.predict_proba(X_fold_val)[:, 1]
+    oof_preds_L0_v6_Opt[val_idx] = fold_model.predict_proba(X_fold_val)[:, 1]
     print(f"  Fold {fold_num + 1} OOF predictions generated.")
 
     # (可选) 在 Hold-out Test Set 上进行预测
@@ -235,23 +235,23 @@ for fold_num, (train_idx, val_idx) in enumerate(kf.split(X_train_cv_pool, y_trai
     print(f"  Fold {fold_num + 1} predictions on Hold-out Test Set generated.")
 
     # 保存当前折的模型
-    fold_model_path = os.path.join(KFOLD_OUTPUT_DIR, f"xgboost_v1_opt_fold_{fold_num + 1}.joblib")
+    fold_model_path = os.path.join(KFOLD_OUTPUT_DIR, f"xgboost_v6_opt_fold_{fold_num + 1}.joblib")
     joblib.dump(fold_model, fold_model_path)
-    fold_models_V1_Opt.append(fold_model) # 也可以直接将模型对象存入列表
+    fold_models_v6_Opt.append(fold_model) # 也可以直接将模型对象存入列表
     print(f"  Fold {fold_num + 1} model saved to {fold_model_path}")
 
 end_kfold_time = time.time()
 print(f"\nK-Fold Cross-Validation finished in {end_kfold_time - start_kfold_time:.2f} seconds.")
 
-# 保存折外预测结果 (Train_L0_Probs_V1_Opt)
-oof_preds_save_path = os.path.join(KFOLD_OUTPUT_DIR, "Train_L0_Probs_V1_Opt.npy")
-np.save(oof_preds_save_path, oof_preds_L0_V1_Opt)
+# 保存折外预测结果 (Train_L0_Probs_v6_Opt)
+oof_preds_save_path = os.path.join(KFOLD_OUTPUT_DIR, "Train_L0_Probs_v6_Opt.npy")
+np.save(oof_preds_save_path, oof_preds_L0_v6_Opt)
 print(f"Out-of-Fold predictions for Training/CV Pool saved to: {oof_preds_save_path}")
 
 # 处理 Hold-out Test Set 上的预测：可以简单平均，或用之后在完整数据上训练的模型预测
-Test_L0_Probs_V1_Opt_from_folds_mean = np.mean(holdout_test_preds_from_folds, axis=0)
-test_preds_mean_save_path = os.path.join(KFOLD_OUTPUT_DIR, "Test_L0_Probs_V1_Opt_from_folds_mean.npy")
-np.save(test_preds_mean_save_path, Test_L0_Probs_V1_Opt_from_folds_mean)
+Test_L0_Probs_v6_Opt_from_folds_mean = np.mean(holdout_test_preds_from_folds, axis=0)
+test_preds_mean_save_path = os.path.join(KFOLD_OUTPUT_DIR, "Test_L0_Probs_v6_Opt_from_folds_mean.npy")
+np.save(test_preds_mean_save_path, Test_L0_Probs_v6_Opt_from_folds_mean)
 print(f"Mean predictions on Hold-out Test Set from K-Folds saved to: {test_preds_mean_save_path}")
 
 # --- 5. (推荐) 用最佳参数在完整的 Training/CV Pool 上训练最终模型 ---
@@ -268,7 +268,7 @@ final_model_full_train = xgb.XGBClassifier(**final_model_params) # 使用相同�
 
 # 我们选择重新训练一个模型，并使用 holdout_test 作为早停的监控集
 # 这意味着 holdout_test 的部分信息被用于模型选择（迭代次数），但参数是固定的
-# 为了生成 Val_L0_Probs_V1_Opt (如果存在一个独立的验证集)，应该用这个模型去预测它。
+# 为了生成 Val_L0_Probs_v6_Opt (如果存在一个独立的验证集)，应该用这个模型去预测它。
 
 # 假设我们没有独立的验证集，我们将用这个模型来对 Hold-out Test Set 做最终评估
 eval_set_final_model = [(X_holdout_test, y_holdout_test)] # 早停监控
@@ -283,45 +283,45 @@ print(f"Final model training on full Training/CV Pool finished in {end_final_tra
 print(f"Best iteration for the final model on full training data: {final_model_full_train.best_iteration}")
 
 # 保存这个最终模型
-final_model_save_path = os.path.join(KFOLD_OUTPUT_DIR, "xgboost_v1_opt_final_model_on_train_cv_pool.joblib")
+final_model_save_path = os.path.join(KFOLD_OUTPUT_DIR, "xgboost_v6_opt_final_model_on_train_cv_pool.joblib")
 joblib.dump(final_model_full_train, final_model_save_path)
 print(f"Final model trained on full Training/CV Pool saved to {final_model_save_path}")
 
-# 用这个最终模型对 Hold-out Test Set 进行预测 (Test_L0_Probs_V1_Opt)
-Test_L0_Probs_V1_Opt_final_model = final_model_full_train.predict_proba(X_holdout_test)[:, 1]
-test_preds_final_model_save_path = os.path.join(KFOLD_OUTPUT_DIR, "Test_L0_Probs_V1_Opt_from_final_model.npy")
-np.save(test_preds_final_model_save_path, Test_L0_Probs_V1_Opt_final_model)
+# 用这个最终模型对 Hold-out Test Set 进行预测 (Test_L0_Probs_v6_Opt)
+Test_L0_Probs_v6_Opt_final_model = final_model_full_train.predict_proba(X_holdout_test)[:, 1]
+test_preds_final_model_save_path = os.path.join(KFOLD_OUTPUT_DIR, "Test_L0_Probs_v6_Opt_from_final_model.npy")
+np.save(test_preds_final_model_save_path, Test_L0_Probs_v6_Opt_final_model)
 print(f"Predictions on Hold-out Test Set from final model saved to: {test_preds_final_model_save_path}")
 
-# Val_L0_Probs_V1_Opt: 如果您有一个独立的验证集 (X_val_independent, y_val_independent)
-# Val_L0_Probs_V1_Opt = final_model_full_train.predict_proba(X_val_independent)[:, 1]
-# np.save(os.path.join(KFOLD_OUTPUT_DIR, "Val_L0_Probs_V1_Opt.npy"), Val_L0_Probs_V1_Opt)
+# Val_L0_Probs_v6_Opt: 如果您有一个独立的验证集 (X_val_independent, y_val_independent)
+# Val_L0_Probs_v6_Opt = final_model_full_train.predict_proba(X_val_independent)[:, 1]
+# np.save(os.path.join(KFOLD_OUTPUT_DIR, "Val_L0_Probs_v6_Opt.npy"), Val_L0_Probs_v6_Opt)
 # print("Predictions on Independent Validation Set saved (if applicable).")
 
 
 # --- 6. 评估最终模型在 Hold-out Test Set 上的性能 ---
 print("\n--- Step 6: Evaluating Final Model (trained on full Training/CV Pool) on Hold-out Test Set ---")
-# 使用 final_model_full_train 和 Test_L0_Probs_V1_Opt_final_model 进行评估
+# 使用 final_model_full_train 和 Test_L0_Probs_v6_Opt_final_model 进行评估
 thresholds_to_evaluate = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
 metrics_by_threshold_final_model = {}
-y_pred_proba_final_on_holdout = Test_L0_Probs_V1_Opt_final_model # 使用上面生成的预测
+y_pred_proba_final_on_holdout = Test_L0_Probs_v6_Opt_final_model # 使用上面生成的预测
 
 print("Calculating metrics for different thresholds on Hold-out Test Set...")
 for threshold_fm in thresholds_to_evaluate:
     print(f"\n--- Hold-out Test Set - Threshold: {threshold_fm:.2f} ---")
     y_pred_test_threshold_fm = (y_pred_proba_final_on_holdout >= threshold_fm).astype(int)
     metrics_fm = calculate_metrics(y_holdout_test, y_pred_test_threshold_fm,
-                                   title=f"XGBoost V1 Opt (Final Model) on Hold-out Test (Threshold {threshold_fm:.2f})")
+                                   title=f"XGBoost v6 Opt (Final Model) on Hold-out Test (Threshold {threshold_fm:.2f})")
     metrics_by_threshold_final_model[threshold_fm] = metrics_fm
 
 # 准备一个对比表格，包括基线（如果需要的话，但基线通常在完整数据集上评估，这里主要是评估模型本身）
 xgboost_metrics_optimized_thr05_holdout = metrics_by_threshold_final_model[0.5]
 
-print("\n--- XGBoost V1 Opt Performance on Hold-out Test Set (across thresholds) ---")
+print("\n--- XGBoost v6 Opt Performance on Hold-out Test Set (across thresholds) ---")
 metrics_to_show = ['accuracy', 'pod', 'far', 'csi', 'fp', 'fn']
 holdout_threshold_metrics_data = {}
 for threshold, metrics in metrics_by_threshold_final_model.items():
-    holdout_threshold_metrics_data[f'V1_Opt_Holdout_Thr_{threshold:.2f}'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
+    holdout_threshold_metrics_data[f'v6_Opt_Holdout_Thr_{threshold:.2f}'] = {metric: metrics.get(metric, float('nan')) for metric in metrics_to_show}
 
 holdout_threshold_df = pd.DataFrame(holdout_threshold_metrics_data).T
 holdout_threshold_df = holdout_threshold_df[metrics_to_show]
@@ -336,7 +336,7 @@ for col in int_cols:
         holdout_threshold_df[col] = holdout_threshold_df[col].map('{:.0f}'.format)
 
 print(holdout_threshold_df)
-holdout_perf_csv_path = os.path.join(KFOLD_OUTPUT_DIR, "performance_v1_opt_final_model_on_holdout.csv")
+holdout_perf_csv_path = os.path.join(KFOLD_OUTPUT_DIR, "performance_v6_opt_final_model_on_holdout.csv")
 print(f"Saving final model performance on hold-out set to {holdout_perf_csv_path}")
 holdout_threshold_df.to_csv(holdout_perf_csv_path)
 
@@ -356,7 +356,7 @@ if 'validation_0' in results_final_model: # 'validation_0' 对应 eval_set 中�
     ax[0].legend()
     ax[0].set_ylabel('LogLoss')
     ax[0].set_xlabel('Epochs')
-    ax[0].set_title('XGBoost LogLoss (V1 Opt - Final Model)')
+    ax[0].set_title('XGBoost LogLoss (v6 Opt - Final Model)')
 
     metric_to_plot_fm = 'auc' if 'auc' in results_final_model['validation_0'] else 'error'
     if metric_to_plot_fm in results_final_model['validation_0']:
@@ -364,12 +364,12 @@ if 'validation_0' in results_final_model: # 'validation_0' 对应 eval_set 中�
         ax[1].legend()
         ax[1].set_ylabel(metric_to_plot_fm.upper())
         ax[1].set_xlabel('Epochs')
-        ax[1].set_title(f'XGBoost {metric_to_plot_fm.upper()} (V1 Opt - Final Model)')
+        ax[1].set_title(f'XGBoost {metric_to_plot_fm.upper()} (v6 Opt - Final Model)')
     else:
         ax[1].set_title('Metric not found for second plot')
 
     plt.tight_layout()
-    history_plot_path_fm = os.path.join(KFOLD_OUTPUT_DIR, "xgboost_v1_opt_final_model_training_history.png")
+    history_plot_path_fm = os.path.join(KFOLD_OUTPUT_DIR, "xgboost_v6_opt_final_model_training_history.png")
     plt.savefig(history_plot_path_fm)
     print(f"Final model training history plot saved to {history_plot_path_fm}")
     plt.close()
@@ -377,7 +377,7 @@ else:
     print("Warning: 'validation_0' (Hold-out Test eval) not found in final model evals_result(). Cannot plot history.")
 
 # 特征重要性 (来自 final_model_full_train)
-print("\nFeature Importances (V1 Opt - Final Model):")
+print("\nFeature Importances (v6 Opt - Final Model):")
 try:
     importances_fm = final_model_full_train.feature_importances_
     importance_df_fm = pd.DataFrame({'Feature': feature_names, 'Importance': importances_fm})
@@ -395,11 +395,11 @@ try:
     plt.barh(top_features_fm['Feature'], top_features_fm['Importance'])
     plt.xlabel("Importance Score")
     plt.ylabel("Feature")
-    plt.title(f"Top {n_plot_fm} Feature Importances (XGBoost V1 Opt - Final Model)")
+    plt.title(f"Top {n_plot_fm} Feature Importances (XGBoost v6 Opt - Final Model)")
     plt.gca().invert_yaxis()
     plt.tight_layout()
 
-    importance_plot_path_fm = os.path.join(KFOLD_OUTPUT_DIR, "xgboost_v1_opt_final_model_feature_importance.png")
+    importance_plot_path_fm = os.path.join(KFOLD_OUTPUT_DIR, "xgboost_v6_opt_final_model_feature_importance.png")
     plt.savefig(importance_plot_path_fm)
     print(f"Final model feature importance plot saved to {importance_plot_path_fm}")
     plt.close()
@@ -427,7 +427,7 @@ print("Refer to initial baseline calculations for general product performance.")
 
 
 print("\n--- Script Finished ---")
-print(f"Key outputs for ensemble learning (using V1 Opt features):")
+print(f"Key outputs for ensemble learning (using v6 Opt features):")
 print(f"  Out-of-Fold predictions for Training/CV Pool: {oof_preds_save_path}")
 print(f"  Predictions on Hold-out Test Set (from final model): {test_preds_final_model_save_path}")
 print(f"  Final optimized model (trained on Training/CV Pool): {final_model_save_path}")

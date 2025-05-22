@@ -1,0 +1,190 @@
+--- 正在尝试连接到数据库: F:\rainfalldata\my_optimization_history.db ---
+
+数据库中的表:
+  - studies
+  - version_info
+  - study_directions
+  - study_user_attributes
+  - study_system_attributes
+  - trials
+  - trial_user_attributes
+  - trial_system_attributes
+  - trial_params
+  - trial_values
+  - trial_intermediate_values
+  - trial_heartbeats
+  - alembic_version
+
+--- 'studies' 表内容 ---
+   study_id                    study_name
+0         1  xgboost_hyperparam_search_v1
+
+--- 'trials' 表内容 ---
+前 50 行内容:
+    trial_id  number  study_id     state              datetime_start           datetime_complete
+0          1       0         1  COMPLETE  2025-05-20 17:09:19.547463  2025-05-20 17:09:19.547463
+1          2       1         1  COMPLETE  2025-05-20 17:09:19.603581  2025-05-20 17:09:19.603581
+2          3       2         1  COMPLETE  2025-05-20 17:09:19.636194  2025-05-20 17:09:19.636194
+3          4       3         1  COMPLETE  2025-05-20 17:09:19.654754  2025-05-20 17:09:19.654754
+4          5       4         1  COMPLETE  2025-05-20 17:09:19.676902  2025-05-20 17:09:19.676902
+5          6       5         1  COMPLETE  2025-05-20 17:09:19.703786  2025-05-20 17:09:19.703786
+6          7       6         1  COMPLETE  2025-05-20 17:09:19.725364  2025-05-20 17:09:19.725364
+7          8       7         1  COMPLETE  2025-05-20 17:09:19.751721  2025-05-20 17:09:19.751721
+8          9       8         1  COMPLETE  2025-05-20 17:09:19.782023  2025-05-20 17:09:19.782023
+9         10       9         1  COMPLETE  2025-05-20 17:09:19.805982  2025-05-20 17:09:19.805982
+10        11      10         1  COMPLETE  2025-05-20 17:09:19.830444  2025-05-20 17:09:19.830444
+11        12      11         1  COMPLETE  2025-05-20 17:09:19.846307  2025-05-20 17:09:19.846307
+12        13      12         1  COMPLETE  2025-05-20 17:09:19.870600  2025-05-20 17:09:19.870600
+13        14      13         1  COMPLETE  2025-05-20 17:09:19.894689  2025-05-20 17:09:19.894689
+14        15      14         1  COMPLETE  2025-05-20 17:09:19.918979  2025-05-20 17:09:19.918979
+15        16      15         1  COMPLETE  2025-05-20 17:09:19.946252  2025-05-20 17:09:19.946252
+16        17      16         1  COMPLETE  2025-05-20 17:09:19.975527  2025-05-20 17:09:19.975527
+17        18      17         1  COMPLETE  2025-05-20 17:09:20.001912  2025-05-20 17:09:20.001912
+18        19      18         1  COMPLETE  2025-05-20 17:09:20.015972  2025-05-20 17:09:20.015972
+19        20      19         1  COMPLETE  2025-05-20 17:09:20.048480  2025-05-20 17:09:20.048480
+20        21      20         1  COMPLETE  2025-05-20 17:09:20.064696  2025-05-20 17:09:20.064696
+21        22      21         1  COMPLETE  2025-05-20 17:09:20.088701  2025-05-20 17:09:20.088701
+22        23      22         1  COMPLETE  2025-05-20 17:09:20.112829  2025-05-20 17:09:20.112829
+23        24      23         1  COMPLETE  2025-05-20 17:09:20.137634  2025-05-20 17:09:20.137634
+24        25      24         1  COMPLETE  2025-05-20 17:09:20.165613  2025-05-20 17:09:20.165613
+25        26      25         1  COMPLETE  2025-05-20 17:09:20.185650  2025-05-20 17:09:20.185650
+26        27      26         1  COMPLETE  2025-05-20 17:09:20.213830  2025-05-20 17:09:20.213830
+27        28      27         1  COMPLETE  2025-05-20 17:09:20.236750  2025-05-20 17:09:20.236750
+28        29      28         1  COMPLETE  2025-05-20 17:09:20.261367  2025-05-20 17:09:20.261367
+29        30      29         1  COMPLETE  2025-05-20 17:09:20.291055  2025-05-20 17:09:20.291055
+30        31      30         1  COMPLETE  2025-05-20 17:09:20.315707  2025-05-20 17:09:20.315707
+31        32      31         1  COMPLETE  2025-05-20 17:09:20.348525  2025-05-20 17:09:20.348525
+32        33      32         1  COMPLETE  2025-05-20 17:09:20.365408  2025-05-20 17:09:20.365408
+33        34      33         1  COMPLETE  2025-05-20 17:09:20.388700  2025-05-20 17:09:20.388700
+34        35      34         1  COMPLETE  2025-05-20 17:09:20.414909  2025-05-20 17:09:20.414909
+35        36      35         1  COMPLETE  2025-05-20 17:09:20.438160  2025-05-20 17:09:20.438160
+36        37      36         1  COMPLETE  2025-05-20 17:09:20.465590  2025-05-20 17:09:20.465590
+37        38      37         1  COMPLETE  2025-05-20 17:09:20.481880  2025-05-20 17:09:20.481880
+38        39      38         1  COMPLETE  2025-05-20 17:09:20.515795  2025-05-20 17:09:20.515795
+39        40      39         1  COMPLETE  2025-05-20 17:09:20.535719  2025-05-20 17:09:20.535719
+40        41      40         1  COMPLETE  2025-05-20 17:09:20.560262  2025-05-20 17:09:20.560262
+41        42      41         1  COMPLETE  2025-05-20 17:09:20.585047  2025-05-20 17:09:20.585047
+42        43      42         1  COMPLETE  2025-05-20 17:09:20.612014  2025-05-20 17:09:20.612014
+43        44      43         1  COMPLETE  2025-05-20 17:09:20.633938  2025-05-20 17:09:20.633938
+44        45      44         1  COMPLETE  2025-05-20 17:09:20.660517  2025-05-20 17:09:20.660517
+45        46      45         1  COMPLETE  2025-05-20 17:09:20.682301  2025-05-20 17:09:20.682301
+46        47      46         1  COMPLETE  2025-05-20 17:09:20.711361  2025-05-20 17:09:20.711361
+47        48      47         1  COMPLETE  2025-05-20 17:09:20.738469  2025-05-20 17:09:20.738469
+48        49      48         1  COMPLETE  2025-05-20 17:09:20.764877  2025-05-20 17:09:20.764877
+49        50      49         1  COMPLETE  2025-05-20 17:09:20.787262  2025-05-20 17:09:20.787262
+
+'trials' 表共有 308 行。
+
+--- 'trial_params' 表内容 ---
+前 50 行内容:
+    param_id  trial_id        param_name   param_value                                                                                     distribution_json
+0          1         1      n_estimators  7.180000e+02        {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 500, "high": 2500}}
+1          2         1     learning_rate  7.012080e-03   {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.001, "high": 0.5, "log": true}}
+2          3         1         max_depth  1.200000e+01            {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 3, "high": 15}}
+3          4         1         subsample  7.443934e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+4          5         1  colsample_bytree  8.525986e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+5          6         1             gamma  9.713679e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.0, "high": 1.0, "log": false}}
+6          7         1            lambda  2.785977e-01  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+7          8         1             alpha  1.172680e-08  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+8          9         2      n_estimators  2.035000e+03        {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 500, "high": 2500}}
+9         10         2     learning_rate  1.656058e-03   {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.001, "high": 0.5, "log": true}}
+10        11         2         max_depth  1.300000e+01            {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 3, "high": 15}}
+11        12         2         subsample  7.948708e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+12        13         2  colsample_bytree  9.031624e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+13        14         2             gamma  4.675417e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.0, "high": 1.0, "log": false}}
+14        15         2            lambda  2.174787e-01  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+15        16         2             alpha  5.951911e+00  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+16        17         3      n_estimators  7.180000e+02        {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 500, "high": 2500}}
+17        18         3     learning_rate  2.735520e-01   {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.001, "high": 0.5, "log": true}}
+18        19         3         max_depth  1.300000e+01            {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 3, "high": 15}}
+19        20         3         subsample  8.821287e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+20        21         3  colsample_bytree  6.359762e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+21        22         3             gamma  7.963654e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.0, "high": 1.0, "log": false}}
+22        23         3            lambda  3.739773e-07  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+23        24         3             alpha  9.674960e-05  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+24        25         4      n_estimators  1.369000e+03        {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 500, "high": 2500}}
+25        26         4     learning_rate  4.683799e-01   {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.001, "high": 0.5, "log": true}}
+26        27         4         max_depth  1.000000e+01            {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 3, "high": 15}}
+27        28         4         subsample  6.115045e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+28        29         4  colsample_bytree  8.647301e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+29        30         4             gamma  6.825998e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.0, "high": 1.0, "log": false}}
+30        31         4            lambda  5.411954e-07  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+31        32         4             alpha  1.908932e-08  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+32        33         5      n_estimators  1.976000e+03        {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 500, "high": 2500}}
+33        34         5     learning_rate  2.172656e-03   {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.001, "high": 0.5, "log": true}}
+34        35         5         max_depth  6.000000e+00            {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 3, "high": 15}}
+35        36         5         subsample  5.513320e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+36        37         5  colsample_bytree  9.016926e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+37        38         5             gamma  4.287390e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.0, "high": 1.0, "log": false}}
+38        39         5            lambda  1.958743e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+39        40         5             alpha  1.469811e-03  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+40        41         6      n_estimators  2.366000e+03        {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 500, "high": 2500}}
+41        42         6     learning_rate  4.174050e-03   {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.001, "high": 0.5, "log": true}}
+42        43         6         max_depth  1.200000e+01            {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 3, "high": 15}}
+43        44         6         subsample  8.757666e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+44        45         6  colsample_bytree  6.800040e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.5, "high": 1.0, "log": false}}
+45        46         6             gamma  1.097443e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.0, "high": 1.0, "log": false}}
+46        47         6            lambda  1.234423e-07  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+47        48         6             alpha  1.018946e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 10.0, "log": true}}
+48        49         7      n_estimators  1.154000e+03        {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 500, "high": 2500}}
+49        50         7     learning_rate  6.988778e-03   {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.001, "high": 0.5, "log": true}}
+
+'trial_params' 表共有 2464 行。
+
+--- 'trial_values' 表内容 ---
+前 50 行内容:
+    trial_value_id  trial_id  objective     value value_type
+0                1         1          0  0.951978     FINITE
+1                2         2          0  0.948892     FINITE
+2                3         3          0  0.981825     FINITE
+3                4         4          0  0.976024     FINITE
+4                5         5          0  0.926819     FINITE
+5                6         6          0  0.961493     FINITE
+6                7         7          0  0.967641     FINITE
+7                8         8          0  0.959123     FINITE
+8                9         9          0  0.983137     FINITE
+9               10        10          0  0.935293     FINITE
+10              11        11          0  0.979820     FINITE
+11              12        12          0  0.982069     FINITE
+12              13        13          0  0.977042     FINITE
+13              14        14          0  0.971690     FINITE
+14              15        15          0  0.985647     FINITE
+15              16        16          0  0.984199     FINITE
+16              17        17          0  0.983634     FINITE
+17              18        18          0  0.948747     FINITE
+18              19        19          0  0.934936     FINITE
+19              20        20          0  0.986091     FINITE
+20              21        21          0  0.984627     FINITE
+21              22        22          0  0.985681     FINITE
+22              23        23          0  0.985434     FINITE
+23              24        24          0  0.964281     FINITE
+24              25        25          0  0.986072     FINITE
+25              26        26          0  0.984531     FINITE
+26              27        27          0  0.981684     FINITE
+27              28        28          0  0.984148     FINITE
+28              29        29          0  0.977837     FINITE
+29              30        30          0  0.958903     FINITE
+30              31        31          0  0.985366     FINITE
+31              32        32          0  0.983929     FINITE
+32              33        33          0  0.979330     FINITE
+33              34        34          0  0.981960     FINITE
+34              35        35          0  0.986724     FINITE
+35              36        36          0  0.986220     FINITE
+36              37        37          0  0.985067     FINITE
+37              38        38          0  0.986243     FINITE
+38              39        39          0  0.982796     FINITE
+39              40        40          0  0.985668     FINITE
+40              41        41          0  0.986899     FINITE
+41              42        42          0  0.982622     FINITE
+42              43        43          0  0.986569     FINITE
+43              44        44          0  0.985774     FINITE
+44              45        45          0  0.983215     FINITE
+45              46        46          0  0.950359     FINITE
+46              47        47          0  0.985409     FINITE
+47              48        48          0  0.978789     FINITE
+48              49        49          0  0.984524     FINITE
+49              50        50          0  0.985679     FINITE
+
+'trial_values' 表共有 301 行。
+
+--- 脚本执行完毕 ---
