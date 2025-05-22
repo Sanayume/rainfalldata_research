@@ -29,8 +29,8 @@ LOG_FILE_PATH_MAIN = os.path.join(MODEL_PREDICT_DATA, "xgboost6_opt_log_main.txt
 RAIN_THRESHOLD = 0.1
 TEST_SIZE_RATIO = 0.2
 MAX_LOOKBACK = 30
-N_TRIALS = 300 # 这是总共期望的试验次数
-OPTUNA_TIMEOUT = 3600 * 10 # 10 hours timeout, for example (原为3600000ms)
+N_TRIALS = 400 # 这是总共期望的试验次数
+OPTUNA_TIMEOUT = 3600 * 100 # 10 hours timeout, for example (原为3600000ms)
 OPTIMIZE_METRIC = 'auc'
 EARLY_STOPPING_ROUNDS_OPTUNA = 30
 EARLY_STOPPING_ROUNDS_FINAL = 30
@@ -182,7 +182,7 @@ def objective(trial):
         'verbosity': 0,
         'n_estimators': trial.suggest_int('n_estimators', 2300, 3000),       # 稍微调整并增加上限
         'learning_rate': trial.suggest_float('learning_rate', 0.025, 0.05, log=True), # 缩小范围
-        'max_depth': trial.suggest_int('max_depth', 15, 18),                 # 集中在较高深度
+        'max_depth': trial.suggest_int('max_depth', 15, 19),                 # 集中在较高深度
         'subsample': trial.suggest_float('subsample', 0.88, 0.98),           # 缩小并集中
         'colsample_bytree': trial.suggest_float('colsample_bytree', 0.80, 0.88),# 缩小并集中
         'gamma': trial.suggest_float('gamma', 0.08, 0.20),                  # 大幅缩小
