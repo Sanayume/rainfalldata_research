@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # --- 配置 ---
-# ... (你的路径配置保持不变) ...
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features_v6.npy")
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target_v6.npy")
@@ -173,8 +172,7 @@ start_opt_time = time.time()
 
 def objective(trial):
     """Optuna objective function."""
-    # 在这里定义你当前希望探索的参数范围
-    # 你可以根据之前的寻优结果（如平行坐标图）来调整这些范围
+    # 根据之前的寻优结果来调整这些范围
     param = {
         'objective': 'binary:logistic',
         'eval_metric': ['logloss', OPTIMIZE_METRIC],
