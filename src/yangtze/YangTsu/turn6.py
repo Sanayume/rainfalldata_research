@@ -80,8 +80,6 @@ features_dict['product_range'] = (product_max - product_min).astype(np.float32)
 X_rain = (np.nan_to_num(X_aligned, nan=0.0) > RAIN_THR)
 features_dict['rain_product_count'] = np.sum(X_rain, axis=2, keepdims=True).astype(np.float32)
 
-# --- 4.3 Temporal Evolution Features ---
-# 4.3.1 Periodicity
 print("  Calculating periodicity features...")
 days_in_year = 365.25
 day_index_original = np.arange(nday, dtype=np.float32)
@@ -93,6 +91,7 @@ sin_time_aligned = sin_time[valid_time_slice, np.newaxis, np.newaxis] * np.ones(
 cos_time_aligned = cos_time[valid_time_slice, np.newaxis, np.newaxis] * np.ones((1, n_points, 1), dtype=np.float32)
 features_dict['sin_day'] = sin_time_aligned
 features_dict['cos_day'] = cos_time_aligned
+
 # Season One-Hot
 month = (day_of_year // 30.4375).astype(int) % 12 + 1
 season_map = {1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 3, 10: 3, 11: 3, 12: 0}

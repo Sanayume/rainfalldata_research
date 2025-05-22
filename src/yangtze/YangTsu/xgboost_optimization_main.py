@@ -12,7 +12,6 @@ from datetime import datetime
 import os # 确保os被导入
 
 # --- 配置 ---
-# ... (你的路径配置保持不变) ...
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "results", "yangtze", "features")
 X_FLAT_PATH = os.path.join(PROJECT_DIR, "X_Yangtsu_flat_features_v6.npy")
 Y_FLAT_PATH = os.path.join(PROJECT_DIR, "Y_Yangtsu_flat_target_v6.npy")
@@ -121,21 +120,20 @@ start_opt_time = time.time()
 
 def objective(trial):
     """Optuna objective function."""
-    # 在这里定义你当前希望探索的参数范围
-    # 你可以根据之前的寻优结果（如平行坐标图）来调整这些范围
+    # 根据之前的寻优结果来调整这些范围
     param = {
         'objective': 'binary:logistic',
         'eval_metric': ['logloss', OPTIMIZE_METRIC], # 确保 OPTIMIZE_METRIC 在这里
         'tree_method': 'hist',
         'verbosity': 0,
-        'n_estimators': trial.suggest_int('n_estimators', 1800, 2500), # 示例：调整范围
-        'learning_rate': trial.suggest_float('learning_rate', 0.02, 0.1, log=True), # 示例：调整范围
-        'max_depth': trial.suggest_int('max_depth', 10, 15),             # 示例：调整范围
-        'subsample': trial.suggest_float('subsample', 0.8, 1.0),        # 示例：调整范围
-        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.7, 0.9),# 示例：调整范围
-        'gamma': trial.suggest_float('gamma', 0.1, 0.5),               # 示例：调整范围
-        'lambda': trial.suggest_float('lambda', 1e-6, 1.0, log=True),    # 示例：调整范围
-        'alpha': trial.suggest_float('alpha', 1e-8, 0.5, log=True),     # 示例：调整范围
+        'n_estimators': trial.suggest_int('n_estimators', 1800, 2500), # 调整范围
+        'learning_rate': trial.suggest_float('learning_rate', 0.02, 0.1, log=True), # 调整范围
+        'max_depth': trial.suggest_int('max_depth', 10, 15),             # 调整范围
+        'subsample': trial.suggest_float('subsample', 0.8, 1.0),        # 调整范围
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.7, 0.9),# 调整范围
+        'gamma': trial.suggest_float('gamma', 0.1, 0.5),               # 调整范围
+        'lambda': trial.suggest_float('lambda', 1e-6, 1.0, log=True),    # 调整范围
+        'alpha': trial.suggest_float('alpha', 1e-8, 0.5, log=True),     #调整范围
         'scale_pos_weight': (np.sum(y_train == 0) / np.sum(y_train == 1)) if np.sum(y_train == 1) > 0 else 1,
         'early_stopping_rounds': EARLY_STOPPING_ROUNDS_OPTUNA,
         'device': 'cuda' # 假设CUDA可用
