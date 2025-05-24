@@ -33,90 +33,39 @@ else:
 
             # 1. 列出数据库中的所有表
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            tables = cursor.fetchall()
+            tables_in_db = cursor.fetchall() # tables_in_db is a list of tuples, e.g., [('studies',), ('trials',)]
             outfile.write("\n数据库中的表:\n")
-            if not tables:
+            if not tables_in_db:
                 outfile.write("  未找到任何表。\n")
             else:
-                for table in tables:
-                    outfile.write(f"  - {table[0]}\n")
+                for table_tuple in tables_in_db:
+                    outfile.write(f"  - {table_tuple[0]}\n")
 
-            # 2. 查看 'studies' 表的内容 (如果存在)
-            if ('studies',) in tables:
-                outfile.write("\n--- 'studies' 表内容 ---\n")
-                try:
-                    studies_df = pd.read_sql_query("SELECT * FROM studies", conn)
-                    if studies_df.empty:
-                        outfile.write("  'studies' 表为空。\n")
-                    else:
-                        outfile.write(studies_df.to_string(index=True) + "\n")
-                except Exception as e:
-                    outfile.write(f"  读取 'studies' 表时出错: {e}\n")
-            else:
-                outfile.write("\n未找到 'studies' 表。\n")
+            # Define the list of tables to process based on user request
+            TABLES_TO_PROCESS = [
+                "studies", "version_info", "study_directions", "study_user_attributes",
+                "study_system_attributes", "trials", "trial_user_attributes",
+                "trial_system_attributes", "trial_params", "trial_values",
+                "trial_intermediate_values", "trial_heartbeats", "alembic_version"
+            ]
 
-            # 3. 查看 'trials' 表的内容 (如果存在) - 输出全部内容
-            if ('trials',) in tables:
-                outfile.write("\n--- 'trials' 表内容 ---\n")
-                try:
-                    trials_df = pd.read_sql_query("SELECT * FROM trials", conn)
-                    if trials_df.empty:
-                        outfile.write("  'trials' 表为空。\n")
-                    else:
-                        outfile.write(trials_df.to_string(index=True) + "\n") # 写入所有行
-                        outfile.write(f"\n'trials' 表共有 {len(trials_df)} 行。\n")
-                except Exception as e:
-                    outfile.write(f"  读取 'trials' 表时出错: {e}\n")
-            else:
-                outfile.write("\n未找到 'trials' 表。\n")
-
-            # 4. 查看 'trial_params' 表的内容 (如果存在) - 输出全部内容
-            if ('trial_params',) in tables:
-                outfile.write("\n--- 'trial_params' 表内容 ---\n")
-                try:
-                    trial_params_df = pd.read_sql_query("SELECT * FROM trial_params", conn)
-                    if trial_params_df.empty:
-                        outfile.write("  'trial_params' 表为空。\n")
-                    else:
-                        outfile.write(trial_params_df.to_string(index=True) + "\n") # 写入所有行
-                        outfile.write(f"\n'trial_params' 表共有 {len(trial_params_df)} 行。\n")
-                except Exception as e:
-                    outfile.write(f"  读取 'trial_params' 表时出错: {e}\n")
-            else:
-                outfile.write("\n未找到 'trial_params' 表。\n")
+            # 2. Process each table in the list
+            for table_name in TABLES_TO_PROCESS:
+                # Check if the table exists in the database
+                if (table_name,) in tables_in_db:
+                    outfile.write(f"\n--- '{table_name}' 表内容 ---\n")
+                    try:
+                        df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+                        if df.empty:
+                            outfile.write(f"  '{table_name}' 表为空。\n")
+                        else:
+                            outfile.write(df.to_string(index=True) + "\n")
+                            outfile.write(f"\n'{table_name}' 表共有 {len(df)} 行。\n")
+                    except Exception as e:
+                        outfile.write(f"  读取 '{table_name}' 表时出错: {e}\n")
+                else:
+                    outfile.write(f"\n未找到 '{table_name}' 表。\n")
             
-            # 5. 查看 'trial_values' 表的内容 (如果存在) - 输出全部内容
-            if ('trial_values',) in tables:
-                outfile.write("\n--- 'trial_values' 表内容 ---\n")
-                try:
-                    trial_values_df = pd.read_sql_query("SELECT * FROM trial_values", conn)
-                    if trial_values_df.empty:
-                        outfile.write("  'trial_values' 表为空。\n")
-                    else:
-                        outfile.write(trial_values_df.to_string(index=True) + "\n") # 写入所有行
-                        outfile.write(f"\n'trial_values' 表共有 {len(trial_values_df)} 行。\n")
-                except Exception as e:
-                    outfile.write(f"  读取 'trial_values' 表时出错: {e}\n")
-            else:
-                outfile.write("\n未找到 'trial_values' 表。\n")
-
-            # 你可以按照相同的模式添加其他表的完整输出
-            # 例如 'trial_intermediate_values', 'study_user_attributes' 等
-            # if ('trial_intermediate_values',) in tables:
-            #     outfile.write("\n--- 'trial_intermediate_values' 表内容 ---\n")
-            #     try:
-            #         df = pd.read_sql_query("SELECT * FROM trial_intermediate_values", conn)
-            #         if df.empty:
-            #             outfile.write("  'trial_intermediate_values' 表为空。\n")
-            #         else:
-            #             outfile.write(df.to_string(index=True) + "\n")
-            #             outfile.write(f"\n'trial_intermediate_values' 表共有 {len(df)} 行。\n")
-            #     except Exception as e:
-            #         outfile.write(f"  读取 'trial_intermediate_values' 表时出错: {e}\n")
-            # else:
-            #     outfile.write("\n未找到 'trial_intermediate_values' 表。\n")
-
-
             outfile.write("\n--- 脚本执行完毕 ---\n")
             print(f"--- 内容已写入到: {output_txt_file_path} ---")
 

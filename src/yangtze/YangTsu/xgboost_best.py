@@ -8,6 +8,24 @@ import time
 import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime # For timestamping outputs
+import sys
+
+# --- 设置中文字体 ---
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文字体为黑体
+plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
+# --- 设置输出格式 ---
+
+# 设置系统输出支持中文 (Terminal output supports Chinese)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding='utf-8')
+else:
+    try:
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    except Exception as e:
+        print(f"警告：无法重新配置 sys.stdout 编码: {e}")
+
+
 
 
 # --- 配置 ---
@@ -147,14 +165,14 @@ optuna_best_params_v1 = {
     'random_state': RANDOM_STATE, # Uses the global RANDOM_STATE
     'early_stopping_rounds': EARLY_STOPPING_ROUNDS, # Uses the global EARLY_STOPPING_ROUNDS
     'device': 'cuda',
-    'n_estimators': 2582,
-    'learning_rate': 0.03480882479433697,
-    'max_depth': 17,
-    'subsample': 0.9273230022264735,
-    'colsample_bytree': 0.850202469493706,
-    'gamma': 0.1252469721920858,
-    'lambda': 4.346099670573116e-05,
-    'alpha': 1.3767826511091745e-06,
+    'n_estimators': 2960,
+    'learning_rate': 0.026319051020408163,
+    'max_depth': 18,
+    'subsample': 0.8985668163265306,
+    'colsample_bytree': 0.846647612244898,
+    'gamma': 0.09964387755102041,
+    'lambda': 7.34496612e-06,
+    'alpha': 1.1915502e-06,
     'use_label_encoder': False # Standard practice for newer XGBoost versions
 }
 

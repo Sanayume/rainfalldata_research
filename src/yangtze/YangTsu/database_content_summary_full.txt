@@ -19,6 +19,26 @@
    study_id                    study_name
 0         1  xgboost_hyperparam_search_v1
 
+'studies' 表共有 1 行。
+
+--- 'version_info' 表内容 ---
+   version_info_id  schema_version library_version
+0                1              12           4.3.0
+
+'version_info' 表共有 1 行。
+
+--- 'study_directions' 表内容 ---
+   study_direction_id direction  study_id  objective
+0                   1  MAXIMIZE         1          0
+
+'study_directions' 表共有 1 行。
+
+--- 'study_user_attributes' 表内容 ---
+  'study_user_attributes' 表为空。
+
+--- 'study_system_attributes' 表内容 ---
+  'study_system_attributes' 表为空。
+
 --- 'trials' 表内容 ---
      trial_id  number  study_id     state              datetime_start           datetime_complete
 0           1       0         1  COMPLETE  2025-05-20 17:09:19.547463  2025-05-20 17:09:19.547463
@@ -329,8 +349,48 @@
 305       306     305         1  COMPLETE  2025-05-22 21:55:27.560868  2025-05-22 22:14:32.412225
 306       307     306         1  COMPLETE  2025-05-22 22:14:32.426574  2025-05-22 22:33:41.205268
 307       308     307         1      FAIL  2025-05-22 22:33:41.221451  2025-05-22 22:35:52.242906
+308       309     308         1  COMPLETE  2025-05-23 00:38:29.998748  2025-05-23 00:58:45.851068
+309       310     309         1  COMPLETE  2025-05-23 00:58:45.867484  2025-05-23 01:19:17.129917
+310       311     310         1  COMPLETE  2025-05-23 01:19:17.145929  2025-05-23 01:38:32.539515
+311       312     311         1  COMPLETE  2025-05-23 01:38:32.553711  2025-05-23 01:57:49.676866
+312       313     312         1  COMPLETE  2025-05-23 01:57:49.691550  2025-05-23 02:17:09.309211
+313       314     313         1  COMPLETE  2025-05-23 02:17:09.325003  2025-05-23 02:36:31.788119
+314       315     314         1  COMPLETE  2025-05-23 02:36:31.802074  2025-05-23 02:55:57.703208
+315       316     315         1  COMPLETE  2025-05-23 02:55:57.717747  2025-05-23 03:15:33.456418
+316       317     316         1  COMPLETE  2025-05-23 03:15:33.472035  2025-05-23 03:35:11.424939
+317       318     317         1  COMPLETE  2025-05-23 03:35:11.439825  2025-05-23 03:54:49.640366
+318       319     318         1  COMPLETE  2025-05-23 03:54:49.656362  2025-05-23 04:14:40.967624
+319       320     319         1  COMPLETE  2025-05-23 04:14:40.980918  2025-05-23 04:34:36.553205
+320       321     320         1  COMPLETE  2025-05-23 04:34:36.569730  2025-05-23 04:54:29.452047
+321       322     321         1  COMPLETE  2025-05-23 04:54:29.466053  2025-05-23 05:14:23.346189
+322       323     322         1  COMPLETE  2025-05-23 05:14:23.361410  2025-05-23 05:34:18.087877
+323       324     323         1  COMPLETE  2025-05-23 05:34:18.101945  2025-05-23 05:54:25.023060
+324       325     324         1  COMPLETE  2025-05-23 05:54:25.036575  2025-05-23 06:14:20.151414
+325       326     325         1  COMPLETE  2025-05-23 06:14:20.166336  2025-05-23 06:34:25.529050
+326       327     326         1  COMPLETE  2025-05-23 06:34:25.543044  2025-05-23 06:54:28.678305
+327       328     327         1  COMPLETE  2025-05-23 06:54:28.693437  2025-05-23 07:14:24.911005
+328       329     328         1  COMPLETE  2025-05-23 07:14:24.925630  2025-05-23 07:35:59.915872
+329       330     329         1  COMPLETE  2025-05-23 07:35:59.929726  2025-05-23 07:56:09.017222
+330       331     330         1  COMPLETE  2025-05-23 07:56:09.032735  2025-05-23 08:16:21.659851
+331       332     331         1  COMPLETE  2025-05-23 08:16:21.674068  2025-05-23 08:36:32.284914
+332       333     332         1  COMPLETE  2025-05-23 08:36:32.299676  2025-05-23 08:56:44.745801
+333       334     333         1  COMPLETE  2025-05-23 08:56:44.761893  2025-05-23 09:17:08.327340
+334       335     334         1  COMPLETE  2025-05-23 09:17:08.340692  2025-05-23 09:37:30.011296
+335       336     335         1  COMPLETE  2025-05-23 09:37:30.026004  2025-05-23 09:57:49.440399
+336       337     336         1  COMPLETE  2025-05-23 09:57:49.455411  2025-05-23 10:18:17.705886
+337       338     337         1  COMPLETE  2025-05-23 10:18:17.720829  2025-05-23 10:39:31.895642
+338       339     338         1  COMPLETE  2025-05-23 10:39:31.909917  2025-05-23 11:00:55.865780
+339       340     339         1  COMPLETE  2025-05-23 11:00:55.878437  2025-05-23 11:23:17.838170
+340       341     340         1  COMPLETE  2025-05-23 11:23:17.864909  2025-05-23 11:45:40.336813
+341       342     341         1   RUNNING  2025-05-23 11:45:40.354139                        None
 
-'trials' 表共有 308 行。
+'trials' 表共有 342 行。
+
+--- 'trial_user_attributes' 表内容 ---
+  'trial_user_attributes' 表为空。
+
+--- 'trial_system_attributes' 表内容 ---
+  'trial_system_attributes' 表为空。
 
 --- 'trial_params' 表内容 ---
       param_id  trial_id        param_name   param_value                                                                                       distribution_json
@@ -2798,8 +2858,280 @@
 2461      2462       308             gamma  1.097711e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
 2462      2463       308            lambda  9.256453e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
 2463      2464       308             alpha  1.582048e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2464      2465       309      n_estimators  2.924000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2465      2466       309     learning_rate  2.709596e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2466      2467       309         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2467      2468       309         subsample  9.017605e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2468      2469       309  colsample_bytree  8.458208e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2469      2470       309             gamma  1.083890e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2470      2471       309            lambda  9.379731e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2471      2472       309             alpha  1.590930e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2472      2473       310      n_estimators  2.932000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2473      2474       310     learning_rate  2.688326e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2474      2475       310         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2475      2476       310         subsample  9.025973e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2476      2477       310  colsample_bytree  8.460664e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2477      2478       310             gamma  1.092739e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2478      2479       310            lambda  9.264681e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2479      2480       310             alpha  1.519580e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2480      2481       311      n_estimators  2.933000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2481      2482       311     learning_rate  2.683732e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2482      2483       311         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2483      2484       311         subsample  9.018152e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2484      2485       311  colsample_bytree  8.454431e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2485      2486       311             gamma  1.090579e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2486      2487       311            lambda  9.340853e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2487      2488       311             alpha  1.542081e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2488      2489       312      n_estimators  2.943000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2489      2490       312     learning_rate  2.693452e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2490      2491       312         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2491      2492       312         subsample  9.017438e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2492      2493       312  colsample_bytree  8.457582e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2493      2494       312             gamma  1.091903e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2494      2495       312            lambda  9.095760e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2495      2496       312             alpha  1.292110e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2496      2497       313      n_estimators  2.938000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2497      2498       313     learning_rate  2.713755e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2498      2499       313         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2499      2500       313         subsample  9.018494e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2500      2501       313  colsample_bytree  8.457580e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2501      2502       313             gamma  1.060580e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2502      2503       313            lambda  9.276835e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2503      2504       313             alpha  1.476359e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2504      2505       314      n_estimators  2.939000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2505      2506       314     learning_rate  2.703161e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2506      2507       314         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2507      2508       314         subsample  9.016203e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2508      2509       314  colsample_bytree  8.454858e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2509      2510       314             gamma  1.052683e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2510      2511       314            lambda  7.679185e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2511      2512       314             alpha  1.614210e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2512      2513       315      n_estimators  2.938000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2513      2514       315     learning_rate  2.691717e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2514      2515       315         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2515      2516       315         subsample  9.018213e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2516      2517       315  colsample_bytree  8.457611e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2517      2518       315             gamma  1.050887e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2518      2519       315            lambda  9.203223e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2519      2520       315             alpha  1.479435e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2520      2521       316      n_estimators  2.940000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2521      2522       316     learning_rate  2.652353e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2522      2523       316         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2523      2524       316         subsample  9.017754e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2524      2525       316  colsample_bytree  8.452368e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2525      2526       316             gamma  1.054573e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2526      2527       316            lambda  7.624990e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2527      2528       316             alpha  1.544385e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2528      2529       317      n_estimators  2.935000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2529      2530       317     learning_rate  2.646160e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2530      2531       317         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2531      2532       317         subsample  9.012747e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2532      2533       317  colsample_bytree  8.458334e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2533      2534       317             gamma  1.055491e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2534      2535       317            lambda  7.717881e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2535      2536       317             alpha  1.492643e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2536      2537       318      n_estimators  2.931000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2537      2538       318     learning_rate  2.661035e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2538      2539       318         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2539      2540       318         subsample  9.012436e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2540      2541       318  colsample_bytree  8.461389e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2541      2542       318             gamma  1.044605e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2542      2543       318            lambda  7.646611e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2543      2544       318             alpha  1.540243e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2544      2545       319      n_estimators  2.948000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2545      2546       319     learning_rate  2.637621e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2546      2547       319         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2547      2548       319         subsample  9.038843e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2548      2549       319  colsample_bytree  8.456292e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2549      2550       319             gamma  1.034102e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2550      2551       319            lambda  7.415450e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2551      2552       319             alpha  1.226213e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2552      2553       320      n_estimators  2.954000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2553      2554       320     learning_rate  2.608203e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2554      2555       320         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2555      2556       320         subsample  8.986877e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2556      2557       320  colsample_bytree  8.459069e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2557      2558       320             gamma  1.041646e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2558      2559       320            lambda  7.632092e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2559      2560       320             alpha  1.213439e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2560      2561       321      n_estimators  2.954000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2561      2562       321     learning_rate  2.622968e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2562      2563       321         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2563      2564       321         subsample  8.986493e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2564      2565       321  colsample_bytree  8.458457e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2565      2566       321             gamma  1.038193e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2566      2567       321            lambda  7.598442e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2567      2568       321             alpha  1.184288e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2568      2569       322      n_estimators  2.956000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2569      2570       322     learning_rate  2.621041e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2570      2571       322         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2571      2572       322         subsample  8.990885e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2572      2573       322  colsample_bytree  8.460454e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2573      2574       322             gamma  1.038234e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2574      2575       322            lambda  7.153459e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2575      2576       322             alpha  1.200225e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2576      2577       323      n_estimators  2.956000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2577      2578       323     learning_rate  2.610963e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2578      2579       323         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2579      2580       323         subsample  8.993489e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2580      2581       323  colsample_bytree  8.460445e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2581      2582       323             gamma  1.011521e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2582      2583       323            lambda  7.780867e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2583      2584       323             alpha  1.105081e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2584      2585       324      n_estimators  2.961000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2585      2586       324     learning_rate  2.600261e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2586      2587       324         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2587      2588       324         subsample  8.981331e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2588      2589       324  colsample_bytree  8.461470e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2589      2590       324             gamma  1.009634e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2590      2591       324            lambda  7.606027e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2591      2592       324             alpha  1.117352e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2592      2593       325      n_estimators  2.953000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2593      2594       325     learning_rate  2.631633e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2594      2595       325         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2595      2596       325         subsample  8.987301e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2596      2597       325  colsample_bytree  8.465127e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2597      2598       325             gamma  1.009952e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2598      2599       325            lambda  7.477926e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2599      2600       325             alpha  1.188300e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2600      2601       326      n_estimators  2.957000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2601      2602       326     learning_rate  2.612628e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2602      2603       326         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2603      2604       326         subsample  8.988928e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2604      2605       326  colsample_bytree  8.466019e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2605      2606       326             gamma  1.000087e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2606      2607       326            lambda  7.602752e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2607      2608       326             alpha  1.172490e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2608      2609       327      n_estimators  2.961000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2609      2610       327     learning_rate  2.619395e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2610      2611       327         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2611      2612       327         subsample  8.985832e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2612      2613       327  colsample_bytree  8.466461e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2613      2614       327             gamma  1.008530e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2614      2615       327            lambda  7.337240e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2615      2616       327             alpha  1.144835e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2616      2617       328      n_estimators  2.960000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2617      2618       328     learning_rate  2.631905e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2618      2619       328         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2619      2620       328         subsample  8.985668e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2620      2621       328  colsample_bytree  8.466476e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2621      2622       328             gamma  9.964389e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2622      2623       328            lambda  7.344966e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2623      2624       328             alpha  1.191550e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2624      2625       329      n_estimators  2.956000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2625      2626       329     learning_rate  2.607908e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2626      2627       329         max_depth  1.900000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2627      2628       329         subsample  8.984592e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2628      2629       329  colsample_bytree  8.465752e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2629      2630       329             gamma  9.903933e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2630      2631       329            lambda  7.150165e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2631      2632       329             alpha  1.153035e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2632      2633       330      n_estimators  2.996000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2633      2634       330     learning_rate  2.609520e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2634      2635       330         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2635      2636       330         subsample  8.947336e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2636      2637       330  colsample_bytree  8.467265e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2637      2638       330             gamma  1.017611e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2638      2639       330            lambda  8.059065e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2639      2640       330             alpha  1.190146e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2640      2641       331      n_estimators  2.997000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2641      2642       331     learning_rate  2.596186e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2642      2643       331         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2643      2644       331         subsample  8.937715e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2644      2645       331  colsample_bytree  8.470054e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2645      2646       331             gamma  1.006404e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2646      2647       331            lambda  7.739439e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2647      2648       331             alpha  9.385430e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2648      2649       332      n_estimators  2.998000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2649      2650       332     learning_rate  2.615628e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2650      2651       332         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2651      2652       332         subsample  8.934746e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2652      2653       332  colsample_bytree  8.468112e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2653      2654       332             gamma  1.008651e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2654      2655       332            lambda  7.721935e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2655      2656       332             alpha  9.417286e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2656      2657       333      n_estimators  2.989000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2657      2658       333     learning_rate  2.608609e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2658      2659       333         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2659      2660       333         subsample  8.932554e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2660      2661       333  colsample_bytree  8.469292e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2661      2662       333             gamma  1.005649e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2662      2663       333            lambda  5.108776e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2663      2664       333             alpha  9.350647e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2664      2665       334      n_estimators  2.998000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2665      2666       334     learning_rate  2.585488e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2666      2667       334         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2667      2668       334         subsample  8.936501e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2668      2669       334  colsample_bytree  8.467851e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2669      2670       334             gamma  9.833878e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2670      2671       334            lambda  4.923637e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2671      2672       334             alpha  9.442516e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2672      2673       335      n_estimators  2.983000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2673      2674       335     learning_rate  2.567312e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2674      2675       335         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2675      2676       335         subsample  8.938940e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2676      2677       335  colsample_bytree  8.468041e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2677      2678       335             gamma  9.888643e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2678      2679       335            lambda  7.998389e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2679      2680       335             alpha  9.263005e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2680      2681       336      n_estimators  2.977000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2681      2682       336     learning_rate  2.565258e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2682      2683       336         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2683      2684       336         subsample  8.962851e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2684      2685       336  colsample_bytree  8.492612e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2685      2686       336             gamma  1.015729e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2686      2687       336            lambda  6.807776e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2687      2688       336             alpha  1.231152e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2688      2689       337      n_estimators  2.972000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2689      2690       337     learning_rate  2.566898e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2690      2691       337         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2691      2692       337         subsample  8.943846e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2692      2693       337  colsample_bytree  8.472928e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2693      2694       337             gamma  9.653404e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2694      2695       337            lambda  8.146901e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2695      2696       337             alpha  1.059960e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2696      2697       338      n_estimators  2.980000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2697      2698       338     learning_rate  2.546786e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2698      2699       338         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2699      2700       338         subsample  8.946463e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2700      2701       338  colsample_bytree  8.451605e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2701      2702       338             gamma  9.498532e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2702      2703       338            lambda  8.031784e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2703      2704       338             alpha  9.436773e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2704      2705       339      n_estimators  2.984000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2705      2706       339     learning_rate  2.554187e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2706      2707       339         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2707      2708       339         subsample  8.941354e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2708      2709       339  colsample_bytree  8.475337e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2709      2710       339             gamma  9.581234e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2710      2711       339            lambda  8.091320e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2711      2712       339             alpha  9.222123e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2712      2713       340      n_estimators  2.980000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2713      2714       340     learning_rate  2.553737e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2714      2715       340         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2715      2716       340         subsample  8.914144e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2716      2717       340  colsample_bytree  8.476058e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2717      2718       340             gamma  9.740617e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2718      2719       340            lambda  8.050065e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2719      2720       340             alpha  8.676427e-07   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2720      2721       341      n_estimators  3.000000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2721      2722       341     learning_rate  2.553410e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2722      2723       341         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2723      2724       341         subsample  8.955869e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2724      2725       341  colsample_bytree  8.492300e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2725      2726       341             gamma  9.455096e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2726      2727       341            lambda  5.923161e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2727      2728       341             alpha  1.033820e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
+2728      2729       342      n_estimators  2.969000e+03         {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 2300, "high": 3000}}
+2729      2730       342     learning_rate  2.648774e-02    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.025, "high": 0.05, "log": true}}
+2730      2731       342         max_depth  1.800000e+01             {"name": "IntDistribution", "attributes": {"log": false, "step": 1, "low": 15, "high": 19}}
+2731      2732       342         subsample  8.930605e-01    {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.88, "high": 0.98, "log": false}}
+2732      2733       342  colsample_bytree  8.449493e-01     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.8, "high": 0.88, "log": false}}
+2733      2734       342             gamma  9.374854e-02     {"name": "FloatDistribution", "attributes": {"step": null, "low": 0.08, "high": 0.2, "log": false}}
+2734      2735       342            lambda  8.145142e-06  {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-06, "high": 0.0005, "log": true}}
+2735      2736       342             alpha  1.252301e-06   {"name": "FloatDistribution", "attributes": {"step": null, "low": 1e-08, "high": 5e-05, "log": true}}
 
-'trial_params' 表共有 2464 行。
+'trial_params' 表共有 2736 行。
 
 --- 'trial_values' 表内容 ---
      trial_value_id  trial_id  objective     value value_type
@@ -3104,7 +3436,52 @@
 298             299       305          0  0.988757     FINITE
 299             300       306          0  0.988742     FINITE
 300             301       307          0  0.988698     FINITE
+301             302       309          0  0.988729     FINITE
+302             303       310          0  0.988723     FINITE
+303             304       311          0  0.988712     FINITE
+304             305       312          0  0.988683     FINITE
+305             306       313          0  0.988741     FINITE
+306             307       314          0  0.988773     FINITE
+307             308       315          0  0.988764     FINITE
+308             309       316          0  0.988756     FINITE
+309             310       317          0  0.988712     FINITE
+310             311       318          0  0.988758     FINITE
+311             312       319          0  0.988770     FINITE
+312             313       320          0  0.988756     FINITE
+313             314       321          0  0.988729     FINITE
+314             315       322          0  0.988785     FINITE
+315             316       323          0  0.988783     FINITE
+316             317       324          0  0.988768     FINITE
+317             318       325          0  0.988759     FINITE
+318             319       326          0  0.988756     FINITE
+319             320       327          0  0.988732     FINITE
+320             321       328          0  0.988785     FINITE
+321             322       329          0  0.988712     FINITE
+322             323       330          0  0.988754     FINITE
+323             324       331          0  0.988759     FINITE
+324             325       332          0  0.988757     FINITE
+325             326       333          0  0.988732     FINITE
+326             327       334          0  0.988723     FINITE
+327             328       335          0  0.988777     FINITE
+328             329       336          0  0.988717     FINITE
+329             330       337          0  0.988776     FINITE
+330             331       338          0  0.988757     FINITE
+331             332       339          0  0.988772     FINITE
+332             333       340          0  0.000000     FINITE
+333             334       341          0  0.000000     FINITE
 
-'trial_values' 表共有 301 行。
+'trial_values' 表共有 334 行。
+
+--- 'trial_intermediate_values' 表内容 ---
+  'trial_intermediate_values' 表为空。
+
+--- 'trial_heartbeats' 表内容 ---
+  'trial_heartbeats' 表为空。
+
+--- 'alembic_version' 表内容 ---
+  version_num
+0    v3.2.0.a
+
+'alembic_version' 表共有 1 行。
 
 --- 脚本执行完毕 ---

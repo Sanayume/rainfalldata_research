@@ -27,6 +27,7 @@ ALL_DATA = mydata()
 # Load Yangtze POINT data using the new method
 # X_raw shape: (n_products, time, n_points), Y_raw shape: (time, n_points)
 # Use basin_mask_value=2 for Yangtze
+# MODIFIED: Changed get_basin_spatial_data to get_basin_point_data for discrete point data
 X_raw, Y_raw = ALL_DATA.get_basin_point_data(basin_mask_value=2)
 product_names = ALL_DATA.get_products() # Use getter
 n_products, nday, n_points = X_raw.shape # Get dimensions
@@ -163,17 +164,16 @@ del product_mean_full # Clean up
 # --- 4.4 Spatial Context Features (3x3 Neighborhood) ---
 # NOTE: This calculation is kept to mirror the national script, but results
 # will be mostly NaN for scattered points. Flattening handles NaNs later.
+# For discrete point data (as now loaded by get_basin_point_data),
+# a 3x3 neighborhood is not well-defined without actual coordinates and methods like k-NN.
+# Thus, these features are filled with NaNs to maintain structural consistency with gridded datasets.
 print("  Calculating spatial context features (3x3 neighborhood)...")
 spatial_mean = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
 spatial_std = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
 spatial_max = np.full((n_valid_days, n_points, n_products), np.nan, dtype=np.float32)
 
-# This loop structure assumes a grid (lat, lon). For points, it won't work as intended.
-# We keep it for structural similarity, but expect NaNs.
-# A correct spatial feature calculation for points would require different logic
-# (e.g., k-nearest neighbors based on actual coordinates, if available).
-print("    WARNING: Spatial 3x3 calculation assumes grid structure and will likely produce NaNs for point data.")
-# The original national code iterated through lat/lon (i, j). Here, the second dimension is 'n_points'.
+print("    INFO: Spatial 3x3 features are filled with NaNs for discrete point data, as neighborhood is not directly applicable.")
+# The original national code iterated through lat/lon (i, j). Here, the second dimension is 'n_points' (discrete points).
 # We cannot directly apply the neighborhood logic. We will fill with NaNs.
 # If you need spatial features for points, coordinates and a different method (like KNN) are required.
 
@@ -337,5 +337,4 @@ print(f"Saving time: {time.time() - start_save_time:.2f} seconds")
 
 print(f"\nTotal processing time: {time.time() - start_time:.2f} seconds")
 print("Data processing complete.")
-
 
