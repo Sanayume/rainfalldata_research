@@ -30,7 +30,7 @@ if not os.path.exists(MODELS_SAVE_DIR):
 RAIN_THRESHOLD = 0.1
 TEST_SIZE_RATIO = 0.2
 RANDOM_STATE = 42
-CV_FOLDS = 3
+CV_FOLDS = 5 # Changed from 3 to 5
 SUBSET_FRACTION_KNN_SVM = 0.01 # 为KNN和SVM训练使用10%的数据子集
 
 # --- 辅助函数：计算性能指标 (与之前一致) ---
@@ -61,6 +61,33 @@ def calculate_metrics(y_true, y_pred, model_name=""):
     
     return {'model_name': model_name, 'tn': tn, 'fp': fp, 'fn': fn, 'tp': tp, 
             'accuracy': accuracy, 'pod': pod, 'far': far, 'csi': csi}
+
+# --- 辅助函数：打印GridSearchCV交叉验证结果 ---
+def print_grid_search_cv_results(gscv_object, model_name_str, cv_folds_count):
+    print(f"\nDetailed Cross-Validation Results for {model_name_str} (using {cv_folds_count} folds):")
+    results_df = pd.DataFrame(gscv_object.cv_results_)
+    best_index = gscv_object.best_index_
+
+    print(f"  Best Parameters found: {gscv_object.best_params_}")
+    print(f"  Best Mean CV Score ({gscv_object.scoring}): {gscv_object.best_score_:.4f}")
+
+    fold_scores = []
+    print("  Scores for each fold for the best estimator:")
+    for i in range(cv_folds_count):
+        fold_score_column = f'split{i}_test_score'
+        if fold_score_column in results_df.columns:
+            score = results_df.loc[best_index, fold_score_column]
+            fold_scores.append(score)
+            print(f"    Fold {i+1}: {score:.4f}")
+        else:
+            print(f"    Fold {i+1} score column ('{fold_score_column}') not found in cv_results_.")
+            
+    if fold_scores:
+        print(f"  Standard Deviation of CV scores (for best estimator): {np.std(fold_scores):.4f}")
+    # print("\n  Top parameter combinations (mean_test_score):") # Uncomment to see more details
+    # top_n = min(5, len(results_df))
+    # print(results_df[['params', 'mean_test_score', 'std_test_score']].nlargest(top_n, 'mean_test_score'))
+
 
 # --- 1. 加载数据 ---
 print(">>> 1. Loading data...")
@@ -106,19 +133,16 @@ print(f"X_train_val_scaled shape: {X_train_val_scaled.shape}, X_test_scaled shap
 
 # --- 2.2 创建KNN和SVM训练用的数据子集 ---
 print(f"\n>>> 2.2 Creating a {SUBSET_FRACTION_KNN_SVM*100:.0f}% subset of scaled training data for KNN and SVM GridSearchCV...")
-# 使用 train_test_split 来进行分层抽样，确保子集中的类别比例与原数据集相似
-# 我们只需要训练部分，所以忽略测试部分（用 _ 表示）
 X_train_knn_svm_subset, _, y_train_knn_svm_subset, _ = train_test_split(
     X_train_val_scaled,
     y_train_val,
     train_size=SUBSET_FRACTION_KNN_SVM,
     random_state=RANDOM_STATE,
-    stratify=y_train_val # 对于分类问题，分层抽样很重要
+    stratify=y_train_val
 )
 print(f"Subset for KNN/SVM training: X_subset shape {X_train_knn_svm_subset.shape}, y_subset shape {y_train_knn_svm_subset.shape}")
 
 
-# 为LightGBM早停划分验证集 (using full scaled data before subsetting for KNN/SVM)
 val_split_ratio_lgbm = 0.1
 X_train_lgbm_scaled, X_val_lgbm_scaled, y_train_lgbm, y_val_lgbm = train_test_split(
     X_train_val_scaled, y_train_val, test_size=val_split_ratio_lgbm, random_state=RANDOM_STATE, stratify=y_train_val
@@ -127,7 +151,7 @@ print(f"Full Scaled Train/Val set (for RF Opt, GNB Opt): X_train_val_scaled shap
 print(f"LGBM Scaled Train set: X_train_lgbm_scaled shape {X_train_lgbm_scaled.shape}")
 print(f"LGBM Scaled Validation set: X_val_lgbm_scaled shape {X_val_lgbm_scaled.shape}")
 
-del X_flat, Y_flat, Y_binary, X_train_val # X_test 保留，y_train_val 和 y_test 保留
+del X_flat, Y_flat, Y_binary, X_train_val 
 import gc
 gc.collect()
 
@@ -138,29 +162,31 @@ all_model_metrics = []
 # --- 3.1 K-Nearest Neighbors (KNN) with Hyperparameter Tuning (on subset) ---
 print("\n>>> 3.1 Training K-Nearest Neighbors (KNN) model with Hyperparameter Tuning (on subset)...")
 param_grid_knn = {
-    'n_neighbors': [3, 5, 11], # 减少一些组合以加快速度
+    'n_neighbors': [3, 5, 11], 
     'weights': ['uniform', 'distance'],
-    'metric': ['manhattan'] # 'euclidean' and 'manhattan' often perform similarly, pick one to speed up
+    'metric': ['manhattan'] 
 }
 knn_gscv = GridSearchCV(
     KNeighborsClassifier(n_jobs=-1),
     param_grid_knn,
     cv=CV_FOLDS,
     scoring='accuracy',
-    verbose=2, # 保持verbose以便观察进度
+    verbose=2, 
     n_jobs=-1
 )
 try:
     print(f"正在开始KNN的GridSearchCV超参数寻优 (在 {SUBSET_FRACTION_KNN_SVM*100:.0f}% 的数据子集 X_train_knn_svm_subset 上)...")
     print(f"子集形状: X={X_train_knn_svm_subset.shape}, y={y_train_knn_svm_subset.shape}")
-    knn_gscv.fit(X_train_knn_svm_subset, y_train_knn_svm_subset) # <--- 使用子集进行训练
+    knn_gscv.fit(X_train_knn_svm_subset, y_train_knn_svm_subset) 
     print("KNN GridSearchCV超参数寻优完成。")
-    print(f"最佳KNN参数: {knn_gscv.best_params_}")
-    print(f"最佳KNN交叉验证得分 (accuracy on subset): {knn_gscv.best_score_:.4f}")
+    # print(f"最佳KNN参数: {knn_gscv.best_params_}") # Covered by helper
+    # print(f"最佳KNN交叉验证得分 (accuracy on subset): {knn_gscv.best_score_:.4f}") # Covered by helper
+    print_grid_search_cv_results(knn_gscv, "K-Nearest Neighbors (Tuned on Subset)", CV_FOLDS)
+
 
     best_model_knn = knn_gscv.best_estimator_
     print("在完整的X_test_scaled上评估调优后的KNN模型...")
-    y_pred_knn = best_model_knn.predict(X_test_scaled) # <--- 评估仍然在完整的测试集上
+    y_pred_knn = best_model_knn.predict(X_test_scaled) 
     metrics_knn = calculate_metrics(y_test, y_pred_knn, model_name="K-Nearest Neighbors (Tuned on Subset)")
     all_model_metrics.append(metrics_knn)
     joblib.dump(best_model_knn, os.path.join(MODELS_SAVE_DIR, "knn_v1_tuned_subset.joblib"))
@@ -174,29 +200,30 @@ except Exception as e:
 print("\n>>> 3.2 Training Support Vector Machine (SVM) model with Hyperparameter Tuning (on subset)...")
 print("注意: SVM GridSearchCV 即使在子集上也可能比较耗时。")
 param_grid_svm = {
-    'C': [0.1, 1], # 减少C的选项
+    'C': [0.1, 1], 
     'kernel': ['rbf'], 
-    'gamma': ['scale', 0.01] # 减少gamma的选项
+    'gamma': ['scale', 0.01] 
 }
 svm_gscv = GridSearchCV(
     SVC(class_weight='balanced', random_state=RANDOM_STATE, probability=True),
     param_grid_svm,
-    cv=CV_FOLDS, # 考虑使用更少的折数，例如 cv=2
+    cv=CV_FOLDS, 
     scoring='accuracy',
-    verbose=2, # 保持verbose以便观察进度
+    verbose=2, 
     n_jobs=-1
 )
 try:
     print(f"正在开始SVM的GridSearchCV超参数寻优 (在 {SUBSET_FRACTION_KNN_SVM*100:.0f}% 的数据子集 X_train_knn_svm_subset 上)...")
     print(f"子集形状: X={X_train_knn_svm_subset.shape}, y={y_train_knn_svm_subset.shape}")
-    svm_gscv.fit(X_train_knn_svm_subset, y_train_knn_svm_subset) # <--- 使用子集进行训练
+    svm_gscv.fit(X_train_knn_svm_subset, y_train_knn_svm_subset) 
     print("SVM GridSearchCV超参数寻优完成。")
-    print(f"最佳SVM参数: {svm_gscv.best_params_}")
-    print(f"最佳SVM交叉验证得分 (accuracy on subset): {svm_gscv.best_score_:.4f}")
+    # print(f"最佳SVM参数: {svm_gscv.best_params_}") # Covered by helper
+    # print(f"最佳SVM交叉验证得分 (accuracy on subset): {svm_gscv.best_score_:.4f}") # Covered by helper
+    print_grid_search_cv_results(svm_gscv, "Support Vector Machine (Tuned on Subset)", CV_FOLDS)
 
     best_model_svm = svm_gscv.best_estimator_
     print("在完整的X_test_scaled上评估调优后的SVM模型...")
-    y_pred_svm = best_model_svm.predict(X_test_scaled) # <--- 评估仍然在完整的测试集上
+    y_pred_svm = best_model_svm.predict(X_test_scaled) 
     metrics_svm = calculate_metrics(y_test, y_pred_svm, model_name="Support Vector Machine (Tuned on Subset)")
     all_model_metrics.append(metrics_svm)
     joblib.dump(best_model_svm, os.path.join(MODELS_SAVE_DIR, "svm_v1_tuned_subset.joblib"))
@@ -211,8 +238,8 @@ print("\n>>> 3.3 Training Random Forest model with Hyperparameter Tuning (on ful
 param_grid_rf = {
     'n_estimators': [100, 150],
     'max_depth': [15, 20, None],
-    'min_samples_split': [10, 20], # 稍微增大一些，因为数据量大
-    'min_samples_leaf': [5, 10],   # 稍微增大一些
+    'min_samples_split': [10, 20], 
+    'min_samples_leaf': [5, 10],   
 }
 rf_gscv = GridSearchCV(
     RandomForestClassifier(class_weight='balanced', random_state=RANDOM_STATE, n_jobs=-1, oob_score=True),
@@ -225,10 +252,11 @@ rf_gscv = GridSearchCV(
 try:
     print("正在开始Random Forest的GridSearchCV超参数寻优 (在完整的X_train_val_scaled上)...")
     print(f"训练数据形状: X={X_train_val_scaled.shape}, y={y_train_val.shape}")
-    rf_gscv.fit(X_train_val_scaled, y_train_val) # <--- RF使用完整的X_train_val_scaled
+    rf_gscv.fit(X_train_val_scaled, y_train_val) 
     print("Random Forest GridSearchCV超参数寻优完成。")
-    print(f"最佳RF参数: {rf_gscv.best_params_}")
-    print(f"最佳RF交叉验证得分 (accuracy): {rf_gscv.best_score_:.4f}")
+    # print(f"最佳RF参数: {rf_gscv.best_params_}") # Covered by helper
+    # print(f"最佳RF交叉验证得分 (accuracy): {rf_gscv.best_score_:.4f}") # Covered by helper
+    print_grid_search_cv_results(rf_gscv, "Random Forest (Tuned)", CV_FOLDS)
     
     best_model_rf = rf_gscv.best_estimator_
     if hasattr(best_model_rf, 'oob_score_') and best_model_rf.oob_score_:
@@ -254,12 +282,10 @@ except Exception as e:
 # --- 3.4 LightGBM with Hyperparameter Tuning & Early Stopping (GridSearchCV on full scaled train/val, EarlyStopping on its split) ---
 print("\n>>> 3.4 Training LightGBM model with Hyperparameter Tuning & Early Stopping...")
 param_grid_lgb = {
-    'num_leaves': [31, 41],      # 减少选项
+    'num_leaves': [31, 41],      
     'learning_rate': [0.01, 0.05],
     'colsample_bytree': [0.7, 0.8],
-    'subsample': [0.8], # 固定一个以减少组合
-    # 'reg_alpha': [0.05], # 固定
-    # 'reg_lambda': [0.05] # 固定
+    'subsample': [0.8], 
 }
 lgbm_gscv = GridSearchCV(
     lgb.LGBMClassifier(class_weight='balanced', random_state=RANDOM_STATE, n_jobs=-1, reg_alpha=0.05, reg_lambda=0.05),
@@ -272,16 +298,16 @@ lgbm_gscv = GridSearchCV(
 try:
     print("正在开始LightGBM的GridSearchCV超参数寻优 (在完整的X_train_val_scaled上)...")
     print(f"训练数据形状: X={X_train_val_scaled.shape}, y={y_train_val.shape}")
-    lgbm_gscv.fit(X_train_val_scaled, y_train_val) # <--- GridSearchCV在完整X_train_val_scaled上
+    lgbm_gscv.fit(X_train_val_scaled, y_train_val) 
     print("LightGBM GridSearchCV超参数寻优完成。")
-    print(f"最佳LightGBM参数 (from GSCV): {lgbm_gscv.best_params_}")
-    print(f"最佳LightGBM交叉验证得分 (accuracy from GSCV): {lgbm_gscv.best_score_:.4f}")
+    # print(f"最佳LightGBM参数 (from GSCV): {lgbm_gscv.best_params_}") # Covered by helper
+    # print(f"最佳LightGBM交叉验证得分 (accuracy from GSCV): {lgbm_gscv.best_score_:.4f}") # Covered by helper
+    print_grid_search_cv_results(lgbm_gscv, "LightGBM (GridSearchCV part)", CV_FOLDS)
 
     best_params_lgb = lgbm_gscv.best_params_
-    # 合并固定的参数
     best_params_lgb['reg_alpha'] = 0.05
     best_params_lgb['reg_lambda'] = 0.05
-    best_params_lgb['subsample'] = 0.8 # 确保它被包括
+    # best_params_lgb['subsample'] = 0.8 # Already in best_params_lgb if it was in param_grid_lgb and chosen
 
     model_lgb_tuned = lgb.LGBMClassifier(
         **best_params_lgb,
@@ -294,7 +320,7 @@ try:
     print(f"LGBM训练集: {X_train_lgbm_scaled.shape}, LGBM验证集: {X_val_lgbm_scaled.shape}")
     callbacks = [lgb.early_stopping(stopping_rounds=50, verbose=100)]
     model_lgb_tuned.fit(
-        X_train_lgbm_scaled, y_train_lgbm, # 使用为早停准备的数据集
+        X_train_lgbm_scaled, y_train_lgbm, 
         eval_set=[(X_val_lgbm_scaled, y_val_lgbm)],
         callbacks=callbacks
     )
@@ -321,7 +347,7 @@ except Exception as e:
 
 # --- 3.5 朴素贝叶斯 (Gaussian Naive Bayes) with Hyperparameter Tuning (on full scaled train/val) ---
 print("\n>>> 3.5 Training Gaussian Naive Bayes model with Hyperparameter Tuning (on full X_train_val_scaled)...")
-param_grid_gnb = {'var_smoothing': np.logspace(-9, -2, 8)} # 调整范围和数量
+param_grid_gnb = {'var_smoothing': np.logspace(-9, -2, 8)} 
 gnb_cv = GridSearchCV(
     GaussianNB(),
     param_grid_gnb,
@@ -333,10 +359,11 @@ gnb_cv = GridSearchCV(
 try:
     print("正在开始GaussianNB的GridSearchCV超参数寻优 (在完整的X_train_val_scaled上)...")
     print(f"训练数据形状: X={X_train_val_scaled.shape}, y={y_train_val.shape}")
-    gnb_cv.fit(X_train_val_scaled, y_train_val) # <--- GNB使用完整的X_train_val_scaled
+    gnb_cv.fit(X_train_val_scaled, y_train_val) 
     print("GaussianNB GridSearchCV超参数寻优完成。")
-    print(f"Best var_smoothing: {gnb_cv.best_params_['var_smoothing']}")
-    print(f"Best CV score (accuracy): {gnb_cv.best_score_:.4f}")
+    # print(f"Best var_smoothing: {gnb_cv.best_params_['var_smoothing']}") # Covered by helper
+    # print(f"Best CV score (accuracy): {gnb_cv.best_score_:.4f}") # Covered by helper
+    print_grid_search_cv_results(gnb_cv, "Gaussian Naive Bayes (Tuned)", CV_FOLDS)
 
     best_model_gnb = gnb_cv.best_estimator_
     print("在完整的X_test_scaled上评估调优后的GNB模型...")

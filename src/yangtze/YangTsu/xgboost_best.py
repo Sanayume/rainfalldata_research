@@ -1,6 +1,6 @@
 import numpy as np
 import xgboost as xgb
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold # Added StratifiedKFold
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import joblib
 import os
@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime # For timestamping outputs
 import sys
+import gc # For garbage collection
 
 # --- 设置中文字体 ---
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文字体为黑体
@@ -44,7 +45,7 @@ FEATURES_INPUT_DIR = os.path.join(BASE_RESULTS_DIR, "features") # Input features
 
 # 定义输出子目录 (Output subdirectories for V1 optimized results)
 # Suffix for output directories and files, reflecting V1 data and optimized params
-OUTPUT_SUFFIX = f"v1_opt_xgboost_yangtsu_{TIMESTAMP}"
+OUTPUT_SUFFIX = f"v1_opt_xgboost_yangtsu_cv_{TIMESTAMP}" # Added _cv to suffix
 
 MODELS_OUTPUT_DIR = os.path.join(BASE_RESULTS_DIR, "models", OUTPUT_SUFFIX)
 PLOTS_OUTPUT_DIR = os.path.join(BASE_RESULTS_DIR, "plots", OUTPUT_SUFFIX)
@@ -57,17 +58,21 @@ Y_FLAT_PATH = os.path.join(FEATURES_INPUT_DIR, "Y_Yangtsu_flat_target.npy") # V1
 FEATURE_NAMES_PATH = os.path.join(FEATURES_INPUT_DIR, "feature_names_yangtsu.txt") # V1 feature names
 
 # 更新输出文件路径 (Updated output file paths)
-MODEL_PREDICTION_PATH = os.path.join(PREDICTIONS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_test_proba_predictions.npy")
-MODEL_SAVE_PATH = os.path.join(MODELS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_model.joblib")
-IMPORTANCE_PLOT_PATH = os.path.join(PLOTS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_feature_importance.png")
-TRAINING_HISTORY_PLOT_PATH = os.path.join(PLOTS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_training_history.png")
-PERFORMANCE_CSV_PATH = os.path.join(PERFORMANCE_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_threshold_performance.csv")
+MODEL_PREDICTION_PATH = os.path.join(PREDICTIONS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_holdout_test_proba_predictions.npy")
+MODEL_SAVE_PATH = os.path.join(MODELS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_final_model.joblib")
+IMPORTANCE_PLOT_PATH = os.path.join(PLOTS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_final_model_feature_importance.png")
+TRAINING_HISTORY_PLOT_PATH = os.path.join(PLOTS_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_final_model_training_history.png")
+PERFORMANCE_CSV_PATH = os.path.join(PERFORMANCE_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_holdout_test_threshold_performance.csv")
+CV_PERFORMANCE_CSV_PATH = os.path.join(PERFORMANCE_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_cv_performance_summary.csv")
+
 
 RAIN_THRESHOLD = 0.1
-TEST_SIZE_RATIO = 0.2
+TEST_SIZE_RATIO = 0.2 # This will be for the final hold-out test set
 RANDOM_STATE = 42
-EARLY_STOPPING_ROUNDS = 30 # Will be part of the optimized params
+EARLY_STOPPING_ROUNDS = 30
 N_TOP_FEATURES_TO_PLOT = 50
+N_FOLDS = 5 # Number of folds for cross-validation
+CV_EVAL_THRESHOLD = 0.5 # Threshold for evaluating CV folds performance
 
 # --- 创建输出目录 (Create output directories) ---
 os.makedirs(MODELS_OUTPUT_DIR, exist_ok=True)
@@ -81,17 +86,20 @@ print(f"所有输出将保存在包含 '{OUTPUT_SUFFIX}' 的子目录中 (All ou
 
 # --- 辅助函数：计算性能指标 ---
 def calculate_metrics(y_true, y_pred, title=""):
-    cm = confusion_matrix(y_true, y_pred)
+    # Ensure cm is always 2x2 by specifying labels=[0, 1]
+    cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
     tn, fp, fn, tp = cm.ravel()
+
     accuracy = accuracy_score(y_true, y_pred)
     pod = tp / (tp + fn) if (tp + fn) > 0 else 0
     far = fp / (tp + fp) if (tp + fp) > 0 else 0
     csi = tp / (tp + fn + fp) if (tp + fn + fp) > 0 else 0
-    print(f"\n--- {title} 性能表现 ---")
-    print(f"混淆矩阵 (Confusion Matrix):\n{cm}")
-    print(f"  正确负例 (TN): {tn}, 错误正例 (FP): {fp}")
-    print(f"  错误负例 (FN): {fn}, 正确正例 (TP): {tp}")
-    print(f"准确率 (Accuracy): {accuracy:.4f}, 命中率 (POD): {pod:.4f}, 空报率 (FAR): {far:.4f}, 临界成功指数 (CSI): {csi:.4f}")
+    if title: # Only print if title is provided
+        print(f"\n--- {title} 性能表现 ---")
+        print(f"混淆矩阵 (Confusion Matrix):\n{cm}")
+        print(f"  正确负例 (TN): {tn}, 错误正例 (FP): {fp}")
+        print(f"  错误负例 (FN): {fn}, 正确正例 (TP): {tp}")
+        print(f"准确率 (Accuracy): {accuracy:.4f}, 命中率 (POD): {pod:.4f}, 空报率 (FAR): {far:.4f}, 临界成功指数 (CSI): {csi:.4f}")
     return {'tn': tn, 'fp': fp, 'fn': fn, 'tp': tp, 'accuracy': accuracy, 'pod': pod, 'far': far, 'csi': csi}
 
 # --- 1. 加载数据 ---
@@ -130,40 +138,37 @@ except Exception as e:
 print("正在预处理数据... (Preprocessing data...)")
 y_flat_binary = (Y_flat_raw > RAIN_THRESHOLD).astype(int)
 del Y_flat_raw
+gc.collect()
 
-print("正在将数据分割为训练集和测试集... (Splitting data into training and testing sets...)")
-X_train, X_test, y_train, y_test = train_test_split(
+print("正在将数据分割为训练集 (用于CV和最终模型) 和 最终保持测试集... (Splitting data into training set (for CV and final model) and final hold-out test set...)")
+X_train_overall, X_holdout_test, y_train_overall, y_holdout_test = train_test_split(
     X_flat, y_flat_binary,
     test_size=TEST_SIZE_RATIO,
     random_state=RANDOM_STATE,
     stratify=y_flat_binary
 )
 del X_flat, y_flat_binary
-import gc
 gc.collect()
 
-print(f"训练集形状 (Training set shape): X={X_train.shape}, y={y_train.shape}")
-print(f"测试集形状 (Test set shape): X={X_test.shape}, y={y_test.shape}")
-if y_train.size > 0 and y_test.size > 0:
-    train_counts = np.bincount(y_train)
-    test_counts = np.bincount(y_test)
-    print(f"训练集分布 (Train distribution): No Rain={train_counts[0] if len(train_counts)>0 else 0}, Rain={train_counts[1]if len(train_counts)>1 else 0}")
-    print(f"测试集分布 (Test distribution): No Rain={test_counts[0] if len(test_counts)>0 else 0}, Rain={test_counts[1] if len(test_counts)>1 else 0}")
+print(f"整体训练集形状 (Overall training set shape): X={X_train_overall.shape}, y={y_train_overall.shape}")
+print(f"保持测试集形状 (Hold-out test set shape): X={X_holdout_test.shape}, y={y_holdout_test.shape}")
+if y_train_overall.size > 0 and y_holdout_test.size > 0:
+    train_counts = np.bincount(y_train_overall)
+    test_counts = np.bincount(y_holdout_test)
+    print(f"整体训练集分布 (Overall train distribution): No Rain={train_counts[0] if len(train_counts)>0 else 0}, Rain={train_counts[1]if len(train_counts)>1 else 0}")
+    print(f"保持测试集分布 (Hold-out test distribution): No Rain={test_counts[0] if len(test_counts)>0 else 0}, Rain={test_counts[1] if len(test_counts)>1 else 0}")
 else:
-    print("警告：训练集或测试集为空。(Warning: Training or test set is empty.)")
+    print("警告：整体训练集或保持测试集为空。(Warning: Overall training or hold-out test set is empty.)")
 
-# --- 4. 定义并训练 XGBoost 模型 (使用V1优化参数) ---
-print("正在定义并训练 XGBoost 模型 (长江流域 V1 特征, Optuna 优化参数)...")
-print("(Defining and training XGBoost model (Yangtze V1 features, Optuna optimized parameters)...)")
 
 # Optuna 优化的超参数 (来自您之前的提供) - 更新为新的最佳参数
-optuna_best_params_v1 = {
+# These parameters will be used for both CV folds and the final model
+optuna_base_params_v1 = {
     'objective': 'binary:logistic',
-    'eval_metric': ['logloss', 'auc'],
+    'eval_metric': ['logloss', 'auc'], # XGBoost uses the first metric for early stopping by default
     'tree_method': 'hist',
-    # 'scale_pos_weight' will be calculated and added later
-    'random_state': RANDOM_STATE, # Uses the global RANDOM_STATE
-    'early_stopping_rounds': EARLY_STOPPING_ROUNDS, # Uses the global EARLY_STOPPING_ROUNDS
+    'random_state': RANDOM_STATE,
+    'early_stopping_rounds': EARLY_STOPPING_ROUNDS,
     'device': 'cuda',
     'n_estimators': 2960,
     'learning_rate': 0.026319051020408163,
@@ -173,148 +178,256 @@ optuna_best_params_v1 = {
     'gamma': 0.09964387755102041,
     'lambda': 7.34496612e-06,
     'alpha': 1.1915502e-06,
-    'use_label_encoder': False # Standard practice for newer XGBoost versions
+    'use_label_encoder': False
 }
 
-# 计算 scale_pos_weight 并添加到参数中
-num_neg_train = np.sum(y_train == 0)
-num_pos_train = np.sum(y_train == 1)
-scale_pos_weight = num_neg_train / num_pos_train if num_pos_train > 0 else 1
-optuna_best_params_v1['scale_pos_weight'] = scale_pos_weight
-print(f"计算得到的 scale_pos_weight (来自训练集): {scale_pos_weight:.4f} (Calculated scale_pos_weight (from training set))")
-print(f"最终使用的模型参数 (Final model parameters used): \n{optuna_best_params_v1}")
+# --- 4. 5折交叉验证 (5-Fold Cross-Validation) ---
+print(f"\n--- 开始 {N_FOLDS}-折交叉验证 ({OUTPUT_SUFFIX}) ---")
+skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE)
+fold_metrics_list = [] # Renamed to avoid conflict
 
-model = xgb.XGBClassifier(**optuna_best_params_v1)
+for fold_num, (train_idx, val_idx) in enumerate(skf.split(X_train_overall, y_train_overall)):
+    print(f"\n--- CV 折叠 (Fold) {fold_num + 1}/{N_FOLDS} ---")
+    X_kfold_train, X_kfold_val = X_train_overall[train_idx], X_train_overall[val_idx]
+    y_kfold_train, y_kfold_val = y_train_overall[train_idx], y_train_overall[val_idx]
 
-print("开始模型训练... (Starting model training...)")
+    current_fold_params = optuna_base_params_v1.copy()
+    num_neg_fold_train = np.sum(y_kfold_train == 0)
+    num_pos_fold_train = np.sum(y_kfold_train == 1)
+    scale_pos_weight_fold = num_neg_fold_train / num_pos_fold_train if num_pos_fold_train > 0 else 1
+    current_fold_params['scale_pos_weight'] = scale_pos_weight_fold
+    
+    print(f"折叠 {fold_num+1} 训练数据形状: X={X_kfold_train.shape}, y={y_kfold_train.shape}")
+    print(f"折叠 {fold_num+1} 验证数据形状: X={X_kfold_val.shape}, y={y_kfold_val.shape}")
+    print(f"折叠 {fold_num+1} 计算得到的 scale_pos_weight: {scale_pos_weight_fold:.4f}")
+
+    model_cv = xgb.XGBClassifier(**current_fold_params)
+    
+    eval_set_cv = [(X_kfold_train, y_kfold_train), (X_kfold_val, y_kfold_val)]
+    model_cv.fit(X_kfold_train, y_kfold_train,
+                 eval_set=eval_set_cv,
+                 verbose=100 if fold_num == 0 else False) # Print progress for first fold, less verbose for others
+
+    y_pred_proba_val = model_cv.predict_proba(X_kfold_val)[:, 1]
+    y_pred_val = (y_pred_proba_val >= CV_EVAL_THRESHOLD).astype(int)
+    
+    metrics_val_fold = calculate_metrics(y_kfold_val, y_pred_val, title=f"CV 折叠 {fold_num + 1} (阈值 {CV_EVAL_THRESHOLD:.2f})")
+    metrics_val_fold['fold'] = fold_num + 1
+    try:
+        metrics_val_fold['best_iteration'] = model_cv.best_iteration
+        primary_metric_cv = current_fold_params['eval_metric'][0] # logloss
+        # Get score from the validation set (index 1 in eval_set_cv)
+        metrics_val_fold[f'best_val_{primary_metric_cv}'] = model_cv.evals_result()['validation_1'][primary_metric_cv][model_cv.best_iteration]
+        if len(current_fold_params['eval_metric']) > 1:
+            secondary_metric_cv = current_fold_params['eval_metric'][1] # auc
+            metrics_val_fold[f'best_val_{secondary_metric_cv}'] = model_cv.evals_result()['validation_1'][secondary_metric_cv][model_cv.best_iteration]
+
+    except Exception as e:
+        print(f"警告: 无法获取折叠 {fold_num+1} 的最佳迭代/分数: {e}")
+        metrics_val_fold['best_iteration'] = -1
+        metrics_val_fold[f'best_val_{primary_metric_cv}'] = float('nan')
+        if len(current_fold_params['eval_metric']) > 1:
+             metrics_val_fold[f'best_val_{secondary_metric_cv}'] = float('nan')
+
+
+    fold_metrics_list.append(metrics_val_fold)
+    
+    del X_kfold_train, X_kfold_val, y_kfold_train, y_kfold_val, model_cv
+    gc.collect()
+
+print(f"\n--- {N_FOLDS}-折交叉验证结果总结 ({OUTPUT_SUFFIX}) ---")
+cv_results_df = pd.DataFrame(fold_metrics_list)
+print(cv_results_df)
+cv_results_df.to_csv(CV_PERFORMANCE_CSV_PATH, index=False)
+print(f"CV 性能总结已保存至: {CV_PERFORMANCE_CSV_PATH}")
+
+# Calculate and print average metrics
+avg_metrics = {}
+print("\n--- 平均交叉验证性能 (Average Cross-Validation Performance) ---")
+metric_keys_for_avg = ['accuracy', 'pod', 'far', 'csi', 'tn', 'fp', 'fn', 'tp']
+if 'best_val_logloss' in cv_results_df.columns: metric_keys_for_avg.append('best_val_logloss')
+if 'best_val_auc' in cv_results_df.columns: metric_keys_for_avg.append('best_val_auc')
+
+
+for metric_key in metric_keys_for_avg:
+    if metric_key in cv_results_df:
+        mean_val = cv_results_df[metric_key].mean()
+        std_val = cv_results_df[metric_key].std()
+        avg_metrics[f'avg_{metric_key}'] = mean_val
+        avg_metrics[f'std_{metric_key}'] = std_val
+        print(f"平均 CV {metric_key.upper()}: {mean_val:.4f} (+/- {std_val:.4f})")
+
+# --- 5. 定义并训练最终 XGBoost 模型 (在整体训练集上) ---
+print("\n--- 正在定义并训练最终 XGBoost 模型 (长江流域 V1 特征, Optuna 优化参数, 在整体训练集上)...")
+print("(Defining and training FINAL XGBoost model (Yangtze V1 features, Optuna optimized parameters, on OVERALL training set)...)")
+
+final_model_params = optuna_base_params_v1.copy()
+num_neg_train_overall = np.sum(y_train_overall == 0)
+num_pos_train_overall = np.sum(y_train_overall == 1)
+scale_pos_weight_overall = num_neg_train_overall / num_pos_train_overall if num_pos_train_overall > 0 else 1
+final_model_params['scale_pos_weight'] = scale_pos_weight_overall
+
+print(f"为最终模型计算得到的 scale_pos_weight (来自整体训练集): {scale_pos_weight_overall:.4f}")
+print(f"最终模型使用的参数: \n{final_model_params}")
+
+model_final = xgb.XGBClassifier(**final_model_params)
+
+print("开始最终模型训练... (Starting final model training...)")
 start_time = time.time()
-eval_set = [(X_train, y_train), (X_test, y_test)]
-model.fit(X_train, y_train,
-          eval_set=eval_set,
-          verbose=50)
+# Evaluate on training data and hold-out test data
+eval_set_final = [(X_train_overall, y_train_overall), (X_holdout_test, y_holdout_test)]
+model_final.fit(X_train_overall, y_train_overall,
+                eval_set=eval_set_final,
+                verbose=50) # Print progress every 50 rounds for final model
 end_time = time.time()
-print(f"训练完成，耗时 {end_time - start_time:.2f} 秒。(Training complete in {end_time - start_time:.2f} seconds.)")
+print(f"最终模型训练完成，耗时 {end_time - start_time:.2f} 秒。(Final model training complete in {end_time - start_time:.2f} seconds.)")
 
 try:
-    print(f"最佳迭代次数 (Best iteration): {model.best_iteration}")
-    primary_metric = optuna_best_params_v1['eval_metric'][0] # 通常是第一个评估指标
-    print(f"最佳分数 (测试集 {primary_metric}) (Best score (test {primary_metric})): {model.best_score:.4f}")
+    print(f"最终模型最佳迭代次数 (Best iteration for final model): {model_final.best_iteration}")
+    primary_metric_final = final_model_params['eval_metric'][0]
+    # Accessing the score on the *second* validation set (holdout_test, index 1)
+    best_score_on_holdout = model_final.evals_result()['validation_1'][primary_metric_final][model_final.best_iteration]
+    print(f"最终模型最佳分数 (保持测试集 {primary_metric_final}) (Best score for final model (holdout_test {primary_metric_final})): {best_score_on_holdout:.4f}")
+    if len(final_model_params['eval_metric']) > 1:
+        secondary_metric_final = final_model_params['eval_metric'][1]
+        best_score_secondary_on_holdout = model_final.evals_result()['validation_1'][secondary_metric_final][model_final.best_iteration]
+        print(f"最终模型最佳分数 (保持测试集 {secondary_metric_final}) (Best score for final model (holdout_test {secondary_metric_final})): {best_score_secondary_on_holdout:.4f}")
+
 except AttributeError as e:
-    print(f"无法直接获取最佳迭代/分数属性: {e} (Could not retrieve best iteration/score attributes directly: {e})")
-
-# --- 4b. 绘制训练历史 (Plotting Training History) ---
-print(f"\n--- 正在绘制训练历史 ({OUTPUT_SUFFIX}) (Plotting Training History) ---")
-results = model.evals_result()
-if hasattr(model, 'best_iteration') and model.best_iteration >= 0 :
-    num_actual_rounds = model.best_iteration + 1
-else:
-    try: # Fallback if best_iteration is not set or is 0 but training happened
-        num_actual_rounds = len(results['validation_0'][optuna_best_params_v1['eval_metric'][0]])
-        if num_actual_rounds == 0 and model.n_estimators > 0 : # Edge case: no early stopping, full n_estimators
-             num_actual_rounds = model.n_estimators
-    except KeyError: # If eval_metric isn't in results somehow
-        num_actual_rounds = model.n_estimators
+    print(f"无法直接获取最终模型最佳迭代/分数属性: {e} (Could not retrieve best iteration/score attributes directly for final model: {e})")
+except KeyError as e:
+    print(f"无法从 evals_result() 获取最终模型分数: {e}")
 
 
-x_axis = range(0, num_actual_rounds)
-fig_hist, ax_hist = plt.subplots(1, 2, figsize=(15, 5))
-fig_hist.suptitle(f'XGBoost Training History ({OUTPUT_SUFFIX})', fontsize=16)
+# --- 5b. 绘制最终模型训练历史 (Plotting Final Model Training History) ---
+print(f"\n--- 正在绘制最终模型训练历史 ({OUTPUT_SUFFIX}) (Plotting Final Model Training History) ---")
+results_final = model_final.evals_result()
 
-primary_metric_plot = optuna_best_params_v1['eval_metric'][0]
-secondary_metric_plot = optuna_best_params_v1['eval_metric'][1] if len(optuna_best_params_v1['eval_metric']) > 1 else primary_metric_plot
+num_actual_rounds_final = model_final.n_estimators # Default
+if hasattr(model_final, 'best_iteration') and model_final.best_iteration >= 0 :
+    num_actual_rounds_final = model_final.best_iteration + 1
+else: # Fallback if best_iteration is not set or is 0 but training happened
+    try:
+        primary_metric_key = final_model_params['eval_metric'][0]
+        num_actual_rounds_final = len(results_final['validation_0'][primary_metric_key])
+        if num_actual_rounds_final == 0 and model_final.n_estimators > 0 : # Edge case: no early stopping, full n_estimators
+             num_actual_rounds_final = model_final.n_estimators
+    except (KeyError, IndexError): # If eval_metric isn't in results somehow or list empty
+        pass # Keep default num_actual_rounds_final
 
-ax_hist[0].plot(x_axis, results['validation_0'][primary_metric_plot][:num_actual_rounds], label=f'Train {primary_metric_plot}')
-ax_hist[0].plot(x_axis, results['validation_1'][primary_metric_plot][:num_actual_rounds], label=f'Test {primary_metric_plot}')
-ax_hist[0].legend()
-ax_hist[0].set_ylabel(primary_metric_plot)
-ax_hist[0].set_xlabel('Boosting Rounds')
-ax_hist[0].set_title(f'XGBoost {primary_metric_plot}')
 
-ax_hist[1].plot(x_axis, results['validation_0'][secondary_metric_plot][:num_actual_rounds], label=f'Train {secondary_metric_plot.upper()}')
-ax_hist[1].plot(x_axis, results['validation_1'][secondary_metric_plot][:num_actual_rounds], label=f'Test {secondary_metric_plot.upper()}')
-ax_hist[1].legend()
-ax_hist[1].set_ylabel(secondary_metric_plot.upper())
-ax_hist[1].set_xlabel('Boosting Rounds')
-ax_hist[1].set_title(f'XGBoost {secondary_metric_plot.upper()}')
+x_axis_final = range(0, num_actual_rounds_final)
+fig_hist_final, ax_hist_final = plt.subplots(1, 2, figsize=(15, 5))
+fig_hist_final.suptitle(f'XGBoost Final Model Training History ({OUTPUT_SUFFIX})', fontsize=16)
+
+primary_metric_plot_final = final_model_params['eval_metric'][0]
+secondary_metric_plot_final = final_model_params['eval_metric'][1] if len(final_model_params['eval_metric']) > 1 else primary_metric_plot_final
+
+# Plot for primary metric
+ax_hist_final[0].plot(x_axis_final, results_final['validation_0'][primary_metric_plot_final][:num_actual_rounds_final], label=f'Train Overall {primary_metric_plot_final}')
+ax_hist_final[0].plot(x_axis_final, results_final['validation_1'][primary_metric_plot_final][:num_actual_rounds_final], label=f'Holdout Test {primary_metric_plot_final}')
+ax_hist_final[0].legend()
+ax_hist_final[0].set_ylabel(primary_metric_plot_final)
+ax_hist_final[0].set_xlabel('Boosting Rounds')
+ax_hist_final[0].set_title(f'XGBoost {primary_metric_plot_final}')
+
+# Plot for secondary metric
+if primary_metric_plot_final != secondary_metric_plot_final: # Avoid plotting the same metric twice if only one eval_metric
+    ax_hist_final[1].plot(x_axis_final, results_final['validation_0'][secondary_metric_plot_final][:num_actual_rounds_final], label=f'Train Overall {secondary_metric_plot_final.upper()}')
+    ax_hist_final[1].plot(x_axis_final, results_final['validation_1'][secondary_metric_plot_final][:num_actual_rounds_final], label=f'Holdout Test {secondary_metric_plot_final.upper()}')
+    ax_hist_final[1].legend()
+    ax_hist_final[1].set_ylabel(secondary_metric_plot_final.upper())
+    ax_hist_final[1].set_xlabel('Boosting Rounds')
+    ax_hist_final[1].set_title(f'XGBoost {secondary_metric_plot_final.upper()}')
+else: # If only one metric, make the second plot empty or provide a message
+    ax_hist_final[1].text(0.5, 0.5, 'Secondary metric same as primary or not available.', ha='center', va='center')
+    ax_hist_final[1].set_title('Secondary Metric')
+
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.savefig(TRAINING_HISTORY_PLOT_PATH)
-print(f"训练历史图已保存至: {TRAINING_HISTORY_PLOT_PATH} (Training history plot saved)")
-plt.close(fig_hist)
+print(f"最终模型训练历史图已保存至: {TRAINING_HISTORY_PLOT_PATH} (Final model training history plot saved)")
+plt.close(fig_hist_final)
 
-# --- 5. 特征重要性 ---
-print(f"\n--- 特征重要性 ({OUTPUT_SUFFIX}) (Feature Importances) ---")
+# --- 6. 最终模型特征重要性 ---
+print(f"\n--- 最终模型特征重要性 ({OUTPUT_SUFFIX}) (Final Model Feature Importances) ---")
 try:
-    importances = model.feature_importances_
-    importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
-    importance_df = importance_df.sort_values(by='Importance', ascending=False)
+    importances_final = model_final.feature_importances_
+    importance_df_final = pd.DataFrame({'Feature': feature_names, 'Importance': importances_final})
+    importance_df_final = importance_df_final.sort_values(by='Importance', ascending=False)
 
-    print("Top 10 特征 (Top 10 Features):")
-    print(importance_df.head(10))
+    print("最终模型 Top 10 特征 (Final Model Top 10 Features):")
+    print(importance_df_final.head(10))
 
-    # 保存所有特征重要性到CSV
-    ft_imp_csv_path = os.path.join(PERFORMANCE_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_feature_importances_full.csv")
-    importance_df.to_csv(ft_imp_csv_path, index=False)
-    print(f"完整特征重要性已保存至CSV: {ft_imp_csv_path} (Full feature importances saved to CSV)")
+    ft_imp_csv_path_final = os.path.join(PERFORMANCE_OUTPUT_DIR, f"xgboost_yangtsu_{OUTPUT_SUFFIX}_final_model_feature_importances_full.csv")
+    importance_df_final.to_csv(ft_imp_csv_path_final, index=False)
+    print(f"最终模型完整特征重要性已保存至CSV: {ft_imp_csv_path_final} (Final model full feature importances saved to CSV)")
 
-
-    fig_imp, ax_imp = plt.subplots(figsize=(10, max(6, N_TOP_FEATURES_TO_PLOT / 2.5)))
-    top_features_df = importance_df.head(N_TOP_FEATURES_TO_PLOT)
-    ax_imp.barh(top_features_df['Feature'], top_features_df['Importance'])
-    ax_imp.set_xlabel("Importance Score (Gain)")
-    ax_imp.set_ylabel("Feature")
-    ax_imp.set_title(f"Top {N_TOP_FEATURES_TO_PLOT} Feature Importances ({OUTPUT_SUFFIX})")
-    ax_imp.invert_yaxis()
+    fig_imp_final, ax_imp_final = plt.subplots(figsize=(10, max(6, N_TOP_FEATURES_TO_PLOT / 2.5)))
+    top_features_df_final = importance_df_final.head(N_TOP_FEATURES_TO_PLOT)
+    ax_imp_final.barh(top_features_df_final['Feature'], top_features_df_final['Importance'])
+    ax_imp_final.set_xlabel("Importance Score (Gain)")
+    ax_imp_final.set_ylabel("Feature")
+    ax_imp_final.set_title(f"Top {N_TOP_FEATURES_TO_PLOT} Feature Importances (Final Model, {OUTPUT_SUFFIX})")
+    ax_imp_final.invert_yaxis()
     plt.tight_layout()
     plt.savefig(IMPORTANCE_PLOT_PATH)
-    print(f"特征重要性图已保存至: {IMPORTANCE_PLOT_PATH} (Feature importance plot saved)")
-    plt.close(fig_imp)
+    print(f"最终模型特征重要性图已保存至: {IMPORTANCE_PLOT_PATH} (Final model feature importance plot saved)")
+    plt.close(fig_imp_final)
 
 except Exception as plot_e:
-    print(f"警告：无法生成特征重要性图 - {plot_e} (Warning: Could not generate feature importance plot)")
+    print(f"警告：无法生成最终模型特征重要性图 - {plot_e} (Warning: Could not generate final model feature importance plot)")
 
-# --- 6. 评估模型 ---
-print(f"\n--- 在测试集上评估模型 ({OUTPUT_SUFFIX}) (Evaluating Model on Test Set) ---")
-y_pred_proba = model.predict_proba(X_test)[:, 1]
+# --- 7. 在保持测试集上评估最终模型 ---
+print(f"\n--- 在保持测试集上评估最终模型 ({OUTPUT_SUFFIX}) (Evaluating Final Model on Hold-out Test Set) ---")
+y_pred_proba_holdout = model_final.predict_proba(X_holdout_test)[:, 1]
 
-np.save(MODEL_PREDICTION_PATH, y_pred_proba)
-print(f"预测结果已保存至: {MODEL_PREDICTION_PATH} (Predictions saved)")
+np.save(MODEL_PREDICTION_PATH, y_pred_proba_holdout)
+print(f"最终模型在保持测试集上的预测概率已保存至: {MODEL_PREDICTION_PATH} (Final model predictions on hold-out test set saved)")
 
-thresholds_to_evaluate = np.arange(0.1, 0.71, 0.05) # More granular: 0.1, 0.15, ..., 0.7
-metrics_by_threshold = {}
+thresholds_to_evaluate = np.arange(0.1, 0.71, 0.05)
+metrics_by_threshold_holdout = {}
 for threshold in thresholds_to_evaluate:
-    y_pred_threshold = (y_pred_proba >= threshold).astype(int)
-    metrics_val = calculate_metrics(y_test, y_pred_threshold, title=f"XGBoost ({OUTPUT_SUFFIX}, 阈值 {threshold:.2f})")
-    metrics_by_threshold[threshold] = metrics_val
+    y_pred_threshold_holdout = (y_pred_proba_holdout >= threshold).astype(int)
+    metrics_val_holdout = calculate_metrics(y_holdout_test, y_pred_threshold_holdout, title=f"最终模型 ({OUTPUT_SUFFIX}, 保持测试集, 阈值 {threshold:.2f})")
+    metrics_by_threshold_holdout[threshold] = metrics_val_holdout
 
-print(f"\n--- XGBoost ({OUTPUT_SUFFIX}) 不同阈值下的性能 (测试集) ---")
-print(f"(Performance across different thresholds (Test Set) for {OUTPUT_SUFFIX})")
-metrics_to_show = ['accuracy', 'pod', 'far', 'csi', 'fp', 'fn']
-threshold_metrics_data = {}
-for threshold, metrics_val in metrics_by_threshold.items():
-    threshold_metrics_data[f'XGB_{OUTPUT_SUFFIX}_Thr_{threshold:.2f}'] = {
+print(f"\n--- 最终模型 ({OUTPUT_SUFFIX}) 不同阈值下的性能 (保持测试集) ---")
+print(f"(Performance across different thresholds (Hold-out Test Set) for final model {OUTPUT_SUFFIX})")
+metrics_to_show = ['accuracy', 'pod', 'far', 'csi', 'fp', 'fn', 'tp', 'tn'] # Added tp, tn
+threshold_metrics_data_holdout = {}
+
+# Populate the dictionary for DataFrame creation
+for threshold, metrics_val in metrics_by_threshold_holdout.items():
+    row_name = f'XGB_Final_{OUTPUT_SUFFIX}_Thr_{threshold:.2f}'
+    threshold_metrics_data_holdout[row_name] = {
         metric_key: metrics_val.get(metric_key, float('nan')) for metric_key in metrics_to_show
     }
 
-threshold_df = pd.DataFrame(threshold_metrics_data).T
-if not threshold_df.empty:
-    threshold_df = threshold_df[metrics_to_show]
-    float_cols = ['accuracy', 'pod', 'far', 'csi']
-    for col in float_cols: threshold_df[col] = threshold_df[col].map('{:.4f}'.format)
-    int_cols = ['fp', 'fn']
-    for col in int_cols: threshold_df[col] = threshold_df[col].map('{:.0f}'.format)
-    print(threshold_df)
-    print(f"正在将阈值性能表格保存至 {PERFORMANCE_CSV_PATH} (Saving threshold performance table)")
-    threshold_df.to_csv(PERFORMANCE_CSV_PATH)
-else:
-    print("没有指标可供展示或保存。(No metrics to display or save.)")
+threshold_df_holdout = pd.DataFrame.from_dict(threshold_metrics_data_holdout, orient='index')
 
-# --- 7. 保存模型 ---
-print(f"\n正在将训练好的模型保存至 {MODEL_SAVE_PATH}... (Saving the trained model)")
+if not threshold_df_holdout.empty:
+    threshold_df_holdout = threshold_df_holdout[metrics_to_show] # Ensure column order
+    float_cols = ['accuracy', 'pod', 'far', 'csi']
+    for col in float_cols:
+        if col in threshold_df_holdout:
+             threshold_df_holdout[col] = threshold_df_holdout[col].map('{:.4f}'.format)
+    int_cols = ['fp', 'fn', 'tp', 'tn']
+    for col in int_cols:
+        if col in threshold_df_holdout:
+            threshold_df_holdout[col] = threshold_df_holdout[col].map('{:.0f}'.format)
+    print(threshold_df_holdout)
+    print(f"正在将最终模型在保持测试集上的阈值性能表格保存至 {PERFORMANCE_CSV_PATH} (Saving final model threshold performance table for hold-out set)")
+    threshold_df_holdout.to_csv(PERFORMANCE_CSV_PATH)
+else:
+    print("最终模型在保持测试集上没有指标可供展示或保存。(No metrics for final model on hold-out set to display or save.)")
+
+# --- 8. 保存最终模型 ---
+print(f"\n正在将训练好的最终模型保存至 {MODEL_SAVE_PATH}... (Saving the trained final model)")
 try:
-    joblib.dump(model, MODEL_SAVE_PATH)
-    print("模型保存成功。(Model saved successfully.)")
+    joblib.dump(model_final, MODEL_SAVE_PATH)
+    print("最终模型保存成功。(Final model saved successfully.)")
 except Exception as e:
-    print(f"保存模型时出错: {e} (Error saving model)")
+    print(f"保存最终模型时出错: {e} (Error saving final model)")
 
 print("\n脚本执行完毕。(Script finished.)")
