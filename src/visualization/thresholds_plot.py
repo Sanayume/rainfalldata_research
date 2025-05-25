@@ -6,27 +6,37 @@ import matplotlib.patheffects as path_effects
 
 # 1. Data Preparation (Same as before)
 data = {
-    'Probability Threshold': [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70],
-    'Accuracy': [0.9404, 0.9401, 0.9389, 0.9371, 0.9348, 0.9316, 0.9274],
-    'POD': [0.9493, 0.9426, 0.9356, 0.9282, 0.9202, 0.9114, 0.9014],
-    'FAR': [0.0460, 0.0404, 0.0357, 0.0314, 0.0274, 0.0238, 0.0207],
-    'CSI': [0.9077, 0.9066, 0.9043, 0.9011, 0.8970, 0.8916, 0.8846],
-    'FP': [29917, 25949, 22618, 19642, 16922, 14529, 12414],
-    'FN': [33114, 37458, 42037, 46911, 52090, 57843, 64379]
+    'Probability Threshold': [0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70],
+    'Accuracy': [0.9228, 0.9404, 0.9459, 0.9471, 0.9456, 0.9420, 0.9366],
+    'POD': [0.9876, 0.9764, 0.9660, 0.9558, 0.9447, 0.9319, 0.9169],
+    'FAR': [0.1024, 0.0695, 0.0526, 0.0416, 0.0335, 0.0270, 0.0210],
+    'CSI': [0.8876, 0.9100, 0.9168, 0.9177, 0.9147, 0.9084, 0.8992],
+    'FP': [73571, 47621, 35019, 27111, 21408, 16881, 12864],
+    'FN': [8073, 15424, 22198, 28850, 36132, 44456, 54238]
 }
 df_threshold = pd.DataFrame(data)
 df_threshold['Threshold_str'] = df_threshold['Probability Threshold'].apply(lambda x: f"{x:.2f}")
 
-# 2. Styling (Same as before, focusing on light theme, flashy colors)
+# 2. New color palette
+IMG_PALETTE = {
+    'light_green': '#B8DBB3',
+    'medium_green': '#72B063', # Green for accuracy in target bar chart
+    'muted_blue': '#719AAC',   # Muted blue for csi in target bar chart
+    'orange': '#E29135',       # Orange for pod in target bar chart
+    'light_blue': '#94C6CD',   # Light blue for 1-FAR in target bar chart
+    'dark_blue': '#4A5F7E'
+}
+
+# 3. Styling with new colors
 plt.style.use('seaborn-v0_8-white')
 plt.rcParams['figure.facecolor'] = '#FDFEFE'
 plt.rcParams['axes.facecolor'] = '#FDFEFE'
 
-TEXT_COLOR = "#2C3E50"
-TITLE_COLOR = "#E74C3C"
-LABEL_COLOR = "#34495E"
-MARKER_EDGE_COLOR = "#5D6D7E"
-AXIS_LINE_COLOR = '#444444' # Color for the axis lines themselves
+TEXT_COLOR = IMG_PALETTE['dark_blue']
+TITLE_COLOR = IMG_PALETTE['orange']
+LABEL_COLOR = IMG_PALETTE['dark_blue']
+MARKER_EDGE_COLOR = IMG_PALETTE['dark_blue']
+AXIS_LINE_COLOR = IMG_PALETTE['dark_blue']
 
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['Comic Sans MS', 'Arial Rounded MT Bold', 'Calibri', 'DejaVu Sans']
@@ -35,10 +45,13 @@ plt.rcParams['axes.labelsize'] = 32
 plt.rcParams['xtick.labelsize'] = 32
 plt.rcParams['ytick.labelsize'] = 32
 plt.rcParams['figure.titlesize'] = 40
-plt.rcParams['axes.edgecolor'] = AXIS_LINE_COLOR # Set default spine color
+plt.rcParams['axes.edgecolor'] = AXIS_LINE_COLOR
 
 num_thresholds = len(df_threshold)
-palette = sns.color_palette("turbo", num_thresholds)
+# Instead of using turbo palette, create a custom palette from our colors
+color_values = list(IMG_PALETTE.values())
+palette = color_values * (num_thresholds // len(color_values) + 1)
+palette = palette[:num_thresholds]
 
 marker_effect = [
     path_effects.Stroke(linewidth=2, foreground='#FFFFFF', alpha=0.7),
@@ -49,7 +62,7 @@ marker_effect = [
 rate_metrics = ['Accuracy', 'POD', 'FAR', 'CSI']
 count_metrics = ['FP', 'FN']
 
-# --- Generating Individual "Flashy" Vertical Lollipop Plots ---
+# --- Generating Individual "Flashy" Vertical Lollipop Plots with new colors ---
 for metric in rate_metrics + count_metrics:
     fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -58,8 +71,6 @@ for metric in rate_metrics + count_metrics:
 
     for i in range(len(df_threshold)):
         stem_base = 0
-        if metric in count_metrics and metric_values.min() > 0:
-             stem_base = metric_values.min() * 0.95
         ax.hlines(y=y_pos[i], xmin=stem_base, xmax=metric_values[i],
                   color=palette[i % len(palette)],
                   linewidth=3.5, alpha=0.7, zorder=1)
@@ -84,7 +95,7 @@ for metric in rate_metrics + count_metrics:
     ax.set_yticklabels(df_threshold['Threshold_str'], color=LABEL_COLOR, fontsize=30)
     ax.set_ylabel("Probability Threshold", color=LABEL_COLOR, fontsize=30, fontweight='medium')
     ax.set_xlabel(f"{metric} Value" if metric in rate_metrics else f"{metric} Count",
-                  color=LABEL_COLOR, fontsize=24, fontweight='medium') # Clarified x-axis label
+                  color=LABEL_COLOR, fontsize=24, fontweight='medium')
     fig.suptitle(f"{metric} vs. Probability Threshold (Vertical)",
                  color=TITLE_COLOR, fontsize=24, fontweight='bold', y=0.97)
 
@@ -94,32 +105,45 @@ for metric in rate_metrics + count_metrics:
     else:
         min_val_counts = df_threshold[metric].min()
         max_val_counts = df_threshold[metric].max()
-        padding = (max_val_counts - min_val_counts) * 0.15 if (max_val_counts - min_val_counts) > 0 else 100
-        ax.set_xlim(min_val_counts - padding *0.3 , max_val_counts + padding)
 
-    # --- Crucial Change Here ---
+        padding_right_factor = 0.15 # Factor for padding on the right of max value
+        
+        # Set x-axis limits to start exactly at 0 (or slightly before for label visibility)
+        # and extend beyond max_val_counts
+        # We want the visual y-axis (left spine) to be at x=0.
+        
+        # Ensure a small buffer on the left of 0 if we want '0' label not to be cut.
+        # However, for lollipop starting at 0, having xlim start at 0 is visually clean.
+        # If tick labels overlap, we adjust tick padding or label formatting.
+        current_xlim_left = 0
+        current_xlim_right = max_val_counts * (1 + padding_right_factor)
+        
+        if max_val_counts == 0 : # Handle case where all FP/FN are 0
+             current_xlim_right = 10 # Arbitrary small range if all values are 0
+
+        ax.set_xlim(current_xlim_left, current_xlim_right)
+
     # Remove grid lines
     ax.grid(False)
 
     # Keep bottom and left axis lines (spines), remove top and right
     sns.despine(ax=ax, top=True, right=True, left=False, bottom=False)
-    # Alternatively, more direct control:
-    # ax.spines['top'].set_visible(False)
-    # ax.spines['right'].set_visible(False)
-    # ax.spines['left'].set_visible(True)
-    # ax.spines['left'].set_color(AXIS_LINE_COLOR) # Ensure consistent color
-    # ax.spines['left'].set_linewidth(1.2)        # Optional: set linewidth
-    # ax.spines['bottom'].set_visible(True)
-    # ax.spines['bottom'].set_color(AXIS_LINE_COLOR)
-    # ax.spines['bottom'].set_linewidth(1.2)
+
+    # For FP/FN plots, ensure the left spine (our Y-axis) is positioned at x=0
+    if metric in count_metrics:
+        ax.spines['left'].set_position('zero')
+        # Optionally, if the bottom spine feels redundant now that Y-axis is at x=0
+        # ax.spines['bottom'].set_visible(False)
+        # ax.tick_params(axis='x', which='both', bottom=False, labelbottom=True) # if bottom spine hidden
 
     # Ensure tick marks are visible if spines are kept
-    ax.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True, color=TEXT_COLOR, labelcolor=TEXT_COLOR)
-    ax.tick_params(axis='y', which='both', left=True, right=False, labelleft=True, color=TEXT_COLOR, labelcolor=TEXT_COLOR)
-
+    ax.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True, 
+                   color=AXIS_LINE_COLOR, labelcolor=TEXT_COLOR)
+    ax.tick_params(axis='y', which='both', left=True, right=False, labelleft=True, 
+                   color=AXIS_LINE_COLOR, labelcolor=TEXT_COLOR)
 
     plt.tight_layout(rect=[0, 0.02, 1, 0.93])
     plt.savefig(f'flashy_vertical_lollipop_with_axes_{metric}.png', dpi=300, bbox_inches='tight', facecolor=fig.get_facecolor())
     plt.show()
 
-print("Flashy vertical lollipop plots with axis lines (no grid) generated!")
+print("Flashy vertical lollipop plots with new color palette generated!")

@@ -31,6 +31,17 @@ plt.rcParams['axes.facecolor'] = 'white'
 plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['savefig.bbox'] = 'tight'
 
+# --- New Color Palette from the Image ---
+IMG_PALETTE = {
+    'light_green': '#B8DBB3',
+    'medium_green': '#72B063',
+    'muted_blue': '#719AAC',
+    'orange': '#E29135',
+    'light_blue': '#94C6CD',
+    'dark_blue': '#4A5F7E'
+}
+# --- End of New Color Palette ---
+
 # Data preparation
 final_plot_data_values = [
     # --- Baseline Products ---
@@ -50,14 +61,14 @@ final_plot_data_values = [
     {'Model_Name': 'FeatV6', 'Original_Identifier': 'XGB_V1_Default_T0.5', 'Type': 'FeatEng Iteration', 'Accuracy': 0.8819, 'POD': 0.8880, 'FAR': 0.0819, 'CSI': 0.8228},
 
     # --- Optimized Model ---
-    {'Model_Name': 'opt_trial_50',  'Original_Identifier': 'XGB_V1_Optuna_T0.5', 'Type': 'XGBoost Optimized', 'Accuracy': 0.9389, 'POD': 0.9356, 'FAR': 0.0357, 'CSI': 0.9043},
-    #{'Model_Name': 'opt_trial_300',  'Original_Identifier': 'XGB_V1_Optuna_T0.5', 'Type': 'XGBoost Optimized', 'Accuracy': 0.9389, 'POD': 0.9356, 'FAR': 0.0357, 'CSI': 0.9043}
+    # Note: Changed 'opt_trial_50' references in code logic to 'opt_trial_322' to match this data entry.
+    {'Model_Name': 'opt_trial_322', 'Original_Identifier': 'XGB_V1_Optuna_T0.5', 'Type': 'XGBoost Optimized', 'Accuracy': 0.9456, 'POD': 0.9447, 'FAR': 0.0335, 'CSI': 0.9147},
 ]
 
 # Convert to DataFrame
 df = pd.DataFrame(final_plot_data_values)
 
-# Color settings
+# Color settings (original, not used directly in functions after refactor)
 colors = {
     'Baseline Product': 'gray',
     'FeatEng Iteration': 'royalblue',
@@ -75,7 +86,6 @@ def create_performance_evolution(fig, df):
     """创建性能演变线图"""
     metrics = ['Accuracy', 'POD', 'CSI', 'FAR']
 
-    # 如果没有提供figure对象，创建一个新的
     if fig is None:
         fig, axs = plt.subplots(2, 2, figsize=(16, 14), sharex=True)
         axs = axs.flatten()
@@ -84,34 +94,33 @@ def create_performance_evolution(fig, df):
         _, axs = plt.subplots(2, 2, figsize=(16, 14), sharex=True)
         axs = axs.flatten()
 
-    # Google风格配色方案
-    colors_new = {
-        'Baseline Product': '#616161',  # 深灰色
-        'FeatEng Iteration': '#4285F4',  # 谷歌蓝
-        'XGBoost Optimized': '#EA4335'   # 谷歌红
+    # New image-based配色方案
+    colors_plot = {
+        'Baseline Product': IMG_PALETTE['muted_blue'],
+        'FeatEng Iteration': IMG_PALETTE['medium_green'],
+        'XGBoost Optimized': IMG_PALETTE['orange']
     }
     
-    # 标记样式
-    markers_new = {
+    markers_new = { # Kept original marker styles
         'Baseline Product': 'o',
-        'FeatEng Iteration': 'D',  # 钻石形
+        'FeatEng Iteration': 'D',
         'XGBoost Optimized': '*'
     }
 
-    # Get feature engineering stages for line connection
     feat_eng_df = df[df['Type'] == 'FeatEng Iteration']
     opt_df = df[df['Type'] == 'XGBoost Optimized']
 
+    # The optimized model name from data (assuming one optimized model)
+    optimized_model_name = opt_df['Model_Name'].iloc[0] if not opt_df.empty else 'opt_trial_322'
+
+
     for i, metric in enumerate(metrics):
         ax = axs[i]
-        
-        # 设置背景颜色为浅灰色，增强可读性
         ax.set_facecolor('#f8f9fa')
 
-        # Plot points for each model
         for idx, row in df.iterrows():
             ax.scatter(row['Model_Name'], row[metric],
-                        c=colors_new[row['Type']],
+                        c=colors_plot[row['Type']],
                         marker=markers_new[row['Type']],
                         s=200 if row['Type'] == 'XGBoost Optimized' else 120,
                         zorder=3,
@@ -120,72 +129,62 @@ def create_performance_evolution(fig, df):
                         alpha=0.9,
                         )
 
-        # Connect feature engineering stages with blue line
         if not feat_eng_df.empty:
             ax.plot(feat_eng_df['Model_Name'], feat_eng_df[metric],
-                    c='#4285F4', linestyle='-', linewidth=3, zorder=2, alpha=0.8)
+                    c=colors_plot['FeatEng Iteration'], linestyle='-', linewidth=3, zorder=2, alpha=0.8)
 
-        # Connect FeatV6 to XGB_Optimized with red dashed line
         if not opt_df.empty and not feat_eng_df.empty:
-            # Find the FeatV6 data
             stage6_data = feat_eng_df[feat_eng_df['Model_Name'] == 'FeatV6']
             if not stage6_data.empty:
-                connect_x = ['FeatV6', 'opt_trial_50']
+                connect_x = ['FeatV6', optimized_model_name] # Use actual optimized model name
                 connect_y = [stage6_data[metric].values[0], opt_df[metric].values[0]]
-                ax.plot(connect_x, connect_y, c='#EA4335', linestyle='-.', linewidth=3, zorder=2, alpha=0.8)
+                ax.plot(connect_x, connect_y, c=colors_plot['XGBoost Optimized'], linestyle='-.', linewidth=3, zorder=2, alpha=0.8)
 
-        # Annotations for certain points without text boxes
-        for model in ['FeatV1', 'FeatV6', 'opt_trial_50']:
-            model_data = df[df['Model_Name'] == model]
+        # Annotations for certain points
+        # Using optimized_model_name for consistency
+        for model_label in ['FeatV1', 'FeatV6', optimized_model_name]:
+            model_data = df[df['Model_Name'] == model_label]
             if not model_data.empty:
                 value = model_data[metric].values[0]
-                color = '#EA4335' if model == 'opt_trial_50' else '#4285F4'
-                
+                # Determine color based on type or specific name
+                model_type = model_data['Type'].values[0]
+                color = colors_plot.get(model_type, IMG_PALETTE['medium_green']) # Default to medium_green
+                if model_label == optimized_model_name:
+                    color = colors_plot['XGBoost Optimized']
+                elif model_type == 'FeatEng Iteration':
+                     color = colors_plot['FeatEng Iteration']
+
+
                 ax.annotate(f'{value:.4f}',
-                           (model, value),
+                           (model_label, value),
                            xytext=(0, 10), textcoords='offset points',
                            ha='center', va='bottom',
                            fontsize=14, fontweight='bold', color=color)
 
-        # Set titles and labels with improved styling
-        title_text = ''
-        if metric == 'FAR':
-            title_text = f'{metric}\n(Lower is better)'
-        else:
-            title_text = f'{metric}\n(Higher is better)'
-        
+        title_text = f'{metric}\n(Higher is better)' if metric != 'FAR' else f'{metric}\n(Lower is better)'
         ax.set_ylabel(title_text, fontsize=20, fontweight='bold', labelpad=35, color='#424242')
 
-        # Set y-axis limits with padding
-        if metric == 'FAR':
-            ymin = max(0, df[metric].min() - 0.05)
-            ymax = min(1, df[metric].max() + 0.05)
-        else:
-            ymin = max(0, df[metric].min() - 0.05)
-            ymax = min(1, df[metric].max() + 0.05)
+        ymin = max(0, df[metric].min() - 0.05)
+        ymax = min(1, df[metric].max() + 0.05)
         ax.set_ylim(ymin, ymax)
-        ylims = ax.get_ylim() # 获取更新后的ylims
-        xlims = ax.get_xlim() # 获取更新后的xlims
+        ylims = ax.get_ylim()
+        xlims = ax.get_xlim()
 
-        # Format grid and ticks
         ax.grid(True, linestyle=':', alpha=0.6, color='#E0E0E0')
         ax.tick_params(axis='y', which='major', labelsize=18, colors='#424242')
         ax.tick_params(axis='x', which='major', labelsize=22, colors='#424242')
 
-        # 为X轴标签上色
         x_labels = ax.get_xticklabels()
         for label in x_labels:
-            model_name = label.get_text()
-            model_type = df[df['Model_Name'] == model_name]['Type'].values[0] if model_name in df['Model_Name'].values else ''
-            if model_type:
-                label.set_color(colors_new[model_type])
+            model_name_tick = label.get_text()
+            model_type_tick_series = df[df['Model_Name'] == model_name_tick]['Type']
+            if not model_type_tick_series.empty:
+                model_type_tick = model_type_tick_series.values[0]
+                label.set_color(colors_plot[model_type_tick])
                 label.set_fontweight('bold')
             
-        # Rotate x-tick labels with improved alignment
         plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
         
-        # 添加带箭头的坐标轴
-        # 隐藏默认坐标轴
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_color('#424242')
@@ -193,257 +192,198 @@ def create_performance_evolution(fig, df):
         ax.spines['bottom'].set_linewidth(2)
         ax.spines['left'].set_linewidth(2)
         
-        arrow_color = colors_new['FeatEng Iteration'] # Google Blue for arrows
-        
-        # 定义箭头属性
-        # headlength 和 headwidth 控制箭头头部的大小 (单位: points)
-        # width 控制箭头线的宽度 (单位: points)
-        arrow_props = dict(facecolor=arrow_color, edgecolor=arrow_color,
-                           width=1.5, headwidth=10, headlength=12, # 调整了头部大小
-                           shrinkA=0, shrinkB=0) # shrinkA/B=0 确保箭头紧密连接
+        arrow_color_ax = colors_plot['FeatEng Iteration']
+        arrow_props = dict(facecolor=arrow_color_ax, edgecolor=arrow_color_ax,
+                           width=1.5, headwidth=10, headlength=12,
+                           shrinkA=0, shrinkB=0)
 
-        # x_ticks_pos = ax.get_xticks() # 不再直接使用ticks位置来确定箭头末端
+        ax.annotate('', xy=(xlims[1], ylims[0]), xytext=(-arrow_props['headlength'], 0),
+                    textcoords='offset points', arrowprops=arrow_props, xycoords='data', clip_on=False)
+        ax.annotate('', xy=(xlims[0], ylims[1]), xytext=(0, -arrow_props['headlength']),
+                    textcoords='offset points', arrowprops=arrow_props, xycoords='data', clip_on=False)
 
-        # X-轴箭头: 尖端在x轴的末端（最大x值）和y轴的起点（最小y值）
-        # 尾部从尖端向左偏移 headlength points
-        ax.annotate('',
-                    xy=(xlims[1], ylims[0]),  # 箭头尖端 (数据坐标: x轴最大值, y轴最小值)
-                    xytext=(-arrow_props['headlength'], 0),  # 箭头尾部相对尖端的偏移 (points)
-                    textcoords='offset points',  # xytext 的坐标系
-                    arrowprops=arrow_props,
-                    xycoords='data',  # xy 的坐标系
-                    clip_on=False)
-
-        # Y-轴箭头: 尖端在x轴的起点（最小x值）和y轴的末端（最大y值）
-        # 尾部从尖端向下偏移 headlength points
-        ax.annotate('',
-                    xy=(xlims[0], ylims[1]),  # 箭头尖端 (数据坐标: x轴最小值, y轴最大值)
-                    xytext=(0, -arrow_props['headlength']),  # 箭头尾部相对尖端的偏移 (points)
-                    textcoords='offset points',  # xytext 的坐标系
-                    arrowprops=arrow_props,
-                    xycoords='data',  # xy 的坐标系
-                    clip_on=False)
-
-    # Create a custom legend with improved styling
     legend_elements = [
-        Line2D([0], [0], marker='o', color='w', markerfacecolor=colors_new['Baseline Product'], 
+        Line2D([0], [0], marker='o', color='w', markerfacecolor=colors_plot['Baseline Product'], 
                markersize=15, label='Baseline Products', markeredgecolor='white', markeredgewidth=1),
-        Line2D([0], [0], marker='D', color='w', markerfacecolor=colors_new['FeatEng Iteration'], 
+        Line2D([0], [0], marker='D', color='w', markerfacecolor=colors_plot['FeatEng Iteration'], 
                markersize=15, label='Feature Engineering', markeredgecolor='white', markeredgewidth=1),
-        Line2D([0], [0], marker='*', color='w', markerfacecolor=colors_new['XGBoost Optimized'], 
-               markersize=20, label='Optimized Model (50 trials)', markeredgecolor='black', markeredgewidth=1.5),
-        Line2D([0], [0], color=colors_new['FeatEng Iteration'], linestyle='-', linewidth=3, label='FeatEng Evolution'),
-        Line2D([0], [0], color=colors_new['XGBoost Optimized'], linestyle='-.', linewidth=3, label='Optimization Improvement')
+        Line2D([0], [0], marker='*', color='w', markerfacecolor=colors_plot['XGBoost Optimized'], 
+               markersize=20, label='Optimized Model (50 trials)', markeredgecolor='black', markeredgewidth=1.5), # Kept "50 trials" as per original
+        Line2D([0], [0], color=colors_plot['FeatEng Iteration'], linestyle='-', linewidth=3, label='FeatEng Evolution'),
+        Line2D([0], [0], color=colors_plot['XGBoost Optimized'], linestyle='-.', linewidth=3, label='Optimization Improvement')
     ]
 
-    fig.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, 0.06),
+    fig.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, 0.08),
               fancybox=True, shadow=True, ncol=3, fontsize=18,
               framealpha=0.95, edgecolor='#424242', borderpad=1.2, handletextpad=1.0)
 
-    # 将总图标题移到最上面，使用谷歌蓝
     fig.suptitle('Model Performance Evolution Across Development Stages', 
-                 fontsize=26, y=0.98, fontweight='bold', color='#4285F4',
-                 bbox=dict(boxstyle="round,pad=0.6", fc='#E8F0FE', ec='#4285F4', alpha=0.8))
+                 fontsize=26, x= 0.56, y=0.92, fontweight='bold', color=IMG_PALETTE['medium_green']) # Changed title color
 
-    # 调整subplots_adjust参数以获得更好的布局
     plt.subplots_adjust(left=0.18, bottom=0.20, right=0.95, top=0.88, wspace=0.45, hspace=0.10)
-
     return fig
 
 def create_radar_chart(ax, df):
     """创建雷达图比较"""
-    # 选择要在雷达图中显示的模型
-    selected_models = ['IMERG', 'SM2RAIN', 'FeatV1', 'FeatV6', 'opt_trial_50']
+    opt_df = df[df['Type'] == 'XGBoost Optimized']
+    optimized_model_name = opt_df['Model_Name'].iloc[0] if not opt_df.empty else 'opt_trial_322'
+
+    selected_models = ['IMERG', 'SM2RAIN', 'FeatV1', 'FeatV6', optimized_model_name]
     radar_df = df[df['Model_Name'].isin(selected_models)].copy()
 
-    # 定义指标并创建1-FAR列
     metrics = ['Accuracy', 'POD', '1-FAR', 'CSI']
     radar_df['1-FAR'] = 1 - radar_df['FAR']
 
-    # Google风格配色方案
-    colors_new = {
-        'IMERG': '#616161',       # 深灰色 (Baseline)
-        'SM2RAIN': '#616161',     # 深灰色 (Baseline)
-        'FeatV1': '#4285F4',      # 谷歌蓝 (FeatEng初始)
-        'FeatV6': '#4285F4',      # 谷歌蓝 (FeatEng最终)
-        'opt_trial_50': '#EA4335' # 谷歌红 (优化模型)
+    # New image-based配色方案 for radar
+    radar_model_colors = {
+        'IMERG': IMG_PALETTE['muted_blue'],
+        'SM2RAIN': IMG_PALETTE['dark_blue'], 
+        'FeatV1': IMG_PALETTE['light_green'],
+        'FeatV6': IMG_PALETTE['medium_green'],
+        optimized_model_name: IMG_PALETTE['orange']
     }
     
-    # 定义不同模型的线条样式
     line_styles = {
-        'IMERG': ':',
-        'SM2RAIN': '--',
-        'FeatV1': '-.',
-        'FeatV6': '-',
-        'opt_trial_50': '-'
+        'IMERG': ':', 'SM2RAIN': '--', 'FeatV1': '-.', 'FeatV6': '-',
+        optimized_model_name: '-'
     }
-    
-    # 线宽
     line_widths = {
-        'IMERG': 2.0,
-        'SM2RAIN': 2.0,
-        'FeatV1': 2.0,
-        'FeatV6': 2.5,
-        'opt_trial_50': 3.0
+        'IMERG': 2.0, 'SM2RAIN': 2.0, 'FeatV1': 2.0, 'FeatV6': 2.5,
+        optimized_model_name: 3.0
     }
-    
-    # 模型显示名称
     display_names = {
-        'IMERG': 'IMERG (Baseline)',
-        'SM2RAIN': 'SM2RAIN (Baseline)',
-        'FeatV1': 'Initial FeatEng (V1)',
-        'FeatV6': 'Final FeatEng (V6)',
-        'opt_trial_50': 'Optimized Model'
+        'IMERG': 'IMERG (Baseline)', 'SM2RAIN': 'SM2RAIN (Baseline)',
+        'FeatV1': 'Initial FeatEng (V1)', 'FeatV6': 'Final FeatEng (V6)',
+        optimized_model_name: 'Optimized Model'
     }
 
-    # 指标数量
     N = len(metrics)
-
-    # 各指标角度（弧度制）
     angles = np.linspace(0, 2*np.pi, N, endpoint=False).tolist()
-    angles += angles[:1]  # 闭合图形
+    angles += angles[:1]
 
-    # 设置背景颜色为浅灰色，增强可读性
     ax.set_facecolor('#f8f9fa')
-    
-    # 设置图表
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
-
-    # 设置标签
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(metrics, fontsize=20, fontweight='bold', color='#424242')
-
-    # 设置指标范围和网格
     ax.set_ylim(0, 1)
     ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_yticklabels(['0.2', '0.4', '0.6', '0.8', '1.0'], fontsize=18, color='#424242')
-    
-    # 添加网格线优化
     ax.grid(True, linestyle=':', alpha=0.6, color='#E0E0E0')
 
-    # 绘制每个模型
-    for model in selected_models:
-        model_data = radar_df[radar_df['Model_Name'] == model]
-        values = model_data[metrics].values.flatten().tolist()
-        values += values[:1]  # 闭合图形
-
-        # 绘制线条
-        ax.plot(angles, values, linewidth=line_widths[model], linestyle=line_styles[model],
-                color=colors_new[model], label=display_names[model], alpha=0.9)
+    for model_key in selected_models: # Use model_key to iterate selected_models
+        if model_key not in radar_df['Model_Name'].values: continue # Skip if model not in data
+        model_data = radar_df[radar_df['Model_Name'] == model_key]
+        if model_data.empty: continue # Should not happen if selected_models are in radar_df
         
-        # 填充区域
-        ax.fill(angles, values, alpha=0.15, color=colors_new[model])
+        values = model_data[metrics].values.flatten().tolist()
+        values += values[:1]
 
-    # 美化雷达图框架
-    # 隐藏框架线条
+        ax.plot(angles, values, linewidth=line_widths[model_key], linestyle=line_styles[model_key],
+                color=radar_model_colors[model_key], label=display_names[model_key], alpha=0.9)
+        ax.fill(angles, values, alpha=0.15, color=radar_model_colors[model_key])
+
     ax.spines['polar'].set_visible(False)
     
-    # 创建一个带样式的图例
-    legend_elements = []
-    for model in selected_models:
-        legend_elements.append(
-            Line2D([0], [0], color=colors_new[model], linestyle=line_styles[model], 
-                  linewidth=line_widths[model], label=display_names[model])
-        )
+    legend_elements_radar = []
+    for model_key in selected_models:
+        if model_key in display_names: # Ensure key exists
+            legend_elements_radar.append(
+                Line2D([0], [0], color=radar_model_colors[model_key], linestyle=line_styles[model_key], 
+                      linewidth=line_widths[model_key], label=display_names[model_key])
+            )
     
-    # 添加图例
-    ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(0.15, 0.15),
+    ax.legend(handles=legend_elements_radar, loc='upper right', bbox_to_anchor=(0.15, 0.15),
              fancybox=True, shadow=True, fontsize=18, framealpha=0.95, 
              edgecolor='#424242', borderpad=1.2)
 
-    # 添加标题
     ax.set_title('Radar Chart Model Comparison', 
-                fontsize=26, fontweight='bold', color='#4285F4', pad=20,
-                bbox=dict(boxstyle="round,pad=0.6", fc='#E8F0FE', ec='#4285F4', alpha=0.8))
+                fontsize=26, fontweight='bold', color=IMG_PALETTE['medium_green'], pad=20, # Changed title color
+                bbox=dict(boxstyle="round,pad=0.6", fc=IMG_PALETTE['light_blue'], ec=IMG_PALETTE['medium_green'], alpha=0.8)) # Changed bbox colors
 
-    # 添加说明文本
     plt.figtext(0.5, 0.02, 'Note: 1-FAR is used to make all metrics follow "higher is better" principle',
                ha='center', fontsize=18, style='italic', color='#424242',
-               bbox=dict(boxstyle="round,pad=0.3", fc="#E8F0FE", ec="#4285F4", alpha=0.7))
+               bbox=dict(boxstyle="round,pad=0.3", fc=IMG_PALETTE['light_blue'], ec=IMG_PALETTE['medium_green'], alpha=0.7)) # Changed bbox colors
 
     return ax
 
 def create_heatmap(ax, df):
     """创建热力图"""
-    # 选择要显示的模型
+    opt_df = df[df['Type'] == 'XGBoost Optimized']
+    optimized_model_name = opt_df['Model_Name'].iloc[0] if not opt_df.empty else 'opt_trial_322'
+
     model_order = [
-        'CHIRPS', 'CMORPH', 'PERSIANN', 'GSMAP', 'IMERG', 'SM2RAIN',  # Baseline
-        'FeatV1', 'FeatV6',  # Feature Engineering
-        'opt_trial_50'  # Optimized
+        'CHIRPS', 'CMORPH', 'PERSIANN', 'GSMAP', 'IMERG', 'SM2RAIN',
+        'FeatV1', 'FeatV6',
+        optimized_model_name 
     ]
     metrics = ['Accuracy', 'POD', 'FAR', 'CSI']
     
-    # 筛选并排序数据
     heatmap_df = df[df['Model_Name'].isin(model_order)].copy()
-    heatmap_df['order'] = heatmap_df['Model_Name'].map({m: i for i, m in enumerate(model_order)})
+    # Ensure correct order if some models are missing from df
+    heatmap_df['order'] = pd.Categorical(heatmap_df['Model_Name'], categories=model_order, ordered=True)
     heatmap_df = heatmap_df.sort_values('order')
-    
-    # 准备热图数据
-    heatmap_data = pd.DataFrame(index=heatmap_df['Model_Name'])
+        
+    heatmap_data = pd.DataFrame(index=heatmap_df['Model_Name']) # Use already sorted model names
     for metric in metrics:
-        heatmap_data[metric] = heatmap_df.set_index('Model_Name')[metric]
+        heatmap_data[metric] = heatmap_df.set_index('Model_Name')[metric].reindex(heatmap_df['Model_Name'])
 
-    # 为了可视化效果，创建归一化数据
+
     heatmap_norm = heatmap_data.copy()
     for col in metrics:
-        if col == 'FAR':  # FAR是越低越好
-            heatmap_norm[col] = (heatmap_data[col].max() - heatmap_data[col]) / (heatmap_data[col].max() - heatmap_data[col].min())
-        else:  # 其他指标是越高越好
-            heatmap_norm[col] = (heatmap_data[col] - heatmap_data[col].min()) / (heatmap_data[col].max() - heatmap_data[col].min())
+        min_val = heatmap_data[col].min()
+        max_val = heatmap_data[col].max()
+        if max_val == min_val: # Avoid division by zero if all values are same
+             heatmap_norm[col] = 0.5 # or 0 or 1, depending on desired representation
+        elif col == 'FAR':
+            heatmap_norm[col] = (max_val - heatmap_data[col]) / (max_val - min_val)
+        else:
+            heatmap_norm[col] = (heatmap_data[col] - min_val) / (max_val - min_val)
 
-    # 设置背景颜色
+
     ax.set_facecolor('#f8f9fa')
     
-    # 定义颜色映射
-    cmap = sns.diverging_palette(10, 150, as_cmap=True)  # 使用蓝到红的渐变色
+    # Changed cmap to be green-based, as "greener is better"
+    cmap_heatmap = sns.light_palette(IMG_PALETTE['medium_green'], as_cmap=True) 
     
-    # 绘制热图
-    sns.heatmap(heatmap_norm, annot=heatmap_data, fmt=".4f", cmap=cmap,
+    sns.heatmap(heatmap_norm, annot=heatmap_data, fmt=".4f", cmap=cmap_heatmap,
                 linewidths=2, linecolor='white', cbar=True, ax=ax,
                 annot_kws={"size": 18, "weight": "bold", "color": "#424242"})
     
-    # 设置坐标轴标签样式
-    ax.set_ylabel('', fontsize=0)  # 不显示y轴标签
-    ax.set_xlabel('', fontsize=0)  # 不显示x轴标签
+    ax.set_ylabel('', fontsize=0)
+    ax.set_xlabel('', fontsize=0)
     
-    # 自定义y轴标签颜色
     y_labels = ax.get_yticklabels()
     for label in y_labels:
-        model_name = label.get_text()
-        if model_name in ['CHIRPS', 'CMORPH', 'PERSIANN', 'GSMAP', 'IMERG', 'SM2RAIN']:
-            label.set_color('#EA4335')  # 红色代表基线模型
-        elif model_name in ['FeatV1', 'FeatV6']:
-            label.set_color('#4285F4')  # 蓝色代表特征工程模型
-        elif model_name == 'opt_trial_50':
-            label.set_color('#616161')  # 灰色代表优化模型
-
+        model_name_heatmap = label.get_text()
+        if model_name_heatmap in ['CHIRPS', 'CMORPH', 'PERSIANN', 'GSMAP', 'IMERG', 'SM2RAIN']:
+            label.set_color(IMG_PALETTE['muted_blue']) # Baseline color
+        elif model_name_heatmap in ['FeatV1', 'FeatV6']:
+            label.set_color(IMG_PALETTE['medium_green']) # FeatEng color
+        elif model_name_heatmap == optimized_model_name:
+            label.set_color(IMG_PALETTE['orange']) # Optimized color
         label.set_rotation(0)
         label.set_fontweight('bold')
         label.set_fontsize(20)
     
-    # 自定义x轴标签样式
     x_labels = ax.get_xticklabels()
     for label in x_labels:
         label.set_fontweight('bold')
         label.set_fontsize(20)
         label.set_color('#424242')
     
-    # 修改colorbar样式
     cbar = ax.collections[0].colorbar
     cbar.ax.tick_params(labelsize=18, colors='#424242')
     cbar.set_label('Normalized Performance\n(greener is better for all metrics)', 
                   fontsize=20, fontweight='bold', color='#424242', labelpad=15)
     
-    # 设置标题
     ax.set_title('Model Performance Metrics Comparison', 
-                fontsize=26, fontweight='bold', color='#4285F4', pad=20)
+                fontsize=26, fontweight='bold', color=IMG_PALETTE['medium_green'], pad=20) # Changed title color
     
-    # 添加说明注释
     ax.annotate('Note: For FAR, color scale is inverted (greener = better performance)',
                xy=(0.5, -0.15), xycoords='axes fraction',
                ha='center', va='center', fontsize=18, style='italic', color='#424242',
-               bbox=dict(boxstyle="round,pad=0.3", fc="#E8F0FE", ec="#4285F4", alpha=0.7))
+               bbox=dict(boxstyle="round,pad=0.3", fc=IMG_PALETTE['light_blue'], ec=IMG_PALETTE['medium_green'], alpha=0.7)) # Changed bbox colors
     
     return ax
 
@@ -451,19 +391,25 @@ def create_heatmap(ax, df):
 def create_visualization():
     """创建独立的图表而不是使用subplot"""
 
-    # 1. 创建性能演变线图
     print("正在创建性能演变线图...")
     evolution_fig = create_performance_evolution(None, df)
     evolution_fig.savefig('performance_evolution.png', dpi=300, bbox_inches='tight')
 
+    # Note: The original create_visualization did not call create_radar_chart.
+    # If you want to generate it, you can add:
+    # print("正在创建雷达图...")
+    # radar_fig = plt.figure(figsize=(12, 12)) # Adjust size as needed
+    # ax_radar = radar_fig.add_subplot(111, polar=True)
+    # create_radar_chart(ax_radar, df)
+    # radar_fig.savefig('model_metrics_radar.png', dpi=300, bbox_inches='tight')
 
-    # 3. 创建热力图
+
     print("正在创建热力图...")
-    heatmap_fig = plt.figure(figsize=(12, 10))
+    heatmap_fig = plt.figure(figsize=(16, 12)) # Adjusted figsize for better label fit
     ax_heatmap = heatmap_fig.add_subplot(111)
     create_heatmap(ax_heatmap, df)
-    plt.tight_layout(pad=2.0)
-    plt.savefig('model_metrics_heatmap.png', dpi=300, bbox_inches='tight')
+    # plt.tight_layout(pad=2.0) # tight_layout might conflict with suptitle/legend, or bbox_inches='tight'
+    heatmap_fig.savefig('model_metrics_heatmap.png', dpi=300, bbox_inches='tight')
 
 
     print("所有图表已创建完成并保存。")

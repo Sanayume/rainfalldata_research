@@ -79,14 +79,14 @@ else:
     plt.rcParams['figure.titlesize'] = 20
     plt.rcParams['figure.dpi'] = 100 # 显示的DPI，保存时使用更高的DPI
 
-    # 定义Google风格的配色方案
-    colors_google = {
-        'blue': '#4285F4',    # Google蓝
-        'red': '#EA4335',     # Google红
-        'yellow': '#FBBC05',  # Google黄
-        'green': '#34A853',   # Google绿
-        'grey': '#616161',    # Google深灰
-        'light_grey': '#E0E0E0'  # 网格线的浅灰色
+    # 定义新的配色方案
+    IMG_PALETTE = {
+        'light_green': '#B8DBB3',
+        'medium_green': '#72B063',
+        'muted_blue': '#719AAC',
+        'orange': '#E29135',
+        'light_blue': '#94C6CD',
+        'dark_blue': '#4A5F7E'
     }
 
     if not df_trials.empty:
@@ -95,21 +95,21 @@ else:
         plt.figure(figsize=(12, 7))
         
         # 设置浅灰色背景以提高可读性
-        plt.gca().set_facecolor('#f8f9fa')
+        plt.gca().set_facecolor('#f8f9fa') # Keeping this as it's not from colors_google
         
-        # 绘制每个试验的目标值（灰色）
-        plt.plot(df_trials['trial'], df_trials['value'], marker='o', linestyle='-', 
-                 color=colors_google['grey'], alpha=0.6, label='Trial Values', zorder=1)
+        # 绘制每个试验的目标值
+        plt.plot(df_trials['trial'], df_trials['value'], marker='o', linestyle='-',
+                 color=IMG_PALETTE['muted_blue'], alpha=0.6, label='Trial Values', zorder=1)
         
-        # 绘制到目前为止的最佳值（Google红色）
-        plt.plot(df_trials['trial'], df_trials['best_value_progressive'], marker='.', linestyle='-', 
-                 color=colors_google['red'], linewidth=2, label='Best Value So Far', zorder=2)
+        # 绘制到目前为止的最佳值
+        plt.plot(df_trials['trial'], df_trials['best_value_progressive'], marker='.', linestyle='-',
+                 color=IMG_PALETTE['orange'], linewidth=2, label='Best Value So Far', zorder=2)
 
         # 突出显示总体最佳试验点
         best_trial_overall_idx = df_trials['value'].idxmax()
         best_trial_overall = df_trials.loc[best_trial_overall_idx]
         plt.scatter(best_trial_overall['trial'], best_trial_overall['value'],
-                    color=colors_google['yellow'], s=200, edgecolor='black', zorder=3, 
+                    color=IMG_PALETTE['medium_green'], s=200, edgecolor='black', zorder=3,
                     label=f"Best Overall (Trial {best_trial_overall['trial']:.0f})")
         
         # 为最佳点添加值注释
@@ -117,21 +117,20 @@ else:
                     xy=(best_trial_overall['trial'], best_trial_overall['value']),
                     xytext=(0, 10), textcoords='offset points',
                     ha='center', va='bottom',
-                    fontsize=30, fontweight='bold', color=colors_google['red'])
+                    fontsize=30, fontweight='bold', color=IMG_PALETTE['orange'])
 
         # 坐标轴标签和标题
-        plt.xlabel("Trial Number", fontsize=30, fontweight='bold', labelpad=10, color='#424242')
-        plt.ylabel("AUC (Accuracy)", fontsize=30, fontweight='bold', labelpad=10, color='#424242')
+        plt.xlabel("Trial Number", fontsize=30, fontweight='bold', labelpad=10, color='#424242') # Keeping #424242
+        plt.ylabel("AUC (Accuracy)", fontsize=30, fontweight='bold', labelpad=10, color='#424242') # Keeping #424242
         
-        # 添加Google风格的标题框（蓝色圆角矩形）
-        plt.title("Hyperparameter Optimization History", fontweight='bold', color=colors_google['blue'], fontsize=30, pad=20, horizontalalignment='center') #解释各个参数 : 
+        plt.title("Hyperparameter Optimization History", fontweight='bold', color=IMG_PALETTE['dark_blue'], fontsize=30, pad=20, horizontalalignment='center')
 
         # 自定义图例样式
-        plt.legend(frameon=True, loc='lower right', facecolor='white', framealpha=0.95, 
-                   edgecolor='#424242', borderpad=1.0, handletextpad=1.0, fontsize=20)
+        plt.legend(frameon=True, loc='lower right', facecolor='white', framealpha=0.95,
+                   edgecolor='#424242', borderpad=1.0, handletextpad=1.0, fontsize=20) # Keeping #424242
         
         # 网格样式
-        plt.grid(True, linestyle=':', alpha=0.6, color=colors_google['light_grey'])
+        plt.grid(True, linestyle=':', alpha=0.6, color=IMG_PALETTE['light_green']) # Using a light color from new palette
         
         # 移除顶部和右侧边框
         sns.despine()
@@ -145,14 +144,14 @@ else:
         ylims = plt.gca().get_ylim()
         
         # 添加坐标轴箭头
-        arrow_props = dict(facecolor=colors_google['blue'], edgecolor=colors_google['blue'],
+        arrow_props = dict(facecolor=IMG_PALETTE['dark_blue'], edgecolor=IMG_PALETTE['dark_blue'],
                            width=1.5, headwidth=10, headlength=12,
                            shrinkA=0, shrinkB=0)
         
         # X轴箭头
         plt.annotate('',
-                    xy=(xlims[1], ylims[0]),  # 箭头尖端
-                    xytext=(-arrow_props['headlength'], 0),  # 相对于尖端的箭头尾部偏移
+                    xy=(xlims[1], ylims[0]),
+                    xytext=(-arrow_props['headlength'], 0),
                     textcoords='offset points',
                     arrowprops=arrow_props,
                     xycoords='data',
@@ -160,8 +159,8 @@ else:
         
         # Y轴箭头
         plt.annotate('',
-                    xy=(xlims[0], ylims[1]),  # 箭头尖端
-                    xytext=(0, -arrow_props['headlength']),  # 相对于尖端的箭头尾部偏移
+                    xy=(xlims[0], ylims[1]),
+                    xytext=(0, -arrow_props['headlength']),
                     textcoords='offset points',
                     arrowprops=arrow_props,
                     xycoords='data',
@@ -170,18 +169,6 @@ else:
         plt.tight_layout()
         plt.savefig("optuna_optimization_history.png", dpi=300)
         plt.show()
-        # plt.savefig("optuna_optimization_history.png", dpi=300) # 保存第一个图
-        # plt.show() # 显示第一个图
-
-        plt.show()
-        # plt.savefig("optuna_optimization_history.png", dpi=300) # 保存第一个图
-        # plt.show() # 显示第一个图
-
-        plt.savefig("optuna_optimization_history.png", dpi=300)
-        plt.show()
-        # plt.savefig("optuna_optimization_history.png", dpi=300) # 保存第一个图
-        # plt.show() # 显示第一个图
-
         # --- 2. 超参数平行坐标图 (Matplotlib) ---
         if not hyperparameters:
             print("没有识别出超参数，无法创建平行坐标图。")
@@ -206,10 +193,10 @@ else:
 
             # --- 线条样式 ---
             default_linewidth = 0.8
-            best_linewidth = 2.6
+            best_linewidth = 4.5
             default_alpha = 0.45
             best_alpha = 0.95
-            best_line_color = colors_google['red'] if 'colors_google' in locals() and isinstance(colors_google, dict) and 'red' in colors_google else '#E53935' # 更鲜明的红色
+            best_line_color = IMG_PALETTE['orange']
 
             # --- 辅助函数：格式化数值用于坐标轴标注 ---
             def format_axis_value_display(value, num_decimals=2):
@@ -346,18 +333,71 @@ else:
                 if hyperparam_cols_data.isnull().all().all() and len(hyperparam_cols_data.columns) > 0 :
                      print("所有超参数维度的数据都为空，无法创建有意义的平行坐标图。")
                 else:
-                    fig_par_coords_mpl, ax_mpl = plt.subplots(figsize=(max(12, len(dimension_info_mpl) * 2.0 + 2), 10.5)) # Adjusted width factor and height
+                    # 增加每个维度的宽度因子，例如从 2.0 改为 2.8
+                    # 基础宽度也可以适当调整，例如从 12 改为 14 (如果维度较少时也希望更宽)
+                    # 加号后面的固定值也可以调整，比如从 +2 改为 +3，给左右留出更多空间
+                    fig_width = max(14, len(dimension_info_mpl) * 2.8 + 3)
+                    fig_par_coords_mpl, ax_mpl = plt.subplots(figsize=(fig_width, 10.5)) # Adjusted width factor and height
                     
-                    cmap_mpl = plt.get_cmap('cividis') # Changed colormap
+                    # 将颜色映射更改为从蓝色到绿色
+                    # Matplotlib 的 'BuGn' 颜色映射：低值为蓝色，高值为绿色。
+                    cmap_mpl = 'BuGn' 
+                    # 或者，如果您想从 IMG_PALETTE 自定义一个蓝到绿的序列:
+                    # blue_to_green_palette = [
+                    #     IMG_PALETTE['dark_blue'],      # 例如，深蓝
+                    #     IMG_PALETTE['muted_blue'],     # 中间蓝
+                    #     IMG_PALETTE['light_blue'],     # 浅蓝
+                    #     IMG_PALETTE['light_green'],    # 浅绿
+                    #     IMG_PALETTE['medium_green']    # 中等绿
+                    # ]
+                    # cmap_mpl = matplotlib.colors.LinearSegmentedColormap.from_list(
+                    #    "custom_blue_green_cmap", blue_to_green_palette
+                    # )
                     
                     valid_objectives = original_objective_values_mpl.dropna() if pd.api.types.is_numeric_dtype(original_objective_values_mpl) else pd.Series(dtype=float)
                     norm_mpl, sm_mpl = None, None
-                    if not valid_objectives.empty and valid_objectives.min() < valid_objectives.max(): # Ensure range for norm
-                        norm_mpl = matplotlib.colors.Normalize(vmin=valid_objectives.min(), vmax=valid_objectives.max())
-                        sm_mpl = matplotlib.cm.ScalarMappable(cmap=cmap_mpl, norm=norm_mpl)
-                        sm_mpl.set_array([])
+                    if not valid_objectives.empty: # Ensure range for norm
+                        # --- 在这里修改颜色条的范围 ---
+                        # 假设您期望的范围是 0.8 到 1.0
+                        desired_vmin_auc = 0.92  # 您期望的最小值
+                        desired_vmax_auc = 1.0  # 您期望的最大值
+                        
+                        current_min_auc = valid_objectives.min()
+                        current_max_auc = valid_objectives.max()
+
+                        # 使用您指定的期望值来设定颜色条的显示和归一化范围
+                        vmin_for_norm = desired_vmin_auc
+                        vmax_for_norm = desired_vmax_auc
+
+                        # Matplotlib的Normalize会自动处理vmin > vmax的情况，
+                        # 但为了清晰，建议直接设置 vmin_for_norm <= vmax_for_norm
+                        if vmin_for_norm > vmax_for_norm: # 如果不小心设反了，这里可以交换一下
+                            vmin_for_norm, vmax_for_norm = vmax_for_norm, vmin_for_norm
+                        
+                        # 如果原始数据中所有值都相同 (current_min_auc == current_max_auc)
+                        # 或者数据范围与期望范围完全不符，Normalize仍会基于 vmin_for_norm, vmax_for_norm 工作
+                        # 但如果 vmin_for_norm == vmax_for_norm，所有值会映射到单一颜色
+                        
+                        if current_min_auc < current_max_auc or (current_min_auc == current_max_auc and not pd.isna(current_min_auc)): # 确保有有效值可以归一化或至少有一个固定值
+                             norm_mpl = matplotlib.colors.Normalize(vmin=vmin_for_norm, vmax=vmax_for_norm)
+                        else: # 处理所有目标值都为NaN或类似极端情况
+                             # 这种情况下，颜色条可能不会很有意义，或者可以设置一个默认的回退范围
+                             print("警告: 目标值数据不足以确定有效的归一化范围，或与期望范围冲突。将使用期望范围或默认行为。")
+                             norm_mpl = matplotlib.colors.Normalize(vmin=vmin_for_norm, vmax=vmax_for_norm)
+
+
+                        # 原来的代码:
+                        # norm_mpl = matplotlib.colors.Normalize(vmin=valid_objectives.min(), vmax=valid_objectives.max())
+                        
+                        if norm_mpl: # 确保 norm_mpl 被成功创建
+                            sm_mpl = matplotlib.cm.ScalarMappable(cmap=cmap_mpl, norm=norm_mpl)
+                            sm_mpl.set_array([])
                     elif not valid_objectives.empty: # All objectives are the same
                          print("警告: 所有有效目标值相同，将使用单一颜色（最优试验除外）。")
+                         # 即使所有值相同，也可能需要一个norm来使colorbar显示正确的单一值
+                         norm_mpl = matplotlib.colors.Normalize(vmin=valid_objectives.iloc[0], vmax=valid_objectives.iloc[0])
+                         sm_mpl = matplotlib.cm.ScalarMappable(cmap=cmap_mpl, norm=norm_mpl)
+                         sm_mpl.set_array([])
 
 
                     for i in range(len(df_trials)):
@@ -366,15 +406,30 @@ else:
                             if y_values_mpl_series.isnull().all(): continue
 
                             obj_val_for_color = original_objective_values_mpl.iloc[i] if i < len(original_objective_values_mpl) else np.nan
-                            current_color, current_lw, current_alpha, current_zorder = 'lightgrey', default_linewidth, default_alpha, 1
-
-                            if norm_mpl and not pd.isna(obj_val_for_color):
-                                current_color = cmap_mpl(norm_mpl(obj_val_for_color))
-                            elif not valid_objectives.empty and valid_objectives.min() == valid_objectives.max() and not pd.isna(obj_val_for_color): # single AUC case
-                                current_color = cmap_mpl(0.5) # middle of colormap
                             
+                            # 设置默认颜色和样式
+                            current_color = IMG_PALETTE['light_green'] # 默认颜色以防其他条件不满足
+                            current_lw = default_linewidth
+                            current_alpha = default_alpha
+                            current_zorder = 1
+
+                            if sm_mpl and not pd.isna(obj_val_for_color):
+                                if not valid_objectives.empty and valid_objectives.min() == valid_objectives.max():
+                                    # 如果所有有效目标值都相同，使用颜色映射的中间颜色
+                                    # 这对应于原先 cmap_mpl(0.5) 的意图
+                                    _actual_cmap_object = matplotlib.cm.get_cmap(cmap_mpl) # cmap_mpl 是 'BuGn' 字符串
+                                    current_color = _actual_cmap_object(0.5)
+                                else:
+                                    # 正常情况：通过 ScalarMappable 获取颜色
+                                    current_color = sm_mpl.to_rgba(obj_val_for_color)
+                            # 如果 sm_mpl 为 None 或 obj_val_for_color 为 NaN，则 current_color 保持为默认值
+
+                            # 高亮最佳试验
                             if i == best_trial_idx and best_trial_idx != -1:
-                                current_color, current_lw, current_alpha, current_zorder = best_line_color, best_linewidth, best_alpha, 10
+                                current_color = best_line_color # 覆盖之前的颜色
+                                current_lw = best_linewidth
+                                current_alpha = best_alpha
+                                current_zorder = 15
                             
                             ax_mpl.plot(range(len(dimension_info_mpl)), y_values_mpl_series.values, 
                                         color=current_color, alpha=current_alpha, linewidth=current_lw, zorder=current_zorder)
@@ -385,24 +440,20 @@ else:
                     xtick_labels_param_names = [info['label_for_plot'] for info in dimension_info_mpl]
                     ax_mpl.set_xticks(range(len(dimension_info_mpl)))
                     
-                    # 设置X轴刻度标签，并对AUC标签进行加粗
                     xtick_objects = ax_mpl.set_xticklabels(xtick_labels_param_names, rotation=40, ha='right', fontsize=xtick_label_fontsize)
                     for tick_label_obj, original_label_text in zip(xtick_objects, xtick_labels_param_names):
                         if original_label_text == 'AUC':
                             tick_label_obj.set_fontweight('bold')
-                            tick_label_obj.set_color(colors_google['red']) # AUC X轴标签为红色
+                            tick_label_obj.set_color(IMG_PALETTE['orange']) 
                         else:
-                            tick_label_obj.set_color(colors_google['blue']) # 其他X轴标签为蓝色
+                            tick_label_obj.set_color(IMG_PALETTE['dark_blue'])
 
-                    # --- 新增：在每条参数轴上标注原始值 ---
                     for idx, info in enumerate(dimension_info_mpl):
                         y_positions_norm = [0.0, 0.5, 1.0]
                         
-                        # Values to display are from original scale
                         val_bottom_orig = info['original_min']
                         val_top_orig = info['original_max']
                         
-                        # Calculate middle original value based on scaled range
                         val_mid_orig = np.nan
                         s_min, s_max = info['scaled_min_for_norm'], info['scaled_max_for_norm']
 
@@ -413,80 +464,70 @@ else:
                                     val_mid_orig = 10**val_at_0_5_scaled
                                 else:
                                     val_mid_orig = val_at_0_5_scaled
-                            else: # min == max for scaled values
-                                val_mid_orig = info['original_min'] # or original_max, they should be the same if scaled are same
-                        elif not pd.isna(info['original_min']): # Fallback if scaled min/max are NaN but original is not
+                            else: 
+                                val_mid_orig = info['original_min']
+                        elif not pd.isna(info['original_min']):
                             val_mid_orig = info['original_min']
-
 
                         original_values_to_label = [val_bottom_orig, val_mid_orig, val_top_orig]
 
                         for norm_y, orig_val in zip(y_positions_norm, original_values_to_label):
                             if not pd.isna(orig_val):
                                 label_text = format_axis_value_display(orig_val)
-                                # 根据轴的标签确定颜色
-                                current_param_axis_value_color = colors_google['blue'] # 默认为蓝色
+                                current_param_axis_value_color = IMG_PALETTE['dark_blue']
                                 if info['label_for_plot'] == 'AUC':
-                                    current_param_axis_value_color = colors_google['red'] # 如果是AUC轴，则为红色
+                                    current_param_axis_value_color = IMG_PALETTE['orange']
                                 
                                 ax_mpl.text(idx + 0.08, norm_y, label_text, 
                                             ha='left', va='center', fontsize=param_axis_tick_fontsize, 
                                             color=current_param_axis_value_color, bbox=dict(facecolor='white', alpha=0.5, pad=0.1, edgecolor='none'))
-                    # --- 结束新增标注 ---
 
                     ax_mpl.set_ylim(-0.05, 1.05)
                     ax_mpl.set_yticks(np.linspace(0, 1, 6))
                     ax_mpl.set_yticklabels([f"{y:.1f}" for y in np.linspace(0, 1, 6)], fontsize=ytick_label_fontsize)
-                    ax_mpl.set_ylabel("Normalized Value", fontsize=axis_label_fontsize, color=colors_google['green'])
-                    for lables in ax_mpl.get_yticklabels():
-                        lables.set_color(colors_google['blue'])
+                    ax_mpl.set_ylabel("Normalized Value", fontsize=axis_label_fontsize, color=IMG_PALETTE['medium_green'])
+                    for lables_ytick in ax_mpl.get_yticklabels(): # Renamed variable to avoid conflict
+                        lables_ytick.set_color(IMG_PALETTE['dark_blue'])
 
-                    # 绘制垂直参数轴线，并加粗AUC轴线
                     default_dim_line_lw = 2
-                    auc_dim_line_lw = 8.0  # AUC轴线的线宽
-                    default_dim_line_color = 'grey'
-                    auc_dim_line_color = 'dimgray' # AUC轴线的颜色，可以更深一些
-
-                    for j_ax_idx in range(len(dimension_info_mpl)):
-                        current_alpha = 1
-                        current_lw = default_dim_line_lw
-                        current_color = colors_google['blue']
-                        # 检查是否为AUC轴 (现在它在dimension_info_mpl的最后一个)
-                        if dimension_info_mpl[j_ax_idx]['label_for_plot'] == 'AUC':
-                            current_alpha = 1
-                            current_lw = auc_dim_line_lw
-                            current_color = colors_google['red']
-                        
-                        ax_mpl.axvline(j_ax_idx, color=current_color, linestyle='-', linewidth=current_lw, alpha=0.6)
+                    auc_dim_line_lw = 8.0
                     
-                    #ax_mpl.grid(True, axis='y', linestyle=':', alpha=0.5)
-
-                    title_color_mpl = colors_google['blue'] if 'colors_google' in locals() and isinstance(colors_google, dict) and 'blue' in colors_google else 'darkblue'
-                    ax_mpl.set_title('Hyperparameters vs AUC', fontsize=title_fontsize, color=title_color_mpl, pad=30) # pad adjusted
+                    for j_ax_idx in range(len(dimension_info_mpl)):
+                        current_lw = default_dim_line_lw
+                        current_color_ax_line = IMG_PALETTE['dark_blue'] # Renamed variable
+                        if dimension_info_mpl[j_ax_idx]['label_for_plot'] == 'AUC':
+                            current_lw = auc_dim_line_lw
+                            current_color_ax_line = IMG_PALETTE['orange']
+                        
+                        ax_mpl.axvline(j_ax_idx, color=current_color_ax_line, linestyle='-', linewidth=current_lw, alpha=0.6)
+                    
+                    title_color_mpl = IMG_PALETTE['dark_blue']
+                    ax_mpl.set_title('Hyperparameters vs AUC', fontsize=title_fontsize, color=title_color_mpl, pad=30)
 
                     if sm_mpl and not valid_objectives.empty and valid_objectives.min() < valid_objectives.max():
-                        cbar_mpl = fig_par_coords_mpl.colorbar(sm_mpl, ax=ax_mpl, pad=0.06, aspect=30, shrink=0.75) 
-                        cbar_mpl.set_label('AUC', fontsize=cbar_label_fontsize, color=colors_google['red'])
-                        cbar_mpl.ax.tick_params(labelsize=cbar_tick_fontsize, color=colors_google['red'])
+                        # 调整 aspect 和 shrink 使 colorbar 更粗更大
+                        cbar_mpl = fig_par_coords_mpl.colorbar(sm_mpl, ax=ax_mpl, pad=0.08, aspect=15, shrink=0.9) 
+                        cbar_mpl.set_label('AUC', fontsize=cbar_label_fontsize, color=IMG_PALETTE['orange'])
+                        cbar_mpl.ax.tick_params(labelsize=cbar_tick_fontsize, colors=IMG_PALETTE['orange'])
                     
                     if best_trial_idx != -1 and best_trial_idx < len(df_trials) and 'value' in df_trials and pd.api.types.is_numeric_dtype(df_trials['value']):
                         best_val_obj = df_trials['value'].loc[best_trial_idx]
                         best_val_str = format_axis_value_display(best_val_obj, 4) if not pd.isna(best_val_obj) else "N/A"
-                        legend_elements = [Line2D([0], [0], color=colors_google['red'], lw=best_linewidth, label=f'Best Trial (Value: {best_val_str})')]
-                        # Adjust legend position dynamically based on figure height and font sizes
-                        # Approximate vertical space needed by rotated x-labels: xtick_label_fontsize * sin(40deg)
-                        # This is complex to get perfect, so using a slightly larger negative offset
+                        legend_elements = [Line2D([0], [0], color=IMG_PALETTE['orange'], lw=best_linewidth, label=f'Best Trial (Value: {best_val_str})')]
                         ax_mpl.legend(handles=legend_elements, loc='upper center', 
-                                      bbox_to_anchor=(0.9, -0.24), # Adjusted y-offset for legend
-                                      fontsize=legend_fontsize, frameon=False, ncol=1, edgecolor=colors_google['red'])
+                                      bbox_to_anchor=(0.9, -0.24),
+                                      fontsize=legend_fontsize, frameon=False, ncol=1, edgecolor=IMG_PALETTE['orange'])
 
-                    plt.subplots_adjust(left=0.07, right=0.93, bottom=0.25, top=0.90) # Adjusted margins
+                    # 根据新的宽度调整左右边距
+                    # 如果图变宽了，可能需要减小 left 或增加 right (如果颜色条在图内部)
+                    # 或者如果颜色条在图外部（通过 pad 控制），主要是调整整体的 tight_layout 或 subplots_adjust
+                    # 假设颜色条是通过 pad 放在右边，我们让左右边距更小一些，给绘图区更多空间
+                    plt.subplots_adjust(left=0.05, right=0.95, bottom=0.25, top=0.90) # 调整 left 和 right
                     
                     plt.savefig("optuna_parallel_coordinates_matplotlib.png", dpi=300, bbox_inches='tight')
                     plt.show()
             else:
                 print("处理后没有足够的有效维度或数据来创建平行坐标图 (Matplotlib)。")
-
 
 
 
@@ -506,23 +547,27 @@ else:
                     # 设置子图背景为Google风格的浅灰色
                     ax.set_facecolor('#f8f9fa')
                     
+                    # 假设您想将颜色范围固定为 0 到 150
+                    desired_vmin = 140
+                    desired_vmax = 150 # 您可以根据需要调整这个值，或者动态获取 df_trials['trial'].max()
+
                     # 使用感知均匀的色图如'viridis'或'plasma'
                     sc = ax.scatter(df_trials[param], df_trials['value'],
                                     c=df_trials['trial'], cmap='viridis', alpha=0.7, s=50,
-                                    edgecolor='white')  # 添加白色边缘以提高可见性
+                                    edgecolor='white', vmin=desired_vmin, vmax=desired_vmax)  # 添加 vmin 和 vmax
 
                     ax.set_xlabel(param, fontsize=30, fontweight='bold', color='#424242')
                     ax.set_ylabel("AUC", fontsize=30, fontweight='bold', color='#424242')
 
                     # 使用Google风格的标题框
-                    ax.set_title(f"AUC vs {param}", fontsize=30, fontweight='bold', color=colors_google['blue'],
-                               bbox=dict(boxstyle="round,pad=0.3", fc='#E8F0FE', ec=colors_google['blue'], alpha=0.7))
+                    ax.set_title(f"AUC vs {param}", fontsize=30, fontweight='bold', color=IMG_PALETTE['dark_blue'],
+                               bbox=dict(boxstyle="round,pad=0.3", fc='#f0f8ff', ec=IMG_PALETTE['dark_blue'], alpha=0.7))
                     
                     if param in log_params: # 对数参数使用对数刻度
                         ax.set_xscale('log')
                     
                     # 设置网格线
-                    ax.grid(True, linestyle=':', alpha=0.6, color=colors_google['light_grey'])
+                    ax.grid(True, linestyle=':', alpha=0.6, color='#d3d3d3') # 使用标准浅灰色
                     
                     # 移除顶部和右侧边框
                     ax.spines['top'].set_visible(False)
@@ -539,7 +584,7 @@ else:
                     ylims = ax.get_ylim()
                     
                     # 添加坐标轴箭头
-                    arrow_props = dict(facecolor=colors_google['blue'], edgecolor=colors_google['blue'],
+                    arrow_props = dict(facecolor=IMG_PALETTE['dark_blue'], edgecolor=IMG_PALETTE['dark_blue'],
                                       width=1.5, headwidth=8, headlength=10,
                                       shrinkA=0, shrinkB=0)
                     
@@ -573,8 +618,8 @@ else:
 
             # 添加Google风格的总体标题
             plt.suptitle("AUC vs Hyperparameters", fontsize=22, fontweight='bold', y=1.03 if rows > 1 else 1.05,
-                        color=colors_google['blue'],
-                        bbox=dict(boxstyle="round,pad=0.6", fc='#E8F0FE', ec=colors_google['blue'], alpha=0.8))
+                        color=IMG_PALETTE['dark_blue'],
+                        bbox=dict(boxstyle="round,pad=0.6", fc='#f0f8ff', ec=IMG_PALETTE['dark_blue'], alpha=0.8))
             
             plt.tight_layout(rect=[0, 0, 1, 0.98 if rows > 1 else 0.95])
             plt.savefig("optuna_param_vs_value_scatter.png", dpi=300)
@@ -625,7 +670,7 @@ else:
                     y=[best_trial_overall['n_estimators']],
                     mode='markers',
                     marker=dict(
-                        color=colors_google['yellow'],
+                        color=IMG_PALETTE['orange'],
                         size=15,
                         symbol='star',
                         line=dict(color='black', width=2)
@@ -637,7 +682,7 @@ else:
             # 使用Google风格更新布局
             fig_contour.update_layout(
                 title={'text': 'Contour Plot: Learning Rate & n_estimators Effect on Objective',
-                       'font': {'size': 20, 'color': colors_google['blue']},
+                       'font': {'size': 20, 'color': IMG_PALETTE['dark_blue']},
                        'x': 0.5,
                        'y': 0.95},
                 xaxis_title={'text': 'Learning Rate (log scale)', 'font': {'size': 16, 'color': '#424242'}},
@@ -646,14 +691,14 @@ else:
                 plot_bgcolor='#f8f9fa',  # Google风格的浅灰色背景
                 paper_bgcolor='white',
                 xaxis=dict(
-                    gridcolor=colors_google['light_grey'],
+                    gridcolor='#d3d3d3',
                     gridwidth=1,
                     zerolinecolor='#424242',
                     zerolinewidth=2,
                     tickfont=dict(color='#424242')
                 ),
                 yaxis=dict(
-                    gridcolor=colors_google['light_grey'],
+                    gridcolor='#d3d3d3',
                     gridwidth=1,
                     zerolinecolor='#424242',
                     zerolinewidth=2,
