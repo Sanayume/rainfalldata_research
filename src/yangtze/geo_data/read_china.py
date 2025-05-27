@@ -14,7 +14,7 @@ china = gpd.read_file(china_file)
 print("数据读取成功！")
 print(china.head())
 print(f"包含 {len(china)} 个地理特征（省份/直辖市）")
-
+#
 
 # 2. 简单的地图可视化
 fig, ax = plt.subplots(1, 1, figsize=(10, 10))
