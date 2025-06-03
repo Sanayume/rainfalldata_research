@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title>3D 模型性能对比图 (3D Model Performance Chart)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+        canvas {
+            display: block;
+        }
+        #ui-container {
+            position: absolute;
+            top: 10px; 
+            left: 10px; 
+            background-color: rgba(255, 255, 255, 0.9); 
+            padding: 8px; 
+            border-radius: 5px; 
+            box-shadow: 0 1px 5px rgba(0,0,0,0.15); 
+            border: 1px solid #ccc; 
+        }
+        #ui-container h4 {
+            margin-top: 0;
+            margin-bottom: 5px; 
+            font-size: 10px; 
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px; 
+        }
+        #ui-container div.legend-item, 
+        #ui-container div.control-item { 
+            margin-bottom: 4px; 
+            font-size: 9px; 
+            display: flex;
+            align-items: center;
+        }
+        #ui-container span.legend-color-box { 
+            display: inline-block;
+            width: 10px;  
+            height: 10px; 
+            margin-right: 5px; 
+            border-radius: 2px; 
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+        #ui-container span.legend-star { 
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 5px;
+            font-size: 12px; 
+            line-height: 10px;
+            text-align: center;
+            color: #FFD700; 
+        }
+        .control-container { 
+            margin-top: 8px; 
+            padding-top: 5px; 
+            border-top: 1px solid #eee;
+        }
+        .control-container label {
+            margin-right: 5px; 
+            font-size: 9px;    
+            min-width: 100px; 
+            display: inline-block;
+        }
+        .control-container input[type="range"] {
+            vertical-align: middle;
+            width: 80px; 
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui-container">
+        <h4>图例 (Legend)</h4>
+        <div class="control-container" id="speed-control-container">
+            <label for="rotationSpeed">旋转速度:</label>
+            <input type="range" id="rotationSpeed" min="0" max="0.01" step="0.0001" value="0.0025">
+        </div>
+        <div class="control-container" id="view-center-x-container">
+            <label for="viewCenterX">视角中心X偏移:</label> <input type="range" id="viewCenterX" min="-10" max="10" step="0.1" value="0"> 
+        </div>
+        <div class="control-container" id="view-center-y-container">
+            <label for="viewCenterY">视角中心Y高度:</label>
+            <input type="range" id="viewCenterY" min="0" max="10" step="0.1" value="3.3">
+        </div>
+        <div class="control-container" id="view-center-z-container">
+            <label for="viewCenterZ">视角中心Z偏移:</label> <input type="range" id="viewCenterZ" min="-10" max="10" step="0.1" value="0"> 
+        </div>
+    </div>
+    <div id="loading">正在加载模型和数据... (Loading models and data...)</div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let scene, camera, renderer, controls;
+        let chartGroup, contentGroup; // Added contentGroup
+        let font;
+        let textLabelsToBillboard = []; 
+        let rotationSpeed = 0.0025; 
+        let viewCenterTargetX, viewCenterTargetY, viewCenterTargetZ; 
+
+        const parentWorldQuaternion = new THREE.Quaternion();
+        const inverseParentWorldQuaternion = new THREE.Quaternion();
+
+        const modelAbbreviations = {
+            "K-Nearest Neighbors (Tuned on Subset)": "KNN",
+            "Support Vector Machine (Tuned on Subset)": "SVM",
+            "Random Forest": "RF",
+            "LightGBM": "LGBM",
+            "Gaussian Naive Bayes (Default)": "GNB",
+            "XGBoost (Default)": "XGB"
+        };
+
+        const originalPerformanceData = [
+            { name: "K-Nearest Neighbors (Tuned on Subset)", Accuracy: 0.7917, POD: 0.7839, FAR: 0.1308, CSI: 0.7012 },
+            { name: "Support Vector Machine (Tuned on Subset)", Accuracy: 0.8021, POD: 0.7496, FAR: 0.0819, CSI: 0.7026 },
+            { name: "Random Forest", Accuracy: 0.8408, POD: 0.8378, FAR: 0.1001, CSI: 0.7665 },
+            { name: "LightGBM", Accuracy: 0.8366, POD: 0.8221, FAR: 0.0929, CSI: 0.7582 },
+            { name: "Gaussian Naive Bayes (Default)", Accuracy: 0.7019, POD: 0.5799, FAR: 0.0909, CSI: 0.5481 },
+            { name: "XGBoost (Default)", Accuracy: 0.8819, POD: 0.8880, FAR: 0.0819, CSI: 0.8228 }
+        ];
+
+        const performanceData = originalPerformanceData.map(item => ({
+            model: modelAbbreviations[item.name] || item.name,
+            metrics: {
+                "Accuracy": item.Accuracy, 
+                "POD": item.POD, 
+                "1-FAR": 1 - item.FAR, 
+                "CSI": item.CSI
+            }
+        }));
+
+        const metricOrder = ["Accuracy", "POD", "1-FAR", "CSI"];
+        const metricColors = { 
+            "Accuracy": 0x4A90E2, 
+            "POD": 0x50E3C2, 
+            "1-FAR": 0xF5A623, 
+            "CSI": 0xBD10E0
+        };
+        const metricDisplayNames = { 
+            "Accuracy": "Accuracy (Acc)", 
+            "POD": "POD", 
+            "1-FAR": "1-FAR", 
+            "CSI": "CSI"
+        };
+         const legendDisplayNames = { 
+            "Accuracy": "准确率 (Acc)", 
+            "POD": "命中率 (POD)", 
+            "1-FAR": "1-空报率 (1-FAR)", 
+            "CSI": "成功指数 (CSI)"
+        };
+
+        const BAR_HEIGHT_SCALE = 10; 
+        const TEXT_COLOR = 0x333333; 
+        const TEXT_SIZE_VALUE = 0.18; 
+        const BAR_X_SIZE = 1.0; 
+        const BAR_Z_SIZE = 1.0; 
+        const SPACING_X_MODELS = 0.7;    
+        const SPACING_Z_METRICS = 1.2;   
+        const TEXT_SIZE_AXIS_LABEL = 0.3; 
+        const TEXT_SIZE_Y_AXIS_TICKS = 0.2;
+        
+        const AXIS_LABEL_Y_POSITION = -0.5; 
+        const AXIS_OBJECT_Y_POSITION = 0.0; 
+        const MODEL_AXIS_LABEL_Z_OFFSET = BAR_Z_SIZE * 0.5 + SPACING_Z_METRICS * 0.25 + 0.8; 
+        const METRIC_AXIS_LABEL_X_OFFSET = BAR_X_SIZE * 0.5 + SPACING_X_MODELS * 0.25 + 0.8; 
+        
+        const AXIS_RADIUS = 0.04;
+        const AXIS_ARROW_RADIUS = AXIS_RADIUS * 2.5;
+        const AXIS_ARROW_HEIGHT = AXIS_RADIUS * 7;
+
+        const STAR_COLOR = 0xFFD700; 
+        const STAR_SIZE = 0.3 * 2; 
+        const STAR_EXTRUDE_SETTINGS = { depth: 0.05, bevelEnabled: false };
+        let starGeometry; 
+
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0); 
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true }); 
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); 
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            directionalLight.position.set(8, 15, 10);
+            scene.add(directionalLight);
+
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 5;
+            controls.maxDistance = 100;
+            
+            chartGroup = new THREE.Group(); 
+            scene.add(chartGroup); 
+            contentGroup = new THREE.Group(); // Create the inner content group
+            chartGroup.add(contentGroup);     // Add contentGroup to chartGroup
+
+            const speedSlider = document.getElementById('rotationSpeed');
+            speedSlider.value = rotationSpeed; 
+            speedSlider.addEventListener('input', (event) => {
+                rotationSpeed = parseFloat(event.target.value);
+            });
+
+            const viewCenterXSlider = document.getElementById('viewCenterX');
+            const viewCenterYSlider = document.getElementById('viewCenterY');
+            const viewCenterZSlider = document.getElementById('viewCenterZ');
+
+            viewCenterTargetX = parseFloat(viewCenterXSlider.value);
+            viewCenterTargetY = parseFloat(viewCenterYSlider.value); 
+            viewCenterTargetZ = parseFloat(viewCenterZSlider.value);
+
+            function updateControlsTarget() {
+                if (controls && controls.target) {
+                    controls.target.set(viewCenterTargetX, viewCenterTargetY, viewCenterTargetZ);
+                }
+            }
+
+            viewCenterXSlider.addEventListener('input', (event) => {
+                viewCenterTargetX = parseFloat(event.target.value);
+                updateControlsTarget();
+            });
+            viewCenterYSlider.addEventListener('input', (event) => {
+                viewCenterTargetY = parseFloat(event.target.value);
+                updateControlsTarget();
+            });
+            viewCenterZSlider.addEventListener('input', (event) => {
+                viewCenterTargetZ = parseFloat(event.target.value);
+                updateControlsTarget();
+            });
+            
+            createStarGeometry(); 
+
+            const fontLoader = new FontLoader();
+            fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.164.1/examples/fonts/helvetiker_regular.typeface.json', (loadedFont) => {
+                font = loadedFont;
+                document.getElementById('loading').style.display = 'none';
+                createChart(); 
+                createLegend();
+            }, undefined, (error) => {
+                console.error('Font loading failed:', error);
+                document.getElementById('loading').innerText = '字体加载失败 (Font loading failed).';
+                createChart(true); 
+                createLegend();
+            });
+            
+            window.addEventListener('resize', onWindowResize, false);
+            animate();
+        }
+
+        function createStarGeometry() {
+            const starShape = new THREE.Shape();
+            const outerRadius = STAR_SIZE / 2;
+            const innerRadius = outerRadius / 2.5;
+            const numPoints = 5;
+            starShape.moveTo(0, outerRadius);
+            for (let i = 0; i < numPoints * 2; i++) {
+                const radius = (i % 2 === 0) ? outerRadius : innerRadius;
+                const angle = (i / (numPoints * 2)) * Math.PI * 2 - Math.PI / 2; 
+                starShape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+            }
+            starShape.closePath();
+            starGeometry = new THREE.ExtrudeGeometry(starShape, STAR_EXTRUDE_SETTINGS);
+            starGeometry.center(); 
+        }
+
+
+        function createTextGeometry(text, size, height = 0.05) {
+            if (!font) return null;
+            return new TextGeometry(text, {
+                font: font, size: size, height: height, curveSegments: 4, bevelEnabled: false
+            });
+        }
+
+        function createTextLabel(text, size, color, position, options = {}) {
+            const { billboard = false } = options; 
+            if (!font) return null; 
+
+            const textGeo = createTextGeometry(text, size);
+            if (!textGeo) return null; 
+
+            textGeo.computeBoundingBox();
+            const textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
+            
+            const labelGroup = new THREE.Group();
+            labelGroup.position.copy(position);
+
+            const textMaterial = new THREE.MeshBasicMaterial({ 
+                color: color, 
+                side: THREE.DoubleSide, 
+                transparent: true, 
+                opacity: 1
+            });
+            
+            const textMesh = new THREE.Mesh(textGeo, textMaterial);
+            textMesh.position.x = -textWidth / 2; 
+            labelGroup.add(textMesh);
+            
+            if (billboard) {
+                textLabelsToBillboard.push(labelGroup);
+            }
+            
+            contentGroup.add(labelGroup); // Add to contentGroup
+            return labelGroup; 
+        }
+        
+        function createChart(skipText = false) {
+            textLabelsToBillboard = []; 
+            // Clear contentGroup instead of chartGroup
+            while(contentGroup.children.length > 0){ 
+                const child = contentGroup.children[0];
+                contentGroup.remove(child);
+                if (child.geometry && child.geometry !== starGeometry) child.geometry.dispose(); 
+                if (child.material) {
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(m => m.dispose());
+                    } else {
+                        child.material.dispose();
+                    }
+                }
+            }
+
+            const numModels = performanceData.length;
+            const numMetrics = metricOrder.length;
+            const totalChartWidthX = numModels * BAR_X_SIZE + (numModels - 1) * SPACING_X_MODELS;
+            const totalChartDepthZ = numMetrics * BAR_Z_SIZE + (numMetrics - 1) * SPACING_Z_METRICS;
+            
+            const bestScores = {};
+            metricOrder.forEach(metricKey => {
+                let bestScore;
+                performanceData.forEach(modelData => {
+                    const currentValue = modelData.metrics[metricKey];
+                    if (bestScore === undefined || currentValue > bestScore) {
+                        bestScore = currentValue;
+                    }
+                });
+                bestScores[metricKey] = bestScore; 
+            });
+
+
+            if (!skipText) {
+                performanceData.forEach((modelItem, modelIndex) => {
+                    const modelLabelPosX = modelIndex * (BAR_X_SIZE + SPACING_X_MODELS) + BAR_X_SIZE / 2;
+                    const modelLabelPosZ = -MODEL_AXIS_LABEL_Z_OFFSET; 
+                    createTextLabel(
+                        modelItem.model, TEXT_SIZE_AXIS_LABEL, TEXT_COLOR,
+                        new THREE.Vector3(modelLabelPosX, AXIS_LABEL_Y_POSITION, modelLabelPosZ),
+                        { billboard: true } 
+                    );
+                });
+
+                metricOrder.forEach((metricKey, metricIndex) => {
+                    const metricLabelPosZ = metricIndex * (BAR_Z_SIZE + SPACING_Z_METRICS) + BAR_Z_SIZE / 2;
+                    const metricLabelPosX = -METRIC_AXIS_LABEL_X_OFFSET; 
+                    createTextLabel( 
+                        metricDisplayNames[metricKey], 
+                        TEXT_SIZE_AXIS_LABEL, 
+                        TEXT_COLOR,
+                        new THREE.Vector3(metricLabelPosX, AXIS_LABEL_Y_POSITION, metricLabelPosZ),
+                        { billboard: true } 
+                    );
+                });
+            }
+
+            const starMaterial = new THREE.MeshStandardMaterial({ 
+                color: STAR_COLOR, 
+                emissive: STAR_COLOR, 
+                emissiveIntensity: 0.4, 
+                roughness: 0.4, 
+                metalness: 0.1 
+            });
+
+            performanceData.forEach((modelItem, modelIndex) => {
+                metricOrder.forEach((metricKey, metricIndex) => {
+                    const value = modelItem.metrics[metricKey];
+                    if (value === undefined) return; 
+                    const barHeight = value * BAR_HEIGHT_SCALE;
+                    
+                    const barX = modelIndex * (BAR_X_SIZE + SPACING_X_MODELS) + BAR_X_SIZE / 2;
+                    const barZ = metricIndex * (BAR_Z_SIZE + SPACING_Z_METRICS) + BAR_Z_SIZE / 2;
+                    
+                    const barGeometry = new THREE.BoxGeometry(BAR_X_SIZE, barHeight, BAR_Z_SIZE);
+                    const barMaterial = new THREE.MeshStandardMaterial({ 
+                        color: metricColors[metricKey], 
+                        roughness: 0.6, 
+                        metalness: 0.3,
+                        emissive: new THREE.Color(metricColors[metricKey]).multiplyScalar(0.15) 
+                    });
+                    const bar = new THREE.Mesh(barGeometry, barMaterial);
+                    bar.position.set(barX, barHeight / 2 + AXIS_OBJECT_Y_POSITION, barZ);
+                    contentGroup.add(bar); // Add to contentGroup
+
+                    const valueLabelYOffset = barHeight + 0.35 + AXIS_OBJECT_Y_POSITION;
+                    if (!skipText) {
+                        createTextLabel(
+                            value.toFixed(3), TEXT_SIZE_VALUE, TEXT_COLOR,
+                            new THREE.Vector3(barX, valueLabelYOffset, barZ),
+                            { billboard: true } 
+                        );
+                        
+                        const isBest = (value >= bestScores[metricKey] - 0.00001); 
+                        
+                        if (isBest && starGeometry) {
+                            const starMesh = new THREE.Mesh(starGeometry, starMaterial.clone()); 
+                            const starGroup = new THREE.Group(); 
+                            starGroup.position.set(barX, valueLabelYOffset + STAR_SIZE * 0.5 + TEXT_SIZE_VALUE, barZ); 
+                            starGroup.add(starMesh); 
+                            contentGroup.add(starGroup); // Add to contentGroup
+                            textLabelsToBillboard.push(starGroup); 
+                        }
+                    }
+                });
+            });
+            
+            const gridPadding = 3; 
+            const gridSize = Math.max(totalChartWidthX, totalChartDepthZ) + gridPadding * 2;
+            const divisions = Math.floor(gridSize / 1.5); 
+            const gridHelper = new THREE.GridHelper(gridSize, divisions, 0xcccccc, 0xdddddd);
+            gridHelper.position.set(totalChartWidthX / 2, -0.01, totalChartDepthZ / 2); 
+            contentGroup.add(gridHelper); // Add to contentGroup
+
+            const axisMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 }); 
+
+            const yAxisShaftHeight = BAR_HEIGHT_SCALE; 
+            const yAxisShaftGeo = new THREE.CylinderGeometry(AXIS_RADIUS, AXIS_RADIUS, yAxisShaftHeight, 8);
+            const yAxisShaft = new THREE.Mesh(yAxisShaftGeo, axisMaterial);
+            yAxisShaft.position.set(0, yAxisShaftHeight / 2 + AXIS_OBJECT_Y_POSITION, 0);
+            contentGroup.add(yAxisShaft); // Add to contentGroup
+
+            const yAxisArrowGeo = new THREE.ConeGeometry(AXIS_ARROW_RADIUS, AXIS_ARROW_HEIGHT, 8);
+            const yAxisArrow = new THREE.Mesh(yAxisArrowGeo, axisMaterial);
+            yAxisArrow.position.set(0, yAxisShaftHeight + AXIS_ARROW_HEIGHT / 2 + AXIS_OBJECT_Y_POSITION, 0);
+            contentGroup.add(yAxisArrow); // Add to contentGroup
+
+            if (!skipText) {
+                const numYTicks = 6; 
+                for (let i = 0; i < numYTicks; i++) {
+                    const tickValue = i / (numYTicks - 1); 
+                    const tickYPosition = tickValue * BAR_HEIGHT_SCALE + AXIS_OBJECT_Y_POSITION;
+                    createTextLabel(
+                        tickValue.toFixed(1),
+                        TEXT_SIZE_Y_AXIS_TICKS,
+                        TEXT_COLOR,
+                        new THREE.Vector3(-AXIS_ARROW_RADIUS * 3, tickYPosition, 0), 
+                        { billboard: true }
+                    );
+                }
+            }
+
+            const xAxisShaftLength = totalChartWidthX;
+            const xAxisShaftGeo = new THREE.CylinderGeometry(AXIS_RADIUS, AXIS_RADIUS, xAxisShaftLength, 8);
+            const xAxisShaft = new THREE.Mesh(xAxisShaftGeo, axisMaterial);
+            xAxisShaft.rotation.z = Math.PI / 2; 
+            xAxisShaft.position.set(xAxisShaftLength / 2, AXIS_OBJECT_Y_POSITION, 0);
+            contentGroup.add(xAxisShaft); // Add to contentGroup
+
+            const xAxisArrowGeo = new THREE.ConeGeometry(AXIS_ARROW_RADIUS, AXIS_ARROW_HEIGHT, 8);
+            const xAxisArrow = new THREE.Mesh(xAxisArrowGeo, axisMaterial);
+            xAxisArrow.rotation.z = -Math.PI / 2; 
+            xAxisArrow.position.set(xAxisShaftLength + AXIS_ARROW_HEIGHT / 2, AXIS_OBJECT_Y_POSITION, 0);
+            contentGroup.add(xAxisArrow); // Add to contentGroup
+
+            const zAxisShaftLength = totalChartDepthZ;
+            const zAxisShaftGeo = new THREE.CylinderGeometry(AXIS_RADIUS, AXIS_RADIUS, zAxisShaftLength, 8);
+            const zAxisShaft = new THREE.Mesh(zAxisShaftGeo, axisMaterial);
+            zAxisShaft.rotation.x = Math.PI / 2; 
+            zAxisShaft.position.set(0, AXIS_OBJECT_Y_POSITION, zAxisShaftLength / 2); 
+            contentGroup.add(zAxisShaft); // Add to contentGroup
+
+            const zAxisArrowGeo = new THREE.ConeGeometry(AXIS_ARROW_RADIUS, AXIS_ARROW_HEIGHT, 8);
+            const zAxisArrow = new THREE.Mesh(zAxisArrowGeo, axisMaterial);
+            zAxisArrow.rotation.x = Math.PI / 2; 
+            zAxisArrow.position.set(0, AXIS_OBJECT_Y_POSITION, zAxisShaftLength + AXIS_ARROW_HEIGHT / 2);
+            contentGroup.add(zAxisArrow); // Add to contentGroup
+
+            // Center the contentGroup within chartGroup
+            contentGroup.position.set(-totalChartWidthX / 2, 0, -totalChartDepthZ / 2);
+
+            // Set initial controls target to the visual center of the content (which is now chartGroup's origin)
+            const initialControlsTargetX = 0; // Because contentGroup is centered
+            const initialControlsTargetZ = 0; // Because contentGroup is centered
+
+            const viewCenterXSlider = document.getElementById('viewCenterX');
+            viewCenterXSlider.min = -totalChartWidthX / 2 - SPACING_X_MODELS; 
+            viewCenterXSlider.max = totalChartWidthX / 2 + SPACING_X_MODELS; 
+            viewCenterXSlider.step = 0.1;
+            viewCenterXSlider.value = initialControlsTargetX;
+            viewCenterTargetX = initialControlsTargetX; 
+
+            const viewCenterZSlider = document.getElementById('viewCenterZ');
+            viewCenterZSlider.min = -totalChartDepthZ / 2 - SPACING_Z_METRICS; 
+            viewCenterZSlider.max = totalChartDepthZ / 2 + SPACING_Z_METRICS; 
+            viewCenterZSlider.step = 0.1;
+            viewCenterZSlider.value = initialControlsTargetZ;
+            viewCenterTargetZ = initialControlsTargetZ; 
+            
+            controls.target.set(viewCenterTargetX, viewCenterTargetY, viewCenterTargetZ); 
+            
+            camera.position.set(
+                viewCenterTargetX, // Align camera with target X
+                BAR_HEIGHT_SCALE * 1.2 + viewCenterTargetY * 0.5, 
+                viewCenterTargetZ + totalChartDepthZ * 0.8 + BAR_HEIGHT_SCALE * 1.2 // Adjusted for better view
+            );
+            camera.lookAt(controls.target);
+            controls.update();
+        }
+        
+        function createLegend() {
+            const legendDiv = document.getElementById('ui-container'); 
+            // Clear only legend items, leave control containers
+            const legendItems = legendDiv.querySelectorAll('div.legend-item');
+            legendItems.forEach(item => item.remove());
+
+
+            metricOrder.forEach(metricName => {
+                const item = document.createElement('div');
+                item.classList.add('legend-item'); 
+                const colorBox = document.createElement('span');
+                colorBox.classList.add('legend-color-box'); 
+                colorBox.style.backgroundColor = '#' + metricColors[metricName].toString(16).padStart(6, '0');
+                item.appendChild(colorBox);
+                item.appendChild(document.createTextNode(legendDisplayNames[metricName])); 
+                // Insert before the first control container
+                legendDiv.insertBefore(item, legendDiv.querySelector('.control-container'));
+            });
+
+            const starLegendItem = document.createElement('div');
+            starLegendItem.classList.add('legend-item');
+            const starSymbol = document.createElement('span');
+            starSymbol.classList.add('legend-star');
+            starSymbol.innerHTML = '&#9733;'; 
+            starLegendItem.appendChild(starSymbol);
+            starLegendItem.appendChild(document.createTextNode('最优模型 (Best Model)'));
+            legendDiv.insertBefore(starLegendItem, legendDiv.querySelector('.control-container'));
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); 
+
+            if (camera && textLabelsToBillboard.length > 0) {
+                textLabelsToBillboard.forEach(labelGroup => {
+                    if (labelGroup && labelGroup.parent) { // labelGroup.parent is now contentGroup
+                        // We need the world quaternion of contentGroup to correctly billboard its children
+                        contentGroup.getWorldQuaternion(parentWorldQuaternion); 
+                        inverseParentWorldQuaternion.copy(parentWorldQuaternion).invert();
+                        labelGroup.quaternion.copy(inverseParentWorldQuaternion).multiply(camera.quaternion);
+                    }
+                });
+            }
+
+            if (chartGroup) { // chartGroup is now rotating around its (0,0,0) which is the visual center
+                chartGroup.rotation.y += rotationSpeed; 
+            }
+            renderer.render(scene, camera); 
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        init();
+    </script>
+</body>
+</html>
