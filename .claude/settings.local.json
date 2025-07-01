@@ -4,7 +4,8 @@
       "Bash(mkdir:*)",
       "Bash(python:*)",
       "Bash(ls:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

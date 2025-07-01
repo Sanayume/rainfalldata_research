@@ -584,6 +584,51 @@
 这一系列迭代清晰地展示了从早期对格点数据的探索（V1），到后续聚焦于点位数据，并逐步从初步构建（V2）、简化测试（V3, V5部分）、到构建全面特征体系（V4），并最终提炼出当前稳定且表现优异的V6特征集的演进过程。**V6特征集是当前长江流域机器学习模型（特别是XGBoost）超参数优化和集成学习工作的基础。** 特征工程的结果（如各版本生成的特征矩阵和名称列表）主要存储于 `results/yangtze/features/` 和 `results/nationwide/features/` (如果全国范围也有对应版本产出) 目录下。
 这一系列迭代清晰地展示了长江流域特征工程的演进：从 V1 版本探索格点数据与简化特征开始，后续版本 (V2-V6) 则聚焦于点位数据，经历了从简化测试 (V3, V5部分特征)、逐步增补关键信号 (V2, V5)，到构建全面特征体系 (V4, V6) 的不同阶段，反映了特征集在不同策略下的探索和优化过程。
 
+#### 2.4.1 特征集最终状态与数据一致性
+
+经过多轮特征工程迭代和数据一致性问题的深入诊断与修正，当前长江流域的特征集已达到高度优化和统一的状态。我们解决了原始数据源中空间格点数据与离散点数据之间存在的23个点的不一致问题，确保了所有特征在空间维度上的完美对齐。
+
+**数据一致性问题回顾与解决：**
+
+*   **问题发现：** 在构建最终模型矩阵时，我们发现原始的 `loaddata.py` 在加载空间格点数据 (`get_basin_spatial_data`) 和离散点数据 (`get_basin_point_data`) 时，虽然掩码文件 (`combined_china_basin_mask.mat`) 理论上应提供2943个有效点，但实际的原始产品数据（如GSMAP）在其中23个点位上存在 `NaN` 值（缺失数据）。这导致空间格点数据在应用掩码后，实际有效点只有2920个，与点数据（2943个）不一致。
+*   **解决方案：** 我们通过直接修改 `combined_china_basin_mask.mat` 文件，将其中23个在原始产品数据中缺失的点的掩码值从 `2`（长江流域）修改为 `0`（非流域）。这使得掩码文件本身就只包含2920个有效点，从而从源头上统一了空间格点数据和离散点数据的有效点数量。
+
+**最终特征集状态：**
+
+在解决了数据一致性问题并重新生成所有特征后，当前特征集包含以下两类：
+
+1.  **已展平的 415 个特征：**
+    *   **格式：** 所有这些特征文件 (`.npy`) 都已被展平为 `(5247240,)` 的一维数组。其中 `5247240` 是总样本数，等于 `1797 (有效天数) * 2920 (统一后的有效空间点数)`。
+    *   **内容：** 这些特征包含了丰富的时序、多产品协同、高级统计以及部分空间关联信息。它们已经过时间切片和空间对齐，可以直接加载并用于传统机器学习模型（如XGBoost）的训练。
+    *   **空间信息：** 这些特征中已包含了大量的空间信息，例如：
+        *   **静态空间特征：** 如平均空间梯度幅度 (`spatial_avg_gradient_magnitude_*.npy`)、空间相关性 (`spatial_correlation_*.npy`)、空间偏度 (`spatial_skewness_*.npy`)、空间方差 (`spatial_variance_*.npy`)、空间聚类大小 (`spatial_cluster_size_*.npy`) 等。这些特征描述了每个格点在整个时间序列上的平均或静态空间属性。
+        *   **原始空间数据：** 经过空间掩码和时间切片处理后的原始空间数据 (`raw_spatial_*.npy` 和 `target_spatial_valid.npy`)，它们提供了每个空间点在每个时间步的原始空间值。
+    *   **文件位置：** 存储于 `results/yangtze/features/features/` 目录下。
+
+2.  **未展平的 11 个特征：**
+    *   **原因：** 这些特征因其固有的高维度空间结构（例如，它们只在部分采样时间步上计算，或其含义不适合简单地展平为一维向量）而被 `flatten_individual_features.py` 脚本明确跳过。
+    *   **列表：**
+        *   `spatial_autocorrelation_GSMAP.npy`
+        *   `spatial_autocorrelation_IMERG.npy`
+        *   `spatial_gradient_magnitude_GSMAP.npy`
+        *   `spatial_gradient_magnitude_IMERG.npy`
+        *   `spatial_gradient_magnitude_SM2RAIN.npy`
+        *   `spatial_neighbor_3x3_mean_GSMAP_samples.npy`
+        *   `spatial_neighbor_3x3_mean_IMERG_samples.npy`
+        *   `spatial_neighbor_3x3_mean_SM2RAIN_samples.npy`
+        *   `spatial_neighbor_5x5_mean_GSMAP_samples.npy`
+        *   `spatial_neighbor_5x5_mean_IMERG_samples.npy`
+        *   `spatial_neighbor_5x5_mean_SM2RAIN_samples.npy`
+    *   **用途：** 这些特征主要用于**可视化分析**、**深度学习模型**（如卷积神经网络CNN，它们能直接处理格栅数据），或者作为**进一步特征工程的输入**来提取更抽象的统计量。
+
+**特征矩阵构建脚本 (`build_model_matrix.py`)：**
+
+该脚本位于 `src/yangtze/YangTsu/` 目录下，负责将所有已展平的特征文件 (`.npy`) 加载，并堆叠成一个最终的 `(总样本数, 特征数)` 的二维矩阵 (`X_matrix.npy`)，以及对应的目标变量 (`y_vector.npy`)。它确保了所有特征和目标变量的完美对齐，为模型训练提供了直接可用的输入。
+
+**独立特征文件展平脚本 (`flatten_individual_features.py`)：**
+
+该脚本位于 `src/yangtze/YangTsu/` 目录下，负责将 `generate_*.py` 脚本生成的原始特征文件（可能具有不同维度）统一展平为 `(总样本数,)` 的一维格式，并覆盖保存回原文件。这是实现特征即用性的关键步骤。
+
 ### 2.5 机器学习建模 (主要代码位于 `src/nationwide/project_all_for_deepling_learning/`, `src/yangtze/YangTsu/`, `src/ensemble_learning/ensemble_learning/`)
 
 系统性地探索和评估了多种先进的机器学习模型：

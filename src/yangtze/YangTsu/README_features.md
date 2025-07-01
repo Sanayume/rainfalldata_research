@@ -1,227 +1,129 @@
-# 长江流域单独特征生成系统
+# 长江流域独立特征文件库
+
+本目录包含了长江流域多源降雨数据的独立特征文件，这些文件是经过精细化特征工程后生成的，用于机器学习模型训练和预测。本系统将特征生成过程模块化，按类别分别生成不同类型的特征，每个特征单独保存为`.npy`文件。
 
 ## 概述
 
-本系统将特征生成过程模块化，按类别分别生成不同类型的特征，每个特征单独保存为`.npy`文件。这样设计的优势：
+本库中的特征文件主要分为两类：
 
-- **模块化**: 可以选择性生成需要的特征类别
-- **灵活性**: 可以轻松组合不同特征进行实验  
-- **效率**: 避免重复计算，一次生成多次使用
-- **可扩展**: 容易添加新的特征类别
-- **可维护**: 代码结构清晰，便于调试和优化
+1.  **已展平特征 (415个)**：这些特征已统一处理为 `(5247240,)` 的一维数组，可以直接加载并用于模型训练。
+2.  **未展平特征 (11个)**：这些特征因其固有的高维度空间结构或不完整的时间维度，未被展平，但仍包含重要的空间信息，可用于可视化或深度学习模型。
 
-## 特征类别
+## 📊 特征概览
 
-### 1. 基础原始特征 (`generate_basic_features.py`)
-- **原始空间数据**: `raw_spatial_{product}*.npy` - 保持真实空间结构
-- **原始点数据**: `raw_points_{product}*.npy` - 展平的点数据  
-- **目标变量**: `target_spatial*.npy`, `target_points*.npy`
+### 数据范围
+-   **时间范围**: 2016-2020年 (原始1827天，有效预测1797天)
+-   **空间范围**: 长江流域 (统一后2920个有效空间点)
+-   **降雨产品**: 6个 (CMORPH, CHIRPS, SM2RAIN, IMERG, GSMAP, PERSIANN)
 
-### 2. 多产品协同特征 (`generate_multi_product_features.py`)
-- **统计量**: `multi_product_mean.npy`, `multi_product_std.npy` 等
-- **一致性**: `product_consistency_ratio.npy`, `product_disagreement.npy`
-- **相关性**: `correlation_{prod1}_{prod2}.npy`
-- **权重**: `weighted_multi_product_mean.npy`
+### 特征类别与数量
 
-### 3. 时序动态特征 (`generate_temporal_features.py`)
-- **周期性**: `sin_day_of_year.npy`, `cos_day_of_year.npy`
-- **季节性**: `season_onehot_{0-3}.npy`, `month_onehot_{1-12}.npy`
-- **趋势**: `time_index.npy`, `normalized_time.npy`
-- **差分**: `diff_1_multi_product_mean.npy` 等
+| 类别 | 数量 (已展平) | 数量 (未展平) | 描述 |
+|---|---|---|---|
+| **基础特征** | 28 | 0 | 原始降雨数据和目标变量 |
+| **多产品协同** | 36 | 0 | 产品间统计关系和一致性 |
+| **时序动态** | 38 | 0 | 周期性、季节性、趋势特征 |
+| **滞后特征** | 144 | 0 | 1-30天的时间依赖性特征 |
+| **空间特征** | 19 | 11 | 空间梯度、邻域、自相关、连通域等 |
+| **高级统计** | 89 | 0 | 分位数、极值、异常检测 |
+| **交互特征** | 59 | 0 | 特征间交互和组合 |
+| **总计** | **415** | **11** | |
 
-### 4. 滞后特征 (`generate_lag_features.py`)
-- **单产品滞后**: `lag_{days}_points_{product}.npy`
-- **统计量滞后**: `lag_{days}_multi_product_{stat}.npy`
-- **滞后差值**: `lag_diff_{lag1}_{lag2}_multi_product_mean.npy`
-- **组合滞后**: `lag_1to7_mean_{product}.npy`
+## 🗂️ 特征详细描述
 
-### 5. 真实空间特征 (`generate_spatial_features.py`)
-- **梯度**: `spatial_gradient_magnitude_{product}.npy`
-- **邻域**: `spatial_neighbor_{size}_mean_{product}.npy`
-- **聚集性**: `spatial_variance_{product}.npy`
-- **自相关**: `spatial_autocorrelation_{product}.npy`
+本库中的每个 `.npy` 文件都代表一个独立的特征。其详细含义和原始生成方式请参考 `src/yangtze/YangTsu/generate_*.py` 脚本。
 
-### 6. 高级统计特征 (`generate_advanced_features.py`)
-- **分位数**: `multi_product_quantile_{percentile}.npy`
-- **极值**: `extreme_ratio_above_{threshold}.npy`
-- **异常检测**: `anomaly_zscore_{product}.npy`
-- **强度分箱**: `intensity_bin_{idx}_{type}.npy`
+### 1. 已展平特征 (415个)
 
-### 7. 交互特征 (`generate_interaction_features.py`)
-- **产品交互**: `interaction_multiply_{prod1}_{prod2}.npy`
-- **时序交互**: `interaction_{stat}_sin_day.npy`
-- **条件交互**: `interaction_low_intensity_std_cv.npy`
-- **复合交互**: `interaction_triple_geometric_mean_GSI.npy`
+这些特征已统一处理为 `(5247240,)` 的一维数组，可以直接加载并用于模型训练。它们包含了丰富的时序、多产品协同、高级统计以及部分空间关联信息。
 
-## 使用方法
+**示例 (部分特征，完整列表请参考 `features_list.csv`):**
 
-### 1. 生成特征
+*   `anomaly_zscore_CHIRPS.npy`: CHIRPS Z-score异常值
+*   `coefficient_of_variation.npy`: 变异系数
+*   `correlation_CHIRPS_GSMAP.npy`: CHIRPS与GSMAP相关性
+*   `cos_day_of_year.npy`: 年内日周期余弦
+*   `lag_1_points_GSMAP.npy`: GSMAP滞后1天点数据
+*   `multi_product_mean.npy`: 多产品均值
+*   `spatial_avg_gradient_magnitude_GSMAP.npy`: GSMAP平均梯度幅度
+*   `spatial_cluster_size_GSMAP_threshold_0.1.npy`: GSMAP阈值0.1连通域大小
+*   `target_points_valid.npy`: CHM目标点数据
 
-```bash
-cd /mnt/f/rainfalldata/src/yangtze/YangTsu
+### 2. 未展平特征 (11个)
 
-# 生成所有特征（推荐）
-python generate_all_features.py --all
+这些特征因其固有的高维度空间结构或不完整的时间维度，未被展平。它们仍包含重要的空间信息，可用于可视化或深度学习模型。
 
-# 生成特定类别
-python generate_all_features.py basic temporal lag
+*   `spatial_autocorrelation_GSMAP.npy`
+*   `spatial_autocorrelation_IMERG.npy`
+*   `spatial_gradient_magnitude_GSMAP.npy`
+*   `spatial_gradient_magnitude_IMERG.npy`
+*   `spatial_gradient_magnitude_SM2RAIN.npy`
+*   `spatial_neighbor_3x3_mean_GSMAP_samples.npy`
+*   `spatial_neighbor_3x3_mean_IMERG_samples.npy`
+*   `spatial_neighbor_3x3_mean_SM2RAIN_samples.npy`
+*   `spatial_neighbor_5x5_mean_GSMAP_samples.npy`
+*   `spatial_neighbor_5x5_mean_IMERG_samples.npy`
+*   `spatial_neighbor_5x5_mean_SM2RAIN_samples.npy`
 
-# 静默模式生成
-python generate_all_features.py spatial advanced --quiet
+## 💾 文件存储信息
 
-# 检查现有特征
-python generate_all_features.py --check
+-   **文件格式**: `.npy` (NumPy二进制格式)
+-   **数据类型**: `float32` (节省存储空间)
+-   **总存储空间**: 预计约 20 GB (415个展平特征文件)
 
-# 查看帮助
-python generate_all_features.py --help
-```
+## 🔧 使用方法
 
-### 2. 单独运行生成器
-
-```bash
-# 只生成基础特征
-python generate_basic_features.py
-
-# 只生成空间特征  
-python generate_spatial_features.py
-```
-
-### 3. 使用特征加载器
+### 1. 加载已展平特征
 
 ```python
-from feature_loader import IndividualFeatureLoader
-
-# 初始化加载器
-loader = IndividualFeatureLoader()
-
-# 查看概要
-loader.print_summary()
-
-# 列出特定类别特征
-temporal_features = loader.list_features('temporal')
-
-# 加载单个特征
-product_mean = loader.load_feature('multi_product_mean')
-
-# 加载多个特征
-features = loader.load_multiple_features([
-    'multi_product_mean.npy',
-    'lag_1_points_GSMAP.npy', 
-    'sin_day_of_year.npy'
-])
-
-# 创建特征子集
-feature_subset = loader.create_feature_subset(
-    include_lag=True,
-    include_temporal=True,
-    max_features=50
-)
-
-# 构建特征矩阵
-X, feature_names = loader.build_feature_matrix(feature_subset)
-```
-
-## 特征命名规范
-
-### 命名模式
-- `{type}_{subtype}_{product/stat}_{modifier}.npy`
-
-### 示例
-- `raw_points_GSMAP_valid.npy` - GSMAP原始点数据（有效时间）
-- `lag_3_multi_product_mean.npy` - 多产品均值滞后3天
-- `spatial_gradient_magnitude_IMERG.npy` - IMERG梯度幅度
-- `interaction_multiply_GSMAP_IMERG.npy` - GSMAP与IMERG乘性交互
-
-## 数据维度说明
-
-- `(time,)` - 时间序列，如周期性特征
-- `(time, points)` - 时间-点数据，如点位特征
-- `(time, lat, lon)` - 时间-空间数据，如空间特征
-- `(lat, lon)` - 纯空间数据，如平均梯度
-- `(lag_i, lag_j)` - 滞后空间，如自相关
-
-## 计算时间估算
-
-- 基础特征: 2-3分钟
-- 多产品协同: 3-5分钟  
-- 时序动态: 2-3分钟
-- 滞后特征: 3-4分钟
-- 空间特征: 5-8分钟（计算量最大）
-- 高级统计: 4-6分钟
-- 交互特征: 3-5分钟
-
-**总计**: 约25-35分钟生成所有特征
-
-## 存储空间
-
-预计每个特征文件大小：
-- 点数据特征: 10-50 MB
-- 空间数据特征: 50-200 MB  
-- 时间序列特征: 1-10 MB
-
-**总存储空间**: 预计5-15 GB
-
-## 注意事项
-
-1. **内存使用**: 空间特征生成需要较多内存
-2. **计算时间**: 空间特征计算时间较长，可能需要耐心等待
-3. **依赖关系**: 交互特征依赖基础和时序特征
-4. **数据类型**: 所有特征统一保存为float32格式
-5. **NaN处理**: 已进行安全的NaN值处理
-
-## 故障排除
-
-### 常见问题
-
-1. **内存不足**
-   ```bash
-   # 单独运行计算量小的特征
-   python generate_temporal_features.py
-   python generate_lag_features.py
-   ```
-
-2. **计算超时**
-   ```bash
-   # 跳过计算量大的空间特征
-   python generate_all_features.py basic multi_product temporal lag advanced interaction
-   ```
-
-3. **特征文件损坏**
-   ```bash
-   # 检查特征文件
-   python generate_all_features.py --check
-   
-   # 重新生成特定类别
-   python generate_basic_features.py
-   ```
-
-### 调试模式
-
-```python
-# 在Python中测试单个特征生成
 import numpy as np
-from loaddata import mydata
+import os
+import pandas as pd
 
-# 加载数据测试
-ALL_DATA = mydata()
-X_points, Y_points = ALL_DATA.get_basin_point_data(basin_mask_value=2)
-print(f"数据形状: {X_points.shape}, {Y_points.shape}")
+FEATURES_DIR = "/mnt/f/rainfalldata/results/yangtze/features/features"
+
+# 加载特征列表 (包含名称、描述和shape)
+features_info_df = pd.read_csv(os.path.join(FEATURES_DIR, "features_list.csv"))
+
+# 筛选出已展平的特征
+flattened_features_df = features_info_df[features_info_df['shape'] == '(5247240,)']
+
+# 加载所有已展平特征并构建特征矩阵 X
+X_features_list = []
+feature_names = []
+for index, row in flattened_features_df.iterrows():
+    fname = row['feature_file_name']
+    fpath = os.path.join(FEATURES_DIR, fname)
+    data = np.load(fpath)
+    X_features_list.append(data)
+    feature_names.append(fname.replace(".npy", ""))
+
+X_matrix = np.stack(X_features_list, axis=1) # 堆叠成 (总样本数, 特征数)
+
+# 加载目标变量 Y
+Y_vector = np.load(os.path.join(FEATURES_DIR, "target_points_valid.npy"))
+
+print(f"特征矩阵 X 的 shape: {X_matrix.shape}")
+print(f"目标向量 Y 的 shape: {Y_vector.shape}")
+print(f"特征数量: {len(feature_names)}")
 ```
 
-## 扩展指南
+### 2. 使用未展平特征
 
-### 添加新特征类别
+对于未展平的特征，您需要根据其具体 `shape` 和用途进行处理。例如：
 
-1. 创建新的生成器脚本
-2. 在`generate_all_features.py`中添加配置
-3. 更新`feature_loader.py`的分类逻辑
-4. 更新此README文档
+*   **可视化**：直接加载 `spatial_gradient_magnitude_GSMAP.npy` (`(106, 144, 256)`) 进行空间模式的可视化。
+*   **深度学习**：将其作为卷积神经网络 (CNN) 的输入。
+*   **进一步特征工程**：从这些特征中提取新的统计量（如每个时间步的最大梯度、平均连通域大小），然后将其展平并添加到您的特征集中。
 
-### 优化计算性能
+## 📚 相关文档
 
-1. 减少计算的时间步数
-2. 限制处理的空间点数
-3. 使用更高效的算法
-4. 并行化计算过程
+*   **项目主 README**: `../../README.md` (包含项目整体架构、数据预处理、模型迭代等详细信息)
+*   **长江流域核心工作区 README**: `../README.md` (包含特征生成脚本、模型训练脚本等详细信息)
+*   **特征列表 CSV**: `features_list.csv` (包含所有特征的名称、描述和shape)
 
-这个系统为您的特征工程提供了极大的灵活性，您可以根据具体需求选择和组合不同的特征进行实验！
+---
+
+**生成时间**: 2024年6月30日  
+**数据版本**: v1.0 (展平版)  
+**作者**: Claude Code & 降雨预测项目组
