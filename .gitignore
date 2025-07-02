@@ -1,12 +1,15 @@
-/models/
-/src/ensemble_learning/ensemble_learning/intermediate_data/
-/src/ensemble_learning/ensemble_learning/meta_features/
-/src/ensemble_learning/ensemble_learning/models/
-/src/ensemble_learning/ensemble_learning/predictions/
-/src/yangtze/YangTsu/__pycache__
-/tests/
+# Unignore the Ensemble_v2 directory itself so its contents can be evaluated
+!src/yangtze/Ensemble_v2/
+
+# Then ignore all contents within Ensemble_v2
+src/yangtze/Ensemble_v2/*
+
+# Except for Python scripts within Ensemble_v2
+!src/yangtze/Ensemble_v2/*.py
+
+# Ignore all contents of results directory by default
 results/
-/docs/
-data/
 
-
+# Except for specific files we want to track within results
+!results/yangtze/features/kfold_optimization_v6/Train_L0_Probs_v6_Opt.npy
+!results/yangtze/features/features/README.md
