@@ -13,3 +13,12 @@ results/
 # Except for specific files we want to track within results
 !results/yangtze/features/kfold_optimization_v6/Train_L0_Probs_v6_Opt.npy
 !results/yangtze/features/features/README.md
+
+# Ignore data and models directories
+data/
+models/
+src/ensemble_learning/ensemble_learning/models/
+
+# Ignore Python cache directories and files
+__pycache__/
+*.pyc
