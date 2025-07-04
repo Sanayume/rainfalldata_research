@@ -69,12 +69,6 @@ OPTIMIZE_METRIC = 'auc'
 
 # 专家模型配置
 EXPERT_MODELS = {
-    "tn": {
-        "target_file": "y_is_tn.npy",
-        "description": "True Negative Expert - 学习识别基础模型何时产生真负例",
-        "study_name": "tn_expert_optimization_v1", 
-        "storage_file": "tn_expert_optimization.db"
-    },
     "fn": {
         "target_file": "y_is_fn.npy",
         "description": "False Negative Expert - 学习识别基础模型何时产生假负例", 
@@ -82,8 +76,14 @@ EXPERT_MODELS = {
         "storage_file": "fn_expert_optimization.db"
     }
 }
-'''
 
+'''
+    "tn": {
+        "target_file": "y_is_tn.npy",
+        "description": "True Negative Expert - 学习识别基础模型何时产生真负例",
+        "study_name": "tn_expert_optimization_v1", 
+        "storage_file": "tn_expert_optimization.db"
+    },
     "fp": {
         "target_file": "y_is_fp.npy", 
         "description": "False Positive Expert - 学习识别基础模型何时产生假正例",
