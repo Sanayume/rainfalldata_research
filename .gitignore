@@ -22,3 +22,14 @@ src/ensemble_learning/ensemble_learning/models/
 # Ignore Python cache directories and files
 __pycache__/
 *.pyc
+
+# Ignore specific files
+.claude/settings.local.json
+src/yangtze/YangTsu/README.md
+commit_message.tmp
+src/yangtze/Ensemble_v2/03_train_level2_ensemble.py
+src/yangtze/Ensemble_v2/quick_bayesian_demo.py
+src/yangtze/Ensemble_v2/simplified_bayesian_expert.py
+src/yangtze/Ensemble_v2/test_path_fix.py
+src/yangtze/Ensemble_v2/train_all_experts_cv.py
+src/yangtze/Ensemble_v2/train_fn_in_mac.py
