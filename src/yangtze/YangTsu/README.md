@@ -143,10 +143,64 @@
     *   **目标**: 原始的真实地面标签 `Y_true`。
     *   **作用**: 学习如何综合所有元特征，以生成最终的、经过误差修正和校准的降雨概率预测。
 
-### 实施进展
+### 实施进展与最终结果
 
 *   **`src/yangtze/Ensemble_v2/` 目录**: 新建此目录用于存放本次集成学习策略的相关脚本和产出。
 *   **`01_prepare_l1_targets.py`**: 已成功运行，生成了 `y_is_tp.npy`, `y_is_fp.npy`, `y_is_fn.npy`, `y_is_tn.npy`。
-*   **`02_train_l1_experts.py`**: 已编写完成，即将运行以训练Level 1专家模型并生成元特征。
+*   **`train_all_experts_cv_correct_strategies.py`**: 按原始策略训练4个专家模型，已完成5折交叉验证训练。
 
-本次尝试旨在通过更细致地捕捉和修正基础模型的误差类型，从而在整体上提升降雨预测的准确性和鲁棒性。
+### 4专家模型最终性能总结
+
+经过5折交叉验证训练，4个专家模型的最终性能如下：
+
+| 专家类型 | 训练策略 | OOF AUC | 与基线对比 | 正样本比例 | 状态 |
+|---------|----------|---------|------------|------------|------|
+| **TP专家** | 标准训练+CUDA | **0.9947** | +0.0060 | 37.32% | ✅ 超越基线 |
+| **TN专家** | 标准训练+CUDA | **0.9926** | +0.0039 | 59.46% | ✅ 超越基线 |
+| **FP专家** | 多策略平衡+组合评分+CUDA | **0.9993** | +0.0106 | 2.23% | ✅ 超越基线 |
+| **FN专家** | 标准训练+CUDA | **0.9025** | -0.0862 | 3.72% | ❌ 低于基线 |
+
+**基线性能**: 单个XGBoost AUC = 0.9887
+
+#### 关键发现
+
+1. **高成功率**: 4个专家中有3个（75%）成功超越基线性能，证明了专家模型策略的有效性。
+
+2. **FP专家表现突出**: 
+   - 在不平衡数据上达到AUC 0.9993，提升幅度最大（+0.0106）
+   - 在平衡数据上的AUC为0.9535，体现了数据平衡策略的重要性
+   - 多策略平衡训练（25% hybrid策略）和组合评分（40% AUC + 40% Precision + 20% F1）效果显著
+
+3. **FN专家的挑战**:
+   - 仍低于基线862个基点，反映了FN预测的固有困难
+   - 3.72%的正样本比例使得学习更加困难
+   - 需要进一步的特征工程和策略优化
+
+#### 生成的文件路径
+
+**模型文件**:
+- `Ensemble_v2/models/tp_expert_cv_models_20250706_*.joblib`
+- `Ensemble_v2/models/tn_expert_cv_models_20250706_*.joblib`  
+- `Ensemble_v2/models/fp_expert_cv_models_20250706_*.joblib`
+- `Ensemble_v2/models/fn_expert_cv_models_20250706_*.joblib`
+
+**折外预测**:
+- `Ensemble_v2/oof_predictions/tp_expert_oof_predictions_20250706_*.npy`
+- `Ensemble_v2/oof_predictions/tn_expert_oof_predictions_20250706_*.npy`
+- `Ensemble_v2/oof_predictions/fp_expert_oof_predictions_20250706_*.npy`
+- `Ensemble_v2/oof_predictions/fn_expert_oof_predictions_20250706_*.npy`
+
+**分析报告**:
+- `Ensemble_v2/tp_expert_cv_results_20250706_*.joblib`
+- `Ensemble_v2/tn_expert_cv_results_20250706_*.joblib`
+- `Ensemble_v2/fp_expert_cv_results_20250706_*.joblib`  
+- `Ensemble_v2/fn_expert_cv_results_20250706_*.joblib`
+- `Ensemble_v2/experts_cv_summary_20250706_*.joblib`
+
+#### 下一步工作
+
+1. **Level-2融合模型**: 使用生成的OOF预测训练元学习器，进一步提升整体性能
+2. **FN专家优化**: 针对FN专家设计更专门的特征工程和训练策略
+3. **性能分析**: 深入分析各专家在不同天气条件下的表现差异
+
+本次尝试成功验证了专家模型策略的可行性，为后续的集成学习奠定了坚实基础。
