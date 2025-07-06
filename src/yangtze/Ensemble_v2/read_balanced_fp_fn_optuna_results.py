@@ -29,11 +29,6 @@ def read_balanced_experts_optuna_results():
     optuna_db_dir = os.path.join(current_dir, "Ensemble_v2", "optuna_db")
     
     experts = {
-        "FP": {
-            "db_file": "fp_expert_balanced_optimization.db",
-            "study_name": "fp_expert_balanced_optimization_v1",
-            "color": "red"
-        },
         "FN": {
             "db_file": "fn_expert_balanced_optimization.db", 
             "study_name": "fn_expert_balanced_optimization_v1",

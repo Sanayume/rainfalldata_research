@@ -274,17 +274,17 @@ def create_objective_function(X_train, y_train, X_val, y_val, expert_name):
             'eval_metric': ['logloss', OPTIMIZE_METRIC],
             'tree_method': 'hist',
             'verbosity': 0,
-            'n_estimators': trial.suggest_int('n_estimators', 500, 2000),  # 减少估计器数量
-            'learning_rate': trial.suggest_float('learning_rate', 0.05, 0.2, log=True),  # 提高学习率
-            'max_depth': trial.suggest_int('max_depth', 8, 15),  # 适度减少深度
+            'n_estimators': trial.suggest_int('n_estimators', 1000, 3000),
+            'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.1, log=True),
+            'max_depth': trial.suggest_int('max_depth', 10, 20),
             'subsample': trial.suggest_float('subsample', 0.8, 1.0),
             'colsample_bytree': trial.suggest_float('colsample_bytree', 0.8, 1.0),
-            'gamma': trial.suggest_float('gamma', 0.0, 0.2),  # 减少gamma范围
-            'lambda': trial.suggest_float('lambda', 1e-6, 1.0, log=True),
-            'alpha': trial.suggest_float('alpha', 1e-6, 1.0, log=True),
+            'gamma': trial.suggest_float('gamma', 0.0, 0.5),
+            'lambda': trial.suggest_float('lambda', 1e-8, 10.0, log=True),
+            'alpha': trial.suggest_float('alpha', 1e-8, 10.0, log=True),
             'random_state': 42,
             'early_stopping_rounds': EARLY_STOPPING_ROUNDS_OPTUNA,
-            'device': 'cuda' if 'fp' in expert_name.lower() else 'cpu'  # FP用CUDA，FN用CPU
+            'device': 'cuda'
         }
         
         # 计算类别权重 (对于平衡数据，权重接近1)

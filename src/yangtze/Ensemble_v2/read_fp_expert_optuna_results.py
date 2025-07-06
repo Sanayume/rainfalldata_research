@@ -26,7 +26,7 @@ def read_fp_expert_optuna_results():
     
     # 设置路径
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    optuna_db_path = os.path.join(current_dir, "Ensemble_v2", "optuna_db", "fp_expert_optimization.db")
+    optuna_db_path = os.path.join(current_dir, "Ensemble_v2", "optuna_db", "fp_expert_v2_optimization.db")
     
     print("=" * 80)
     print("FP专家模型 - Optuna优化结果分析")
@@ -41,7 +41,7 @@ def read_fp_expert_optuna_results():
         # 连接Optuna study
         storage_url = f"sqlite:///{optuna_db_path}"
         study = optuna.load_study(
-            study_name="fp_expert_optimization_v1",
+            study_name="fp_expert_v2_optimization",
             storage=storage_url
         )
         

@@ -29,7 +29,8 @@ def backup_and_clear_fp_fn_databases():
     # 需要处理的数据库文件
     fp_fn_databases = [
         "fp_expert_optimization.db",
-        "fn_expert_optimization.db"
+        "fn_expert_optimization.db",
+        "fp_expert_balanced_optimization.db"
     ]
     
     print("=" * 80)
